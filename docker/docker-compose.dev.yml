@@ -1,0 +1,107 @@
+services:
+  # ============================================================
+  # PostgreSQL 16
+  # ============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: bigtank-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: bigtank
+      POSTGRES_USER: bigtank
+      POSTGRES_PASSWORD: bigtank_dev_2024
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bigtank"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # Redis 7
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: bigtank-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # Meilisearch (moteur de recherche)
+  # ============================================================
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: bigtank-meilisearch
+    restart: unless-stopped
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: bigtank_meili_dev_key
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # MinIO (S3-compatible pour les images en dev)
+  # ============================================================
+  minio:
+    image: minio/minio:latest
+    container_name: bigtank-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"    # API S3
+      - "9001:9001"    # Console web
+    environment:
+      MINIO_ROOT_USER: bigtank_minio
+      MINIO_ROOT_PASSWORD: bigtank_minio_secret
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Créer le bucket automatiquement au démarrage
+  minio-setup:
+    image: minio/mc:latest
+    container_name: bigtank-minio-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 bigtank_minio bigtank_minio_secret;
+      mc mb local/bigtank-images --ignore-existing;
+      mc anonymous set download local/bigtank-images;
+      echo 'Bucket bigtank-images created and configured';
+      "
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  meilisearch_data:
+    driver: local
+  minio_data:
+    driver: local

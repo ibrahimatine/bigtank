@@ -1,0 +1,379 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// USERS
+// ============================================================
+
+enum UserRole {
+  USER
+  SELLER
+  ADMIN
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String?  @unique
+  phone         String?  @unique
+  passwordHash  String?  @map("password_hash")
+  name          String
+  avatarUrl     String?  @map("avatar_url")
+  role          UserRole @default(USER)
+  emailVerified Boolean  @default(false) @map("email_verified")
+  phoneVerified Boolean  @default(false) @map("phone_verified")
+  provider      String?  // google, facebook, etc.
+  providerId    String?  @map("provider_id")
+  city          String?
+  region        String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  sellerStats        SellerStats?
+  listings           Listing[]
+  offersAsBuyer      Offer[]        @relation("BuyerOffers")
+  offersAsSeller     Offer[]        @relation("SellerOffers")
+  transactionsAsBuyer  Transaction[] @relation("BuyerTransactions")
+  transactionsAsSeller Transaction[] @relation("SellerTransactions")
+  conversationsAsBuyer  Conversation[] @relation("BuyerConversations")
+  conversationsAsSeller Conversation[] @relation("SellerConversations")
+  messagesSent       Message[]
+  notifications      Notification[]
+  reviewsGiven       Review[]       @relation("ReviewerReviews")
+  reviewsReceived    Review[]       @relation("ReviewedReviews")
+  refreshTokens      RefreshToken[]
+  auditLogs          AuditLog[]
+
+  @@map("users")
+}
+
+model SellerStats {
+  id                    String   @id @default(cuid())
+  userId                String   @unique @map("user_id")
+  totalSales            Int      @default(0) @map("total_sales")
+  totalListings         Int      @default(0) @map("total_listings")
+  commissionFreeRemaining Int    @default(1) @map("commission_free_remaining")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("seller_stats")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ============================================================
+// LISTINGS
+// ============================================================
+
+enum ListingCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  RESERVED
+  DELETED
+}
+
+model Listing {
+  id             String           @id @default(cuid())
+  sellerId       String           @map("seller_id")
+  title          String
+  description    String
+  brand          String
+  model          String
+  sizeEu         Float            @map("size_eu")
+  sizeUs         Float?           @map("size_us")
+  sizeUk         Float?           @map("size_uk")
+  condition      ListingCondition
+  color          String
+  priceXof       Int              @map("price_xof")
+  status         ListingStatus    @default(ACTIVE)
+  locationCity   String           @map("location_city")
+  locationRegion String           @map("location_region")
+  viewsCount     Int              @default(0) @map("views_count")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  deletedAt      DateTime?        @map("deleted_at")
+  deletedBy      String?          @map("deleted_by")
+
+  // Relations
+  seller        User           @relation(fields: [sellerId], references: [id])
+  images        ListingImage[]
+  offers        Offer[]
+  conversations Conversation[]
+
+  @@index([sellerId])
+  @@index([status, createdAt])
+  @@index([brand])
+  @@index([sizeEu])
+  @@index([priceXof])
+  @@index([locationRegion])
+  @@index([status, priceXof])
+  @@index([status, sizeEu, brand])
+  @@map("listings")
+}
+
+model ListingImage {
+  id        String   @id @default(cuid())
+  listingId String   @map("listing_id")
+  url       String
+  key       String
+  order     Int      @default(0)
+  width     Int
+  height    Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_images")
+}
+
+// ============================================================
+// OFFERS
+// ============================================================
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COUNTERED
+  EXPIRED
+  CANCELLED
+}
+
+model Offer {
+  id            String      @id @default(cuid())
+  listingId     String      @map("listing_id")
+  buyerId       String      @map("buyer_id")
+  sellerId      String      @map("seller_id")
+  amountXof     Int         @map("amount_xof")
+  status        OfferStatus @default(PENDING)
+  message       String?
+  parentOfferId String?     @map("parent_offer_id")
+  expiresAt     DateTime    @map("expires_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  listing     Listing      @relation(fields: [listingId], references: [id])
+  buyer       User         @relation("BuyerOffers", fields: [buyerId], references: [id])
+  seller      User         @relation("SellerOffers", fields: [sellerId], references: [id])
+  parentOffer Offer?       @relation("OfferChain", fields: [parentOfferId], references: [id])
+  counterOffers Offer[]    @relation("OfferChain")
+  transaction Transaction?
+
+  @@index([listingId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@map("offers")
+}
+
+// ============================================================
+// TRANSACTIONS
+// ============================================================
+
+enum TransactionStatus {
+  PENDING_PAYMENT
+  PAID
+  ESCROW
+  CONFIRMED
+  COMPLETED
+  DISPUTED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  WAVE
+  ORANGE_MONEY
+  FREE_MONEY
+  CARD
+}
+
+enum PaymentProvider {
+  PAYDUNYA
+  PAYTECH
+  NABOOPAY
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  offerId         String            @unique @map("offer_id")
+  buyerId         String            @map("buyer_id")
+  sellerId        String            @map("seller_id")
+  amountXof       Int               @map("amount_xof")
+  commissionXof   Int               @default(0) @map("commission_xof")
+  paymentProvider PaymentProvider   @map("payment_provider")
+  paymentRef      String?           @map("payment_ref")
+  paymentMethod   PaymentMethod     @map("payment_method")
+  transferRef     String?           @map("transfer_ref")
+  status          TransactionStatus @default(PENDING_PAYMENT)
+  confirmedAt     DateTime?         @map("confirmed_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  offer   Offer    @relation(fields: [offerId], references: [id])
+  buyer   User     @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  seller  User     @relation("SellerTransactions", fields: [sellerId], references: [id])
+  reviews Review[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([paymentRef])
+  @@map("transactions")
+}
+
+// ============================================================
+// CHAT
+// ============================================================
+
+model Conversation {
+  id            String    @id @default(cuid())
+  listingId     String    @map("listing_id")
+  buyerId       String    @map("buyer_id")
+  sellerId      String    @map("seller_id")
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  listing  Listing   @relation(fields: [listingId], references: [id])
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  seller   User      @relation("SellerConversations", fields: [sellerId], references: [id])
+  messages Message[]
+
+  @@unique([listingId, buyerId, sellerId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  conversationId String    @map("conversation_id")
+  senderId       String    @map("sender_id")
+  content        String
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+enum NotificationType {
+  WELCOME
+  LISTING_SOLD
+  NEW_OFFER
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  NEW_MESSAGE
+  PAYMENT_RECEIVED
+  PAYMENT_SENT
+  LISTING_DELETED_BY_ADMIN
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String              @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  channel   NotificationChannel
+  readAt    DateTime?           @map("read_at")
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// REVIEWS
+// ============================================================
+
+model Review {
+  id            String   @id @default(cuid())
+  transactionId String   @map("transaction_id")
+  reviewerId    String   @map("reviewer_id")
+  reviewedId    String   @map("reviewed_id")
+  rating        Int      // 1-5
+  comment       String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  reviewer    User        @relation("ReviewerReviews", fields: [reviewerId], references: [id])
+  reviewed    User        @relation("ReviewedReviews", fields: [reviewedId], references: [id])
+
+  @@unique([transactionId, reviewerId])
+  @@index([reviewedId])
+  @@map("reviews")
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  action    String   // ex: "listing.deleted", "user.banned"
+  targetId  String?  @map("target_id")
+  targetType String? @map("target_type")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([targetId])
+  @@map("audit_logs")
+}
