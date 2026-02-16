@@ -101,6 +101,7 @@ enum ListingStatus {
 model Listing {
   id             String           @id @default(cuid())
   sellerId       String           @map("seller_id")
+  slug           String           @unique
   title          String
   description    String
   brand          String
