@@ -1,20 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { HttpModule } from '@nestjs/axios';
 import { APP_GUARD } from '@nestjs/core';
 import { HealthController } from './health.controller';
+import { AuthProxyController } from './auth-proxy.controller';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
         limit: 100,
       },
     ]),
+    HttpModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, AuthProxyController],
   providers: [
     {
       provide: APP_GUARD,

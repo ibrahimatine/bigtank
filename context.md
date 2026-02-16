@@ -1,6 +1,6 @@
 # BigTank — Contexte Projet
 
-> Derniere mise a jour : Phase 1 terminee (15/02/2026)
+> Derniere mise a jour : Phase 2 terminee (16/02/2026)
 
 ---
 
@@ -162,9 +162,8 @@ bigtank/
 | Phase | Contenu | Statut |
 |---|---|---|
 | Phase 1 | Setup monorepo, Prisma schema, Docker, squelettes services | TERMINE |
-| Phase 2 | auth-service (inscription, login, JWT, refresh, OTP) | A FAIRE |
-| Phase 3 | api-gateway (routing, auth middleware, rate limiting) | A FAIRE |
-| Phase 4 | listing-service (CRUD annonces, upload images S3) | A FAIRE |
+| Phase 2 | auth-service (inscription, login, JWT, refresh, roles, proxy gateway) | TERMINE |
+| Phase 3 | listing-service (CRUD annonces, upload images S3, filtres) | A FAIRE |
 | Phase 5 | search-service (Meilisearch, filtres, facettes) | A FAIRE |
 | Phase 6 | web (pages Next.js : accueil, listing, profil, auth) | A FAIRE |
 | Phase 7 | chat-service (WebSocket temps reel) | A FAIRE |
