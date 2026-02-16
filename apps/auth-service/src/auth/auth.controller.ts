@@ -3,10 +3,12 @@ import {
   Post,
   Get,
   Body,
+  Req,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { RegisterDto } from './dto/register.dto';
@@ -29,8 +31,9 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto, @Req() req: Request) {
+    const ip = req.ip || req.headers['x-forwarded-for'] as string;
+    return this.authService.login(dto, ip);
   }
 
   @Post('refresh')

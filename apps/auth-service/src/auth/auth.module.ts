@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { LoginRateLimitService } from './login-rate-limit.service';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -23,7 +24,7 @@ import { UserModule } from '../user/user.module';
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, LoginRateLimitService],
   exports: [AuthService],
 })
 export class AuthModule {}

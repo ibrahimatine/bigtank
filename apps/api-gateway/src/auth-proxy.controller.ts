@@ -12,7 +12,9 @@ export class AuthProxyController {
 
   @All('*')
   async proxy(@Req() req: Request, @Res() res: Response) {
-    const url = `${this.authServiceUrl}/auth${req.url === '/' ? '' : req.url}`;
+    // Strip /api/auth prefix to get the sub-path (e.g. /me, /login)
+    const subPath = req.originalUrl.replace(/^\/api\/auth/, '') || '';
+    const url = `${this.authServiceUrl}/auth${subPath}`;
 
     try {
       const response = await lastValueFrom(
@@ -23,6 +25,9 @@ export class AuthProxyController {
           headers: {
             'content-type': req.headers['content-type'] || 'application/json',
             authorization: req.headers['authorization'] || '',
+            'x-user-id': req.headers['x-user-id'] || '',
+            'x-user-role': req.headers['x-user-role'] || '',
+            'x-forwarded-for': req.ip || '',
           },
           validateStatus: () => true,
         }),

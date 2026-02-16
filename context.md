@@ -1,6 +1,6 @@
 # BigTank — Contexte Projet
 
-> Derniere mise a jour : Phase 2 terminee (16/02/2026)
+> Derniere mise a jour : Phase 2.1 terminee (16/02/2026)
 
 ---
 
@@ -109,7 +109,7 @@ bigtank/
 | `messages` | Messages individuels |
 | `notifications` | Notifications (in-app, email, SMS, push) |
 | `reviews` | Avis apres transaction |
-| `audit_logs` | Journal des actions admin |
+| `audit_logs` | Journal des actions auth + admin (userId nullable, details) |
 
 ---
 
@@ -136,10 +136,12 @@ bigtank/
 
 ## Securite
 
-- JWT access token (15 min) + refresh token httpOnly (7 jours)
+- JWT access token (15 min) + refresh token (7 jours)
 - Rotation automatique des tokens
-- Bcrypt pour les mots de passe
-- Rate limiting par IP et par user (Redis)
+- Bcrypt 12 rounds pour les mots de passe + refresh tokens hashes
+- Rate limiting login : 5 tentatives → blocage 15 min (Redis)
+- Gateway JWT middleware : validation + injection x-user-id/x-user-role
+- Audit logs : REGISTER, LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT (avec IP)
 - Validation inputs (class-validator backend, Zod frontend)
 - Helmet.js, CORS strict, protection XSS/CSRF
 - Logs structures (Winston/Pino)
@@ -163,6 +165,7 @@ bigtank/
 |---|---|---|
 | Phase 1 | Setup monorepo, Prisma schema, Docker, squelettes services | TERMINE |
 | Phase 2 | auth-service (inscription, login, JWT, refresh, roles, proxy gateway) | TERMINE |
+| Phase 2.1 | Securite auth (bcrypt 12, rate limiting Redis, gateway JWT, audit logs) | TERMINE |
 | Phase 3 | listing-service (CRUD annonces, upload images S3, filtres) | A FAIRE |
 | Phase 5 | search-service (Meilisearch, filtres, facettes) | A FAIRE |
 | Phase 6 | web (pages Next.js : accueil, listing, profil, auth) | A FAIRE |

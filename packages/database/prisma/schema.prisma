@@ -362,15 +362,16 @@ model Review {
 // ============================================================
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  action    String   // ex: "listing.deleted", "user.banned"
-  targetId  String?  @map("target_id")
-  targetType String? @map("target_type")
-  metadata  Json?
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  action     String   // ex: "LOGIN_SUCCESS", "LOGIN_FAILED", "REGISTER", "LOGOUT"
+  details    String?
+  targetId   String?  @map("target_id")
+  targetType String?  @map("target_type")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([action])

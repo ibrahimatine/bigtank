@@ -4,6 +4,8 @@ import {
   ConflictException,
   UnauthorizedException,
   NotFoundException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +17,9 @@ import {
 } from '@bigtank/shared-utils';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { LoginRateLimitService } from './login-rate-limit.service';
+
+const BCRYPT_ROUNDS = 12;
 
 @Injectable()
 export class AuthService {
@@ -22,6 +27,7 @@ export class AuthService {
     @Inject('PRISMA') private prisma: PrismaClient,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private loginRateLimit: LoginRateLimitService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -45,7 +51,7 @@ export class AuthService {
       }
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
 
     const user = await this.prisma.user.create({
       data: {
@@ -68,10 +74,30 @@ export class AuthService {
       },
     });
 
+    // Audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'REGISTER',
+        details: `Inscription via ${dto.phone ? 'téléphone' : 'email'}`,
+      },
+    });
+
     return { message: 'Inscription réussie', user };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ip?: string) {
+    // Rate limit check
+    const rateLimitKey = dto.emailOrPhone;
+    const isLocked = await this.loginRateLimit.isLocked(rateLimitKey);
+    if (isLocked) {
+      const remaining = await this.loginRateLimit.getRemainingLockTime(rateLimitKey);
+      throw new HttpException(
+        `Trop de tentatives. Réessayez dans ${remaining} minutes.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
     const isEmail = dto.emailOrPhone.includes('@');
     const user = await this.prisma.user.findUnique({
       where: isEmail
@@ -80,6 +106,8 @@ export class AuthService {
     });
 
     if (!user || !user.passwordHash) {
+      await this.loginRateLimit.recordFailedAttempt(rateLimitKey);
+      await this.logLoginAttempt(null, dto.emailOrPhone, ip, false);
       throw new UnauthorizedException('Identifiants invalides');
     }
 
@@ -88,8 +116,14 @@ export class AuthService {
       user.passwordHash,
     );
     if (!isPasswordValid) {
+      await this.loginRateLimit.recordFailedAttempt(rateLimitKey);
+      await this.logLoginAttempt(user.id, dto.emailOrPhone, ip, false);
       throw new UnauthorizedException('Identifiants invalides');
     }
+
+    // Login success — reset rate limit
+    await this.loginRateLimit.resetAttempts(rateLimitKey);
+    await this.logLoginAttempt(user.id, dto.emailOrPhone, ip, true);
 
     const tokens = await this.generateTokens(user);
 
@@ -165,6 +199,11 @@ export class AuthService {
         await this.prisma.refreshToken.delete({
           where: { id: token.id },
         });
+
+        await this.prisma.auditLog.create({
+          data: { userId, action: 'LOGOUT', details: 'Déconnexion' },
+        });
+
         return { message: 'Déconnexion réussie' };
       }
     }
@@ -190,7 +229,7 @@ export class AuthService {
       expiresIn: REFRESH_TOKEN_EXPIRY,
     });
 
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, BCRYPT_ROUNDS);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
@@ -203,5 +242,20 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  private async logLoginAttempt(
+    userId: string | null,
+    identifier: string,
+    ip: string | undefined,
+    success: boolean,
+  ) {
+    await this.prisma.auditLog.create({
+      data: {
+        userId: userId,
+        action: success ? 'LOGIN_SUCCESS' : 'LOGIN_FAILED',
+        details: `Tentative login: ${identifier}${ip ? ` depuis ${ip}` : ''}`,
+      },
+    });
   }
 }
