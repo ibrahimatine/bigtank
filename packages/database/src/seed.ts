@@ -69,6 +69,7 @@ async function main() {
     prisma.listing.create({
       data: {
         sellerId: seller.id,
+        slug: 'nike-air-max-90-taille-47',
         title: 'Nike Air Max 90 - Taille 47',
         description: 'Nike Air Max 90 en excellent état, portées quelques fois. Couleur noire, taille EU 47.',
         brand: 'Nike',
@@ -85,6 +86,7 @@ async function main() {
     prisma.listing.create({
       data: {
         sellerId: seller.id,
+        slug: 'adidas-yeezy-boost-350-taille-48',
         title: 'Adidas Yeezy Boost 350 - Taille 48',
         description: 'Adidas Yeezy Boost 350 V2 neuves, jamais portées. Taille EU 48.',
         brand: 'Adidas',
@@ -101,6 +103,7 @@ async function main() {
     prisma.listing.create({
       data: {
         sellerId: seller.id,
+        slug: 'puma-rs-x-taille-46',
         title: 'Puma RS-X - Taille 46',
         description: 'Puma RS-X en bon état général. Quelques traces d\'usure normales.',
         brand: 'Puma',

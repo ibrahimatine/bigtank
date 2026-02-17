@@ -1,6 +1,6 @@
 # BigTank — Contexte Projet
 
-> Derniere mise a jour : Phase 4 terminee (17/02/2026)
+> Derniere mise a jour : Phase 5a terminee (17/02/2026)
 
 ---
 
@@ -150,12 +150,24 @@ bigtank/
 
 ## SEO (SEO-First)
 
-- SSR avec Next.js App Router
-- Metadata dynamique par page
-- URLs semantiques : `/shoes/nike/size-46`
-- JSON-LD (Product + Marketplace)
-- Sitemap.xml dynamique
-- OpenGraph optimise
+- SSR avec Next.js App Router (force-dynamic pour detail, ISR 60s pour recherche)
+- Metadata dynamique par page (template `%s | BigTank`)
+- URLs semantiques par slug (`/:slug`)
+- JSON-LD Product (detail) + WebSite avec SearchAction (landing)
+- OpenGraph dynamique avec images
+- Sitemap.xml dynamique (a venir)
+
+---
+
+## Frontend (Tailwind v4 + shadcn/ui)
+
+| Element | Detail |
+|---|---|
+| CSS | Tailwind v4 (@import + @theme) |
+| UI | shadcn/ui (8 composants : button, card, badge, input, select, separator, skeleton, sheet) |
+| Fonts | Inter (body) + Space Grotesk (titres, prix) |
+| Couleurs | Primary #1a1a2e, Accent #e94560, Background #f5f5f5 |
+| Responsive | Grid 2→3→4 colonnes, filtres Sheet mobile |
 
 ---
 
@@ -168,11 +180,12 @@ bigtank/
 | Phase 2.1 | Securite auth (bcrypt 12, rate limiting Redis, gateway JWT, audit logs) | TERMINE |
 | Phase 3 | listing-service (CRUD, presigned upload MinIO, Meilisearch, slugs SEO, rate limit) | TERMINE |
 | Phase 4 | chat-service (WebSocket Socket.io, conversations, messages, typing, read status) | TERMINE |
-| Phase 5 | search-service (Meilisearch, filtres, facettes) | A FAIRE |
-| Phase 6 | web (pages Next.js : accueil, listing, profil, auth) | A FAIRE |
-| Phase 8 | payment-service (PayDunya/PayTech, offres, escrow) | A FAIRE |
-| Phase 9 | notification-service (emails, push, SMS) | A FAIRE |
-| Phase 10 | Securite avancee, tests, CI/CD, Docker prod | A FAIRE |
+| Phase 5a | Frontend pages publiques SEO (landing, recherche filtres, detail SSR, JSON-LD) | TERMINE |
+| Phase 5b | Frontend pages authentifiees (login, register, dashboard vendeur, profil) | A FAIRE |
+| Phase 5c | Frontend chat UI temps reel (Socket.io client, conversations) | A FAIRE |
+| Phase 6 | payment-service (PayDunya/PayTech, offres, escrow) | A FAIRE |
+| Phase 7 | notification-service (emails, push, SMS) | A FAIRE |
+| Phase 8 | Securite avancee, tests, CI/CD, Docker prod | A FAIRE |
 
 ---
 

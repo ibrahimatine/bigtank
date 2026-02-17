@@ -1,23 +1,40 @@
-export default function HomePage() {
-  return (
-    <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
-      <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.5rem', color: 'var(--color-primary)' }}>BigTank</h1>
-        <p style={{ fontSize: '1.2rem', color: 'var(--color-text-light)', marginTop: '0.5rem' }}>
-          Chaussures grandes tailles au Sénégal
-        </p>
-        <p style={{ color: 'var(--color-accent)', marginTop: '0.25rem' }}>EU 46+ / US 12+</p>
-      </header>
+import { Suspense } from 'react';
+import { Hero } from '@/components/home/hero';
+import { RecentListings } from '@/components/home/recent-listings';
+import { ListingGridSkeleton } from '@/components/listing/listing-grid';
+import { generateWebsiteJsonLd } from '@/lib/seo';
 
-      <section style={{ textAlign: 'center', padding: '3rem', background: 'var(--color-white)', borderRadius: '12px' }}>
-        <h2>Bientôt disponible</h2>
-        <p style={{ marginTop: '1rem', color: 'var(--color-text-light)' }}>
-          La marketplace N°1 pour acheter et vendre des chaussures grandes tailles au Sénégal.
-        </p>
-        <p style={{ marginTop: '0.5rem', color: 'var(--color-text-light)' }}>
-          Paiement par Wave, Orange Money et Free Money.
-        </p>
+export default function HomePage() {
+  const jsonLd = generateWebsiteJsonLd();
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <Hero />
+      <Suspense
+        fallback={
+          <div className="max-w-[1280px] mx-auto px-4 py-12">
+            <ListingGridSkeleton />
+          </div>
+        }
+      >
+        <RecentListings />
+      </Suspense>
+
+      <section className="bg-[var(--color-primary)] text-white py-16 mt-8">
+        <div className="max-w-[1280px] mx-auto px-4 text-center">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold">
+            Vous avez des chaussures a vendre ?
+          </h2>
+          <p className="mt-3 text-white/70 max-w-md mx-auto">
+            Publiez votre annonce gratuitement et touchez des milliers d&apos;acheteurs
+            au Senegal.
+          </p>
+        </div>
       </section>
-    </main>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { ListingCondition, ListingStatus } from './common';
 export interface Listing {
   id: string;
   sellerId: string;
+  slug: string;
   title: string;
   description: string;
   brand: string;
