@@ -152,7 +152,7 @@ bigtank/
 
 - SSR avec Next.js App Router (force-dynamic pour detail, ISR 60s pour recherche)
 - Metadata dynamique par page (template `%s | BigTank`)
-- URLs semantiques par slug (`/:slug`)
+- URLs semantiques par slug (`/shoes/:slug`)
 - JSON-LD Product (detail) + WebSite avec SearchAction (landing)
 - OpenGraph dynamique avec images
 - Sitemap.xml dynamique (a venir)

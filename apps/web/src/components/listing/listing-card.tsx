@@ -15,7 +15,7 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
     CONDITION_LABELS[listing.condition as ListingCondition] || listing.condition;
 
   return (
-    <Link href={`/${listing.slug}`} className="group block">
+    <Link href={`/shoes/${listing.slug}`} className="group block">
       <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden transition-shadow hover:shadow-md">
         <div className="relative aspect-square bg-[var(--color-muted)]">
           <div className="absolute inset-0 flex items-center justify-center text-[var(--color-muted-foreground)] text-sm">

@@ -30,7 +30,7 @@ export function generateListingJsonLd(listing: ListingDetail) {
         name: listing.seller.name,
       },
     },
-    url: `${SITE_URL}/${listing.slug}`,
+    url: `${SITE_URL}/shoes/${listing.slug}`,
     sku: listing.id,
     color: listing.color,
   };
