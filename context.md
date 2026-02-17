@@ -1,6 +1,6 @@
 # BigTank — Contexte Projet
 
-> Derniere mise a jour : Phase 3 terminee (16/02/2026)
+> Derniere mise a jour : Phase 4 terminee (17/02/2026)
 
 ---
 
@@ -167,9 +167,9 @@ bigtank/
 | Phase 2 | auth-service (inscription, login, JWT, refresh, roles, proxy gateway) | TERMINE |
 | Phase 2.1 | Securite auth (bcrypt 12, rate limiting Redis, gateway JWT, audit logs) | TERMINE |
 | Phase 3 | listing-service (CRUD, presigned upload MinIO, Meilisearch, slugs SEO, rate limit) | TERMINE |
+| Phase 4 | chat-service (WebSocket Socket.io, conversations, messages, typing, read status) | TERMINE |
 | Phase 5 | search-service (Meilisearch, filtres, facettes) | A FAIRE |
 | Phase 6 | web (pages Next.js : accueil, listing, profil, auth) | A FAIRE |
-| Phase 7 | chat-service (WebSocket temps reel) | A FAIRE |
 | Phase 8 | payment-service (PayDunya/PayTech, offres, escrow) | A FAIRE |
 | Phase 9 | notification-service (emails, push, SMS) | A FAIRE |
 | Phase 10 | Securite avancee, tests, CI/CD, Docker prod | A FAIRE |

@@ -10,8 +10,17 @@ export class AuthProxyController {
 
   constructor(private httpService: HttpService) {}
 
+  @All()
+  async proxyRoot(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
   @All('*')
-  async proxy(@Req() req: Request, @Res() res: Response) {
+  async proxyWildcard(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
+  private async proxy(req: Request, res: Response) {
     // Strip /api/auth prefix to get the sub-path (e.g. /me, /login)
     const subPath = req.originalUrl.replace(/^\/api\/auth/, '') || '';
     const url = `${this.authServiceUrl}/auth${subPath}`;

@@ -10,8 +10,17 @@ export class ChatProxyController {
 
   constructor(private httpService: HttpService) {}
 
+  @All()
+  async proxyRoot(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
   @All('*')
-  async proxy(@Req() req: Request, @Res() res: Response) {
+  async proxyWildcard(@Req() req: Request, @Res() res: Response) {
+    return this.proxy(req, res);
+  }
+
+  private async proxy(req: Request, res: Response) {
     const subPath = req.originalUrl.replace(/^\/api\/chat/, '') || '';
     const url = `${this.chatServiceUrl}/chat${subPath}`;
 
