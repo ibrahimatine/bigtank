@@ -6,7 +6,7 @@ Marketplace de chaussures grandes tailles au Senegal. Architecture microservices
 
 | Couche | Technologies |
 |--------|-------------|
-| **Frontend** | Next.js 14, React 18, Tailwind CSS 4 |
+| **Frontend** | Next.js 14, React 18, Tailwind CSS 4, shadcn/ui |
 | **Backend** | NestJS 11, Express 5, TypeScript |
 | **Base de donnees** | PostgreSQL 16 (Prisma ORM v6) |
 | **Cache** | Redis 7 |
@@ -571,7 +571,7 @@ bigtank/
 │   ├── payment-service/      # Paiements (:4004) — en cours
 │   ├── notification-service/ # Notifications (:4005) — en cours
 │   ├── search-service/       # Recherche (:4006) — en cours
-│   └── web/                  # Frontend Next.js (:3000)
+│   └── web/                  # Frontend Next.js (:3000) — pages publiques SEO
 ├── packages/
 │   ├── database/             # Schema Prisma et migrations
 │   ├── shared-types/         # Types TypeScript partages
@@ -593,6 +593,35 @@ bigtank/
 - **Headers HTTP** : Helmet.js
 - **Roles** : USER, SELLER, ADMIN avec controles d'acces
 - **Audit** : journalisation des connexions et actions sensibles
+
+## Frontend (Phase 5a)
+
+Le frontend Next.js expose 3 pages publiques optimisees SEO :
+
+| Route | Rendu | Description |
+|-------|-------|-------------|
+| `/` | Static (SSG) | Landing page : hero, annonces recentes, CTA vendeur |
+| `/search` | Dynamic (ISR 60s) | Recherche avec filtres (marque, taille, prix, etat, tri) |
+| `/shoes/[slug]` | Dynamic (SSR) | Detail annonce : galerie, infos, JSON-LD Product |
+
+**Design :**
+- Couleurs : Navy `#1a1a2e` + Rouge accent `#e94560`
+- Fonts : Inter (body) + Space Grotesk (titres, prix)
+- Responsive : grid 2→3→4 colonnes, filtres en Sheet sur mobile
+- SEO : JSON-LD (Product + WebSite), OpenGraph dynamique, metadata template
+
+**Acceder au frontend :**
+
+```bash
+# Demarrer le frontend
+pnpm --filter @bigtank/web dev
+```
+
+Puis ouvrir http://localhost:3000.
+
+> Les pages de recherche et detail necessitent les services backend (`api-gateway` + `listing-service`) pour afficher les donnees.
+
+---
 
 ## Donnees de seed
 

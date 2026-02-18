@@ -18,9 +18,17 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
     <Link href={`/shoes/${listing.slug}`} className="group block">
       <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden transition-shadow hover:shadow-md">
         <div className="relative aspect-square bg-[var(--color-muted)]">
-          <div className="absolute inset-0 flex items-center justify-center text-[var(--color-muted-foreground)] text-sm">
-            Pas de photo
-          </div>
+          {listing.thumbnailUrl ? (
+            <img
+              src={listing.thumbnailUrl}
+              alt={listing.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-[var(--color-muted-foreground)] text-sm">
+              Pas de photo
+            </div>
+          )}
         </div>
 
         <div className="p-3">

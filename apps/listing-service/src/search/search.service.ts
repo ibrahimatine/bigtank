@@ -62,11 +62,18 @@ export class SearchService implements OnModuleInit {
     status: string;
     viewsCount: number;
     createdAt: Date;
+    images?: { url: string; order: number }[];
   }): Promise<void> {
+    const thumbnailUrl = listing.images?.length
+      ? listing.images.sort((a, b) => a.order - b.order)[0].url
+      : null;
+
+    const { images, ...rest } = listing;
     await this.client.index(this.INDEX).addDocuments(
       [
         {
-          ...listing,
+          ...rest,
+          thumbnailUrl,
           createdAt: listing.createdAt.getTime(),
         },
       ],

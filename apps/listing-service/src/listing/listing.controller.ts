@@ -46,6 +46,19 @@ export class ListingController {
     return this.listingService.findMyListings(user.id, filters);
   }
 
+  @Get('my/:id')
+  @UseGuards(GatewayAuthGuard)
+  async myListingById(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string },
+  ) {
+    const listing = await this.listingService.findById(id);
+    if (listing.sellerId !== user.id) {
+      throw new ForbiddenException('Cette annonce ne vous appartient pas');
+    }
+    return listing;
+  }
+
   @Get(':slug')
   async findBySlug(@Param('slug') slug: string) {
     return this.listingService.findBySlug(slug);
@@ -127,13 +140,18 @@ export class ListingController {
         'Vous ne pouvez ajouter des images que sur vos propres annonces',
       );
     }
-    return this.imageService.confirmImage(
+    const result = await this.imageService.confirmImage(
       id,
       dto.key,
       dto.order,
       dto.width,
       dto.height,
     );
+
+    // Re-index to update thumbnailUrl
+    this.listingService.reindexListing(id).catch(() => {});
+
+    return result;
   }
 
   @Delete(':id/images/:imageId')
@@ -149,6 +167,11 @@ export class ListingController {
         'Vous ne pouvez supprimer que vos propres images',
       );
     }
-    return this.imageService.deleteImage(imageId, id);
+    await this.imageService.deleteImage(imageId, id);
+
+    // Re-index to update thumbnailUrl
+    this.listingService.reindexListing(id).catch(() => {});
+
+    return { message: 'Image supprimee' };
   }
 }

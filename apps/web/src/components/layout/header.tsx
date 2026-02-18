@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SearchBar } from '@/components/search/search-bar';
+import { UserNav } from './user-nav';
 
 export function Header() {
   return (
@@ -19,10 +20,11 @@ export function Header() {
         <nav className="flex items-center gap-4 text-sm">
           <Link
             href="/search"
-            className="hover:text-[var(--color-accent)] transition-colors"
+            className="hover:text-[var(--color-accent)] transition-colors hidden sm:inline"
           >
             Explorer
           </Link>
+          <UserNav />
         </nav>
       </div>
 

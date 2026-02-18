@@ -18,6 +18,7 @@ import { DEFAULT_PAGE_SIZE } from '@bigtank/shared-utils';
 const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
   ACTIVE: ['RESERVED', 'SOLD'],
   RESERVED: ['ACTIVE', 'SOLD'],
+  SOLD: ['ACTIVE'],
 };
 
 @Injectable()
@@ -60,6 +61,9 @@ export class ListingService {
     });
 
     this.searchService.indexListing(listing).catch(() => {});
+
+    // Update seller stats (fire and forget)
+    this.updateSellerStats(userId).catch(() => {});
 
     return listing;
   }
@@ -163,6 +167,9 @@ export class ListingService {
 
     this.searchService.indexListing(updated).catch(() => {});
 
+    // Update seller stats (fire and forget)
+    this.updateSellerStats(listing.sellerId).catch(() => {});
+
     return updated;
   }
 
@@ -186,7 +193,36 @@ export class ListingService {
 
     this.searchService.removeListing(id).catch(() => {});
 
+    // Update seller stats (fire and forget)
+    this.updateSellerStats(listing.sellerId).catch(() => {});
+
     return updated;
+  }
+
+  async reindexListing(id: string) {
+    const listing = await this.prisma.listing.findUnique({
+      where: { id },
+      include: { images: { orderBy: { order: 'asc' } } },
+    });
+    if (listing && listing.status !== 'DELETED') {
+      await this.searchService.indexListing(listing);
+    }
+  }
+
+  private async updateSellerStats(userId: string) {
+    const [totalListings, totalSales] = await Promise.all([
+      this.prisma.listing.count({
+        where: { sellerId: userId, status: { not: 'DELETED' } },
+      }),
+      this.prisma.listing.count({
+        where: { sellerId: userId, status: 'SOLD' },
+      }),
+    ]);
+
+    await this.prisma.sellerStats.updateMany({
+      where: { userId },
+      data: { totalListings, totalSales },
+    });
   }
 
   async findMyListings(userId: string, filters: ListingFiltersDto) {
