@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { MapPin, Eye, Calendar, User } from 'lucide-react';
-import { getListingBySlug } from '@/lib/api';
+import { getListingBySlug, searchListings } from '@/lib/api';
 import { generateListingJsonLd } from '@/lib/seo';
 import { ListingGallery } from '@/components/listing/listing-gallery';
+import { ListingCard } from '@/components/listing/listing-card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CONDITION_LABELS } from '@/types';
@@ -64,6 +65,15 @@ export default async function ListingPage({ params }: Props) {
   const conditionLabel =
     CONDITION_LABELS[listing.condition as ListingCondition] || listing.condition;
   const jsonLd = generateListingJsonLd(listing);
+
+  // Similar listings — même marque, trier par pertinence
+  let similarListings: Awaited<ReturnType<typeof searchListings>>['data'] = [];
+  try {
+    const similar = await searchListings({ brand: listing.brand, limit: 5 });
+    similarListings = similar.data.filter((l) => l.id !== listing.id).slice(0, 4);
+  } catch {
+    // ignore
+  }
 
   return (
     <>
@@ -160,6 +170,20 @@ export default async function ListingPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Similar listings */}
+        {similarListings.length > 0 && (
+          <div className="mt-16">
+            <h2 className="font-[family-name:var(--font-display)] text-xl font-bold mb-6">
+              Annonces similaires — {listing.brand}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {similarListings.map((similar) => (
+                <ListingCard key={similar.id} listing={similar} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
