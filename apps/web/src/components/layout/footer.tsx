@@ -1,23 +1,35 @@
 import Link from 'next/link';
 
+const PAYMENT_METHODS = [
+  { label: 'Wave', color: '#1BA8FF' },
+  { label: 'Orange Money', color: '#FF6600' },
+  { label: 'Free Money', color: '#E30613' },
+  { label: 'Carte bancaire', color: '#6B7280' },
+];
+
 export function Footer() {
   return (
-    <footer className="bg-[var(--color-secondary)] text-white/80 mt-16">
-      <div className="max-w-[1280px] mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-[var(--color-secondary)] text-white/70 mt-16">
+      <div className="max-w-[1280px] mx-auto px-4 pt-12 pb-6">
+
+        {/* Grille principale */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-white/10">
+
+          {/* Branding */}
           <div>
             <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-white mb-3">
               Big<span className="text-[var(--color-accent)]">Tank</span>
             </h3>
-            <p className="text-sm">
-              La marketplace N°1 pour les chaussures grandes tailles au Senegal.
+            <p className="text-sm leading-relaxed">
+              La marketplace de reference pour les chaussures grandes tailles au Senegal.
             </p>
-            <p className="text-xs mt-2 text-white/50">Built for Bigger Steps</p>
+            <p className="text-xs mt-3 text-white/30 italic">Built for Bigger Steps</p>
           </div>
 
+          {/* Explorer */}
           <div>
-            <h4 className="font-semibold text-white mb-3">Explorer</h4>
-            <ul className="space-y-2 text-sm">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Explorer</h4>
+            <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/search" className="hover:text-white transition-colors">
                   Toutes les annonces
@@ -38,50 +50,74 @@ export function Footer() {
                   Adidas
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-3">Tailles</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/search?sizeEuMin=46&sizeEuMax=46" className="hover:text-white transition-colors">
-                  EU 46
-                </Link>
-              </li>
-              <li>
-                <Link href="/search?sizeEuMin=47&sizeEuMax=47" className="hover:text-white transition-colors">
-                  EU 47
-                </Link>
-              </li>
-              <li>
-                <Link href="/search?sizeEuMin=48&sizeEuMax=48" className="hover:text-white transition-colors">
-                  EU 48
-                </Link>
-              </li>
               <li>
                 <Link href="/search?sizeEuMin=49" className="hover:text-white transition-colors">
-                  EU 49+
+                  Taille EU 49+
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Liens */}
           <div>
-            <h4 className="font-semibold text-white mb-3">Paiements acceptes</h4>
-            <ul className="space-y-2 text-sm">
-              <li>Wave</li>
-              <li>Orange Money</li>
-              <li>Free Money</li>
-              <li>Carte bancaire</li>
+            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Informations</h4>
+            <ul className="space-y-2.5 text-sm">
+              <li>
+                <Link href="/about" className="hover:text-white transition-colors">
+                  A propos
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-white transition-colors">
+                  Conditions d&apos;utilisation
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:text-white transition-colors">
+                  Confidentialite
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </li>
             </ul>
+          </div>
+
+          {/* Paiements */}
+          <div>
+            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Moyens de paiement</h4>
+            <div className="flex flex-wrap gap-2">
+              {PAYMENT_METHODS.map(({ label, color }) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-white/80"
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: color }}
+                  />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs text-white/30 mt-3 leading-relaxed">
+              Transactions securisees via nos partenaires de paiement locaux.
+            </p>
           </div>
         </div>
 
-        <div className="border-t border-white/10 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/50">
+        {/* Bas de footer */}
+        <div className="pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-white/30">
           <p>&copy; {new Date().getFullYear()} BigTank. Tous droits reserves.</p>
-          <p>Made in Senegal 🇸🇳</p>
+          <div className="flex items-center gap-4">
+            <Link href="/terms" className="hover:text-white/60 transition-colors">CGU</Link>
+            <Link href="/privacy" className="hover:text-white/60 transition-colors">Confidentialite</Link>
+            <span>Made in Senegal 🇸🇳</span>
+          </div>
         </div>
+
       </div>
     </footer>
   );

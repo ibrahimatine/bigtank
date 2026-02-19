@@ -40,13 +40,6 @@ export function Hero() {
           </Link>
         </div>
 
-        <div className="mt-8 flex items-center justify-center gap-4 text-xs text-white/30">
-          <span>Wave</span>
-          <span className="w-px h-3 bg-white/20" />
-          <span>Orange Money</span>
-          <span className="w-px h-3 bg-white/20" />
-          <span>Free Money</span>
-        </div>
       </div>
     </section>
   );
