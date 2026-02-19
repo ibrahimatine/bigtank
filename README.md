@@ -571,7 +571,7 @@ bigtank/
 │   ├── payment-service/      # Paiements (:4004) — en cours
 │   ├── notification-service/ # Notifications (:4005) — en cours
 │   ├── search-service/       # Recherche (:4006) — en cours
-│   └── web/                  # Frontend Next.js (:3000) — pages publiques SEO
+│   └── web/                  # Frontend Next.js (:3000) — pages publiques + auth + chat
 ├── packages/
 │   ├── database/             # Schema Prisma et migrations
 │   ├── shared-types/         # Types TypeScript partages
@@ -594,32 +594,59 @@ bigtank/
 - **Roles** : USER, SELLER, ADMIN avec controles d'acces
 - **Audit** : journalisation des connexions et actions sensibles
 
-## Frontend (Phase 5a)
+## Frontend
 
-Le frontend Next.js expose 3 pages publiques optimisees SEO :
+Le frontend Next.js couvre l'integralite de l'experience utilisateur (pages publiques SEO + pages authentifiees + messagerie temps reel).
+
+### Pages publiques (SEO-first)
 
 | Route | Rendu | Description |
 |-------|-------|-------------|
-| `/` | Static (SSG) | Landing page : hero, annonces recentes, CTA vendeur |
-| `/search` | Dynamic (ISR 60s) | Recherche avec filtres (marque, taille, prix, etat, tri) |
-| `/shoes/[slug]` | Dynamic (SSR) | Detail annonce : galerie, infos, JSON-LD Product |
+| `/` | Static (SSG) | Landing : hero, filtres rapides, annonces recentes, "Pourquoi BigTank?", CTA vendeur |
+| `/search` | Dynamic (ISR 60s) | Recherche avec filtres (marque libre, taille, prix, etat, region, tri) |
+| `/shoes/[slug]` | Dynamic (SSR) | Detail annonce : galerie images, infos vendeur, bouton contacter, JSON-LD Product |
 
-**Design :**
-- Couleurs : Navy `#1a1a2e` + Rouge accent `#e94560`
-- Fonts : Inter (body) + Space Grotesk (titres, prix)
-- Responsive : grid 2→3→4 colonnes, filtres en Sheet sur mobile
-- SEO : JSON-LD (Product + WebSite), OpenGraph dynamique, metadata template
+### Pages authentifiees
 
-**Acceder au frontend :**
+| Route | Acces | Description |
+|-------|-------|-------------|
+| `/login` | Public | Connexion email ou telephone |
+| `/register` | Public | Inscription (creer un compte acheteur ou futur vendeur) |
+| `/dashboard` | USER + SELLER | SELLER : gestion CRUD annonces / USER : invitation a activer le mode vendeur |
+| `/dashboard/new` | SELLER uniquement | Formulaire creation annonce avec upload photos inline |
+| `/dashboard/[id]/edit` | SELLER | Modification annonce + gestion photos |
+| `/profile` | USER + SELLER | Profil utilisateur, stats vendeur, bouton "Devenir vendeur" |
+| `/chat` | USER + SELLER | Liste de toutes les conversations |
+| `/chat/[id]` | Participant | Messagerie temps reel (Socket.io) |
+
+### Design system
+
+- **Couleurs :** Navy `#1a1a2e` + Rouge accent `#e94560` + Background `#f5f5f5`
+- **Fonts :** Inter (body) + Space Grotesk (titres, prix)
+- **Responsive :** grid adaptatif 1→2→3→4 colonnes, filtres en Sheet mobile, header SearchBar repliable
+- **SEO :** JSON-LD (Product + WebSite), OpenGraph dynamique, metadata template par page
+- **Auth :** BFF pattern — tokens JWT en cookies httpOnly (navigateur ne voit jamais le token)
+- **Temps reel :** Socket.io avec token via `/api/auth/socket-token` (contournement cookie httpOnly)
+
+### Flux roles utilisateurs
+
+```
+Inscription → role USER (acheteur)
+  → Dashboard : invitation "Devenir vendeur"
+  → Profile : bouton "Activer mode vendeur" → POST /auth/upgrade-to-seller
+  → Reconnexion → nouveau token JWT avec role SELLER
+  → Dashboard : acces CRUD annonces + upload photos
+```
+
+**Lancer le frontend :**
 
 ```bash
-# Demarrer le frontend
 pnpm --filter @bigtank/web dev
 ```
 
 Puis ouvrir http://localhost:3000.
 
-> Les pages de recherche et detail necessitent les services backend (`api-gateway` + `listing-service`) pour afficher les donnees.
+> Les pages dynamiques necessitent les services backend en cours d'execution (`pnpm dev`).
 
 ---
 
