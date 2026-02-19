@@ -37,7 +37,7 @@ async function Results({ searchParams }: { searchParams: Record<string, string |
 
   try {
     const result = await searchListings(filters);
-    return <SearchResults result={result} />;
+    return <SearchResults result={result} filters={filters} />;
   } catch {
     return (
       <div className="text-center py-12 text-[var(--color-muted-foreground)]">

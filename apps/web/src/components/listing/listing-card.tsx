@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ListingSearchResult } from '@/lib/api';
@@ -40,10 +41,12 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
         {/* Image — ratio 4/3 pour avoir plus d'espace infos */}
         <div className="relative aspect-[4/3] bg-[var(--color-muted)]">
           {listing.thumbnailUrl ? (
-            <img
+            <Image
               src={listing.thumbnailUrl}
               alt={listing.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[var(--color-muted-foreground)]">

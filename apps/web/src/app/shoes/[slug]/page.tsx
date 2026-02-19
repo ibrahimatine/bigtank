@@ -6,6 +6,7 @@ import { getListingBySlug, searchListings } from '@/lib/api';
 import { generateListingJsonLd } from '@/lib/seo';
 import { ListingGallery } from '@/components/listing/listing-gallery';
 import { ListingCard } from '@/components/listing/listing-card';
+import { ShareButton } from '@/components/listing/share-button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CONDITION_LABELS } from '@/types';
@@ -178,12 +179,10 @@ export default async function ListingPage({ params }: Props) {
                 listingId={listing.id}
                 sellerId={listing.sellerId}
               />
-              <button
-                disabled
-                className="flex-1 py-3 rounded-lg border border-[var(--color-border)] font-medium opacity-50 cursor-not-allowed"
-              >
-                Faire une offre
-              </button>
+              <ShareButton
+                title={listing.title}
+                url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://bigtank.sn'}/shoes/${listing.slug}`}
+              />
             </div>
           </div>
         </div>

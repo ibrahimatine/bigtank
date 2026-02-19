@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { listingSchema } from '@/lib/validations';
 import { POPULAR_BRANDS, CONDITION_LABELS } from '@/types';
 import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
@@ -186,6 +187,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
         setCreatedListingId(listing.id);
         setUploadedImages([]);
       } else {
+        toast.success('Annonce mise a jour');
         router.push('/dashboard');
         router.refresh();
       }

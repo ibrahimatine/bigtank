@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { ListingActions } from './listing-actions';
 import type { ListingDetail } from '@/lib/api';
@@ -30,10 +31,12 @@ export function MyListingCard({ listing }: { listing: ListingDetail }) {
     <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
       <div className="relative aspect-video bg-[var(--color-muted)]">
         {listing.images?.[0] ? (
-          <img
+          <Image
             src={listing.images[0].url}
             alt={listing.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[var(--color-muted-foreground)] text-sm">
