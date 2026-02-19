@@ -41,18 +41,14 @@ function MessageBubble({ message, isOwn }: MessageBubbleProps) {
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm ${
+        className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
           isOwn
             ? 'bg-[var(--color-accent)] text-white rounded-br-sm'
-            : 'bg-white border border-[var(--color-border)] rounded-bl-sm'
+            : 'bg-[#f0f0f0] text-[var(--color-foreground)] rounded-bl-sm'
         }`}
       >
-        <p className="whitespace-pre-wrap break-words">{message.content}</p>
-        <p
-          className={`text-xs mt-1 ${
-            isOwn ? 'text-white/70' : 'text-[var(--color-muted-foreground)]'
-          }`}
-        >
+        <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
+        <p className={`text-[11px] mt-1 ${isOwn ? 'text-white/60' : 'text-gray-400'}`}>
           {formatTime(message.createdAt)}
           {isOwn && message.readAt && (
             <span className="ml-1">· Lu</span>
@@ -60,6 +56,13 @@ function MessageBubble({ message, isOwn }: MessageBubbleProps) {
         </p>
       </div>
     </div>
+  );
+}
+
+// L'API renvoie les messages en DESC (plus recent en premier) — on trie ASC pour affichage
+function sortAsc(msgs: ChatMessage[]): ChatMessage[] {
+  return [...msgs].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 }
 
@@ -75,12 +78,15 @@ export function MessageThread({
   currentUserId,
 }: MessageThreadProps) {
   const { onMessage, sendMessage, sendTyping, markRead, socket } = useSocket();
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => sortAsc(initialMessages));
   const [otherTyping, setOtherTyping] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Ref sur le conteneur scrollable — evite scrollIntoView qui scrolle la page entiere
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Rejoindre la room de conversation
+  // Rejoindre la room
   useEffect(() => {
     if (socket) {
       socket.emit('join_conversation', { conversationId: conversation.id });
@@ -92,12 +98,27 @@ export function MessageThread({
     markRead(conversation.id);
   }, [markRead, conversation.id]);
 
-  // Ecoute des nouveaux messages
+  // Scroll : instant au montage, uniquement si pres du bas pour les nouveaux messages
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    if (isInitialMount.current) {
+      el.scrollTop = el.scrollHeight;
+      isInitialMount.current = false;
+    } else {
+      const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+      if (nearBottom) {
+        el.scrollTop = el.scrollHeight;
+      }
+    }
+  }, [messages, otherTyping]);
+
+  // Nouveaux messages Socket.io
   const handleNewMessage = useCallback(
     (message: ChatMessage) => {
       if (message.conversationId !== conversation.id) return;
       setMessages((prev) => [...prev, message]);
-      // Marquer comme lu si c'est de l'autre
       if (message.senderId !== currentUserId) {
         markRead(conversation.id);
       }
@@ -110,7 +131,7 @@ export function MessageThread({
     return unsubscribe;
   }, [onMessage, handleNewMessage]);
 
-  // Ecoute du statut "en train d'ecrire"
+  // Indicateur de frappe
   useEffect(() => {
     if (!socket) return;
 
@@ -119,13 +140,9 @@ export function MessageThread({
       userId: string;
       isTyping: boolean;
     }) => {
-      if (
-        data.conversationId === conversation.id &&
-        data.userId !== currentUserId
-      ) {
+      if (data.conversationId === conversation.id && data.userId !== currentUserId) {
         setOtherTyping(data.isTyping);
         if (data.isTyping) {
-          // Auto-reset apres 3s si pas de mise a jour
           if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
           typingTimerRef.current = setTimeout(() => setOtherTyping(false), 3000);
         }
@@ -139,7 +156,7 @@ export function MessageThread({
     };
   }, [socket, conversation.id, currentUserId]);
 
-  // Ecoute des messages lus
+  // Statut "Lu"
   useEffect(() => {
     if (!socket) return;
 
@@ -148,10 +165,7 @@ export function MessageThread({
       readBy: string;
       readAt: string;
     }) => {
-      if (
-        data.conversationId === conversation.id &&
-        data.readBy !== currentUserId
-      ) {
+      if (data.conversationId === conversation.id && data.readBy !== currentUserId) {
         setMessages((prev) =>
           prev.map((m) =>
             m.senderId === currentUserId && !m.readAt
@@ -168,12 +182,7 @@ export function MessageThread({
     };
   }, [socket, conversation.id, currentUserId]);
 
-  // Scroll vers le bas quand nouveaux messages
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, otherTyping]);
-
-  // Grouper par jour
+  // Grouper par jour (messages deja tries ASC)
   const grouped: { day: string; messages: ChatMessage[] }[] = [];
   for (const msg of messages) {
     const day = formatDay(msg.createdAt);
@@ -185,60 +194,54 @@ export function MessageThread({
     }
   }
 
-  const handleSend = (content: string) => {
-    sendMessage(conversation.id, content);
-  };
-
-  const handleTypingChange = (typing: boolean) => {
-    sendTyping(conversation.id, typing);
-  };
-
   return (
     <div className="flex flex-col h-full">
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {grouped.map(({ day, messages: dayMessages }) => (
-          <div key={day}>
-            {/* Separateur de jour */}
-            <div className="flex items-center gap-3 my-4">
-              <div className="flex-1 h-px bg-[var(--color-border)]" />
-              <span className="text-xs text-[var(--color-muted-foreground)] px-2">
-                {day}
-              </span>
-              <div className="flex-1 h-px bg-[var(--color-border)]" />
-            </div>
+      {/* Zone scrollable avec ref directe */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-1">
+          {grouped.map(({ day, messages: dayMessages }) => (
+            <div key={day}>
+              <div className="flex items-center gap-3 my-4">
+                <div className="flex-1 h-px bg-[var(--color-border)]" />
+                <span className="text-[11px] text-[var(--color-muted-foreground)] px-2 select-none">
+                  {day}
+                </span>
+                <div className="flex-1 h-px bg-[var(--color-border)]" />
+              </div>
 
-            <div className="space-y-2">
-              {dayMessages.map((msg) => (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isOwn={msg.senderId === currentUserId}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {/* Indicateur de frappe */}
-        {otherTyping && (
-          <div className="flex justify-start">
-            <div className="px-4 py-2 rounded-2xl rounded-bl-sm bg-white border border-[var(--color-border)]">
-              <div className="flex gap-1 items-center h-4">
-                <span className="w-2 h-2 rounded-full bg-[var(--color-muted-foreground)] animate-bounce [animation-delay:0ms]" />
-                <span className="w-2 h-2 rounded-full bg-[var(--color-muted-foreground)] animate-bounce [animation-delay:150ms]" />
-                <span className="w-2 h-2 rounded-full bg-[var(--color-muted-foreground)] animate-bounce [animation-delay:300ms]" />
+              <div className="space-y-1.5">
+                {dayMessages.map((msg) => (
+                  <MessageBubble
+                    key={msg.id}
+                    message={msg}
+                    isOwn={msg.senderId === currentUserId}
+                  />
+                ))}
               </div>
             </div>
-          </div>
-        )}
+          ))}
 
-        <div ref={bottomRef} />
+          {/* Indicateur de frappe */}
+          {otherTyping && (
+            <div className="flex justify-start pt-1">
+              <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-[#f0f0f0]">
+                <div className="flex gap-1 items-center h-4">
+                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:0ms]" />
+                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:150ms]" />
+                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:300ms]" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Input envoi */}
-      <div className="border-t border-[var(--color-border)] p-4">
-        <MessageInput onSend={handleSend} onTypingChange={handleTypingChange} />
+      {/* Input */}
+      <div className="border-t border-[var(--color-border)] p-4 bg-white">
+        <MessageInput
+          onSend={(content) => sendMessage(conversation.id, content)}
+          onTypingChange={(typing) => sendTyping(conversation.id, typing)}
+        />
       </div>
     </div>
   );

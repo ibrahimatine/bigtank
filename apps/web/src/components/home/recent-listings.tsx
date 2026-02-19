@@ -14,7 +14,7 @@ export async function RecentListings() {
   }
 
   return (
-    <section className="max-w-[1280px] mx-auto px-4 py-12">
+    <section id="recent-listings" className="max-w-[1280px] mx-auto px-4 py-12">
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold">
           Annonces recentes
