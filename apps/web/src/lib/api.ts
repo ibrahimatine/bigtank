@@ -41,7 +41,14 @@ async function apiFetch<T>(
   }
 
   const json = await res.json();
-  return json.data !== undefined ? json.data : json;
+  // Auth-service wraps responses in { success, data } — unwrap the inner data.
+  // Listing-service returns the object directly (no wrapper for entities, or
+  // { data: [...hits], total, cursor, hasMore } for paginated results).
+  // Only unwrap when json.data exists AND is NOT an array (paginated results).
+  if (json.data !== undefined && !Array.isArray(json.data)) {
+    return json.data as T;
+  }
+  return json as T;
 }
 
 // Types

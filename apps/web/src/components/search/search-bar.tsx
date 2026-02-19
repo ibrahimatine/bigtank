@@ -37,7 +37,7 @@ export function SearchBar() {
       try {
         const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
         const res = await fetch(
-          `${API_BASE}/listings/search?q=${encodeURIComponent(query.trim())}&limit=5`,
+          `${API_BASE}/listings/search?query=${encodeURIComponent(query.trim())}&limit=5`,
         );
         if (!res.ok) return;
         const json = await res.json();
