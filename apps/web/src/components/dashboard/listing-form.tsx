@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { listingSchema } from '@/lib/validations';
 import { POPULAR_BRANDS, CONDITION_LABELS } from '@/types';
@@ -16,8 +16,99 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ChevronDown, X } from 'lucide-react';
+import { ImageUpload } from '@/components/dashboard/image-upload';
 import type { ListingCondition } from '@bigtank/shared-types';
 import type { ListingDetail } from '@/lib/api';
+
+type UploadedImage = { id: string; url: string; key: string; order: number };
+
+function BrandCombobox({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filtered = POPULAR_BRANDS.filter((b) =>
+    b.toLowerCase().includes(input.toLowerCase()),
+  );
+  const showCustom =
+    input.trim() !== '' &&
+    !POPULAR_BRANDS.map((b) => b.toLowerCase()).includes(input.trim().toLowerCase());
+
+  function select(v: string) {
+    setInput(v);
+    onChange(v);
+    setOpen(false);
+  }
+
+  function handleInput(v: string) {
+    setInput(v);
+    onChange(v);
+    setOpen(true);
+  }
+
+  function handleClear() {
+    setInput('');
+    onChange('');
+    inputRef.current?.focus();
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          value={input}
+          onChange={(e) => handleInput(e.target.value)}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          placeholder="Nike, Adidas, autre..."
+          className="pr-8"
+        />
+        {input ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : (
+          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        )}
+      </div>
+      {open && (filtered.length > 0 || showCustom) && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-[var(--color-border)] bg-white shadow-lg max-h-48 overflow-y-auto">
+          {filtered.map((b) => (
+            <button
+              key={b}
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); select(b); }}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-colors"
+            >
+              {b}
+            </button>
+          ))}
+          {showCustom && (
+            <button
+              type="button"
+              onMouseDown={(e) => { e.preventDefault(); select(input.trim()); }}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-accent)]/10 hover:text-[var(--color-accent)] transition-colors border-t border-[var(--color-border)]"
+            >
+              Utiliser &ldquo;{input.trim()}&rdquo;
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface ListingFormProps {
   mode: 'create' | 'edit';
@@ -42,6 +133,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [createdListingId, setCreatedListingId] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const router = useRouter();
 
   function updateField(key: string, value: string) {
@@ -70,7 +163,6 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
           ? '/api/listings'
           : `/api/listings/${initialData?.id}`;
 
-      // Clean data — remove empty optional fields
       const body = { ...parsed.data };
       if (!body.sizeUs && body.sizeUs !== 0) delete (body as Record<string, unknown>).sizeUs;
       if (!body.sizeUk && body.sizeUk !== 0) delete (body as Record<string, unknown>).sizeUk;
@@ -91,16 +183,61 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       const listing = data.data || data;
 
       if (mode === 'create') {
-        router.push(`/dashboard/${listing.id}/edit`);
+        setCreatedListingId(listing.id);
+        setUploadedImages([]);
       } else {
         router.push('/dashboard');
+        router.refresh();
       }
-      router.refresh();
     } catch {
       setError('Erreur de connexion');
     } finally {
       setLoading(false);
     }
+  }
+
+  async function refreshImages() {
+    if (!createdListingId) return;
+    try {
+      const res = await fetch(`/api/listings/my/${createdListingId}`);
+      if (res.ok) {
+        const data = await res.json();
+        const listing = data.data || data;
+        setUploadedImages(listing.images || []);
+      }
+    } catch {
+      // silent — photos sont quand meme uploadees
+    }
+  }
+
+  // Step 2 — upload photos apres creation
+  if (createdListingId) {
+    return (
+      <div className="space-y-6">
+        <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+          <p className="text-green-700 text-sm font-medium">
+            Annonce creee ! Ajoutez des photos pour la mettre en valeur (optionnel).
+          </p>
+        </div>
+
+        <ImageUpload
+          listingId={createdListingId}
+          existingImages={uploadedImages}
+          onImagesChange={refreshImages}
+        />
+
+        <Button
+          type="button"
+          onClick={() => {
+            router.push('/dashboard');
+            router.refresh();
+          }}
+          className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90"
+        >
+          Publier l&apos;annonce
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -138,21 +275,12 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="brand">Marque *</Label>
-            <Select value={form.brand} onValueChange={(v) => updateField('brand', v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir" />
-              </SelectTrigger>
-              <SelectContent>
-                {POPULAR_BRANDS.map((b) => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Marque *</Label>
+            <BrandCombobox value={form.brand} onChange={(v) => updateField('brand', v)} />
             {fieldErrors.brand && <p className="text-xs text-red-500">{fieldErrors.brand}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="model">Modele *</Label>
+            <Label htmlFor="model">Modele</Label>
             <Input
               id="model"
               value={form.model}
@@ -222,7 +350,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               <SelectTrigger>
                 <SelectValue placeholder="Choisir" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white shadow-lg border border-[var(--color-border)]">
                 {(Object.entries(CONDITION_LABELS) as [ListingCondition, string][]).map(
                   ([value, label]) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
@@ -257,7 +385,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               <SelectTrigger>
                 <SelectValue placeholder="Choisir" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white shadow-lg border border-[var(--color-border)]">
                 {SENEGAL_REGIONS.map((r) => (
                   <SelectItem key={r} value={r}>{r}</SelectItem>
                 ))}
@@ -278,11 +406,15 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
         </div>
       </fieldset>
 
-      <Button type="submit" className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90"
+        disabled={loading}
+      >
         {loading
           ? 'Sauvegarde...'
           : mode === 'create'
-            ? 'Publier l\'annonce'
+            ? 'Creer l\'annonce'
             : 'Enregistrer les modifications'}
       </Button>
     </form>

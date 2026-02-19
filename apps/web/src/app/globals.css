@@ -19,6 +19,12 @@
   --color-card-foreground: #333333;
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+
+  /* Shadcn/ui compatibility — tokens manquants */
+  --color-popover: #ffffff;
+  --color-popover-foreground: #333333;
+  --color-input: #e0e0e0;
+  --color-ring: #e94560;
 }
 
 @layer base {

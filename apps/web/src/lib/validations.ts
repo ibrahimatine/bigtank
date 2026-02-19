@@ -31,7 +31,7 @@ export const listingSchema = z.object({
   title: z.string().min(5, 'Minimum 5 caracteres').max(120),
   description: z.string().min(10, 'Minimum 10 caracteres').max(2000),
   brand: z.string().min(1, 'Marque requise'),
-  model: z.string().min(1, 'Modele requis'),
+  model: z.string().optional().or(z.literal('')),
   sizeEu: z.coerce.number().min(38).max(55),
   sizeUs: z.coerce.number().min(5).max(20).optional().or(z.literal('')),
   sizeUk: z.coerce.number().min(4).max(18).optional().or(z.literal('')),
