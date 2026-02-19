@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MessageCircle, User } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { useSocket } from '@/components/providers/socket-provider';
 import { useAuth } from '@/components/providers/auth-provider';
 import type { Conversation } from '@/lib/api';
@@ -100,12 +100,44 @@ export function ConversationList({
 
   if (conversations.length === 0) {
     return (
-      <div className="text-center py-16 text-[var(--color-muted-foreground)]">
-        <User className="h-12 w-12 mx-auto mb-4 opacity-30" />
-        <p className="font-medium">Aucune conversation</p>
-        <p className="text-sm mt-1">
-          Contactez un vendeur depuis une annonce pour demarrer une conversation.
+      <div className="flex flex-col items-center text-center py-16 px-6">
+        {/* Illustration — bulles de chat */}
+        <svg
+          viewBox="0 0 120 100"
+          className="w-28 h-24 mb-6 text-[var(--color-muted-foreground)] opacity-25"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          {/* Bulle principale */}
+          <rect x="8" y="10" width="70" height="48" rx="12" />
+          <line x1="20" y1="30" x2="56" y2="30" />
+          <line x1="20" y1="42" x2="46" y2="42" />
+          <polyline points="8,58 8,70 22,58" />
+          {/* Bulle secondaire (plus petite, en bas droite) */}
+          <rect x="50" y="52" width="62" height="36" rx="10" />
+          <line x1="62" y1="66" x2="98" y2="66" />
+          <line x1="62" y1="76" x2="84" y2="76" />
+          <polyline points="112,88 112,98 98,88" />
+        </svg>
+
+        <h3 className="font-[family-name:var(--font-display)] text-lg font-bold mb-2">
+          Aucune conversation
+        </h3>
+        <p className="text-sm text-[var(--color-muted-foreground)] max-w-xs">
+          Vous n&apos;avez pas encore de messages. Trouvez une annonce et contactez le vendeur pour demarrer une conversation.
         </p>
+
+        <Link
+          href="/search"
+          className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          <MessageCircle className="h-4 w-4" />
+          Explorer les annonces
+        </Link>
       </div>
     );
   }

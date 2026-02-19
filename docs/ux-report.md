@@ -28,27 +28,38 @@
 - [x] Responsive header (SearchBar repliée sur mobile)
 - [x] JSON-LD SEO sur landing + detail annonce
 
+### ✅ Complété — Phase 5d (19/02/2026)
+- [x] **Toast notifications** — Sonner, toasts sur toutes les actions dashboard + profil
+- [x] **Breadcrumb** sur la page detail annonce (`Accueil > Annonces > Marque > Titre`)
+- [x] **"Il y a X jours"** sur ListingCard (timestamps Meilisearch en secondes Unix)
+- [x] **Pages statiques** `/about`, `/terms`, `/privacy`, `/contact` — liens footer fonctionnels
+- [x] **Error boundary** global (`error.tsx`) avec "Réessayer" et "Retour à l'accueil"
+- [x] **next/image** sur listing-card et my-listing-card
+- [x] **Autocomplete SearchBar** — debounce 300ms, dropdown avec thumbnails + prix
+- [x] **Articles similaires** sur la fiche détail (même marque, max 4)
+- [x] **Load More pagination** sur `/search` — SSR first page + fetch client cursor
+- [x] **Bouton Partager** (WhatsApp + copier lien) sur fiche détail
+- [x] **SearchBar dans le hero** — visible sans scroll sur la landing page
+
+### ✅ Complété — Phase 5e (19/02/2026)
+- [x] **Empty state illustré /search** — SVG loupe + CTA contextuel (effacer filtres / accueil)
+- [x] **Empty state illustré /chat** — SVG bulles de chat + CTA "Explorer les annonces"
+- [x] **sitemap.xml dynamique** — toutes les annonces actives + routes statiques
+- [x] **robots.txt** — indexation publique, pages auth bloquées
+- [x] **OG image par défaut** — `opengraph-image.tsx` edge ImageResponse (1200×630px)
+- [x] **Focus visible ring** — `:focus-visible` global 2px accent dans `globals.css`
+
 ### 🔶 À faire — Priorité haute
-- [ ] **Toast notifications** : confirmer actions (annonce publiée, message envoyé, profil mis à jour). Utiliser `sonner` ou un composant Toast shadcn/ui
-- [ ] **Bouton "Faire une offre"** : activer en Phase 6 (payment-service). Pour l'instant afficher un tooltip "Bientôt disponible" au survol au lieu de le griser sans explication
-- [ ] **Empty states illustrés** : page `/search` sans résultats, `/chat` sans conversations, `/dashboard` sans annonces — remplacer les textes nus par des illus légères + CTA contextuel
-- [ ] **Erreurs fetch** : boundary d'erreur sur RecentListings et SearchResults avec message + bouton "Réessayer"
-- [ ] **Image annonce** : fallback emoji 👟 OK mais ajouter shimmer loader pendant le chargement (`loading="lazy"` + skeleton)
-- [ ] **Page 404** : améliorer le design (actuellement texte basique)
+- [ ] **Tooltip "Bientôt disponible"** sur bouton "Faire une offre" (Phase 6)
 
 ### 🔵 À faire — Priorité moyenne
-- [ ] **Accessibilité** : vérifier contrast ratio (WCAG AA) sur accent #e94560 sur blanc — ratio actuel ~4.1:1, limite AA = 4.5:1. Légèrement insuffisant pour corps de texte, OK pour grands titres
-- [ ] **Focus visible** : ajouter `focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]` sur tous les éléments interactifs
-- [ ] **Meta Open Graph** : ajouter image OG par défaut (logo BigTank) pour partages sans annonce spécifique
-- [ ] **Compteur annonces** dans le header ou la section récentes ("234 annonces disponibles")
-- [ ] **Breadcrumb** sur la page detail annonce pour le SEO
-- [ ] **Barre de progression** sur les formulaires multi-étapes (création annonce)
+- [ ] **Accessibilité** : contrast ratio accent #e94560 sur blanc = 4.1:1 (limite AA = 4.5:1)
+- [ ] **Compteur annonces** dans la section récentes ("234 annonces disponibles")
 
 ### ⚪ À faire — Priorité basse
-- [ ] Pages statiques : `/about`, `/terms`, `/privacy`, `/contact` (liens footer morts pour l'instant)
-- [ ] `sitemap.xml` dynamique
-- [ ] `robots.txt`
 - [ ] PWA manifest pour "Ajouter à l'écran d'accueil" (mobile Afrique)
+- [ ] Dark mode
+- [ ] Badge "Vérifié" pour vendeurs actifs (Phase 8)
 
 ---
 

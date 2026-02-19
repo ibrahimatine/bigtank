@@ -19,7 +19,10 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bigtank.sn';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'BigTank — Chaussures Grandes Tailles au Senegal',
     template: '%s | BigTank',
@@ -39,8 +42,18 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: 'website',
+    url: SITE_URL,
     locale: 'fr_SN',
     siteName: 'BigTank',
+    title: 'BigTank — Chaussures Grandes Tailles au Senegal',
+    description:
+      'La marketplace N°1 pour acheter et vendre des chaussures grandes tailles (46+) au Senegal.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BigTank — Chaussures Grandes Tailles au Senegal',
+    description:
+      'La marketplace N°1 pour acheter et vendre des chaussures grandes tailles (46+) au Senegal.',
   },
 };
 
