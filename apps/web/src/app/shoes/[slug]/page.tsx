@@ -7,6 +7,7 @@ import { ListingGallery } from '@/components/listing/listing-gallery';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CONDITION_LABELS } from '@/types';
+import { StartConversationButton } from '@/components/chat/start-conversation-button';
 import type { ListingCondition } from '@bigtank/shared-types';
 
 export const dynamic = 'force-dynamic';
@@ -144,14 +145,12 @@ export default async function ListingPage({ params }: Props) {
               </div>
             )}
 
-            {/* Action buttons — disabled for Phase 5a */}
+            {/* Actions */}
             <div className="flex gap-3 mt-8">
-              <button
-                disabled
-                className="flex-1 py-3 rounded-lg bg-[var(--color-accent)] text-white font-medium opacity-50 cursor-not-allowed"
-              >
-                Contacter le vendeur
-              </button>
+              <StartConversationButton
+                listingId={listing.id}
+                sellerId={listing.sellerId}
+              />
               <button
                 disabled
                 className="flex-1 py-3 rounded-lg border border-[var(--color-border)] font-medium opacity-50 cursor-not-allowed"

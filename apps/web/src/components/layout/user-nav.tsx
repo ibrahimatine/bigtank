@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/components/providers/auth-provider';
+import { useSocket } from '@/components/providers/socket-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
@@ -10,10 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, UserCircle, MessageCircle } from 'lucide-react';
 
 export function UserNav() {
   const { user, loading, logout } = useAuth();
+  const { unreadCount } = useSocket();
 
   if (loading) {
     return <Skeleton className="h-8 w-20 rounded-lg" />;
@@ -58,6 +60,17 @@ export function UserNav() {
           <Link href="/profile" className="flex items-center gap-2">
             <UserCircle className="h-4 w-4" />
             Mon profil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/chat" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" />
+            Messages
+            {unreadCount > 0 && (
+              <span className="ml-auto bg-[var(--color-accent)] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </Link>
         </DropdownMenuItem>
         {(user.role === 'SELLER' || user.role === 'ADMIN') && (

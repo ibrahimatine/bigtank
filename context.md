@@ -1,6 +1,6 @@
 # BigTank — Contexte Projet
 
-> Derniere mise a jour : Phase 5a terminee (17/02/2026)
+> Derniere mise a jour : Phase 5c terminee (19/02/2026)
 
 ---
 
@@ -181,8 +181,8 @@ bigtank/
 | Phase 3 | listing-service (CRUD, presigned upload MinIO, Meilisearch, slugs SEO, rate limit) | TERMINE |
 | Phase 4 | chat-service (WebSocket Socket.io, conversations, messages, typing, read status) | TERMINE |
 | Phase 5a | Frontend pages publiques SEO (landing, recherche filtres, detail SSR, JSON-LD) | TERMINE |
-| Phase 5b | Frontend pages authentifiees (login, register, dashboard vendeur, profil) | A FAIRE |
-| Phase 5c | Frontend chat UI temps reel (Socket.io client, conversations) | A FAIRE |
+| Phase 5b | Frontend pages authentifiees (login, register, dashboard vendeur, profil) | TERMINE |
+| Phase 5c | Frontend chat UI temps reel (Socket.io client, conversations) | TERMINE |
 | Phase 6 | payment-service (PayDunya/PayTech, offres, escrow) | A FAIRE |
 | Phase 7 | notification-service (emails, push, SMS) | A FAIRE |
 | Phase 8 | Securite avancee, tests, CI/CD, Docker prod | A FAIRE |

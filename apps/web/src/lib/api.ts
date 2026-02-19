@@ -242,3 +242,75 @@ export async function upgradeToSeller(): Promise<unknown> {
     method: 'POST',
   });
 }
+
+// --- Chat types ---
+
+export interface ChatUser {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface ChatListing {
+  id: string;
+  title: string;
+  slug: string;
+  images: { url: string }[];
+}
+
+export interface Conversation {
+  id: string;
+  listingId: string;
+  buyerId: string;
+  sellerId: string;
+  lastMessageAt: string | null;
+  createdAt: string;
+  listing: ChatListing;
+  buyer: ChatUser;
+  seller: ChatUser;
+  _count?: { messages: number };
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  readAt: string | null;
+  createdAt: string;
+  sender: ChatUser;
+}
+
+// --- Chat API functions (server-side) ---
+
+export async function getConversations(
+  cursor?: string,
+): Promise<PaginatedResult<Conversation>> {
+  return authApiFetch<PaginatedResult<Conversation>>('/chat/conversations', {
+    params: { cursor: cursor || undefined },
+  });
+}
+
+export async function getConversationById(id: string): Promise<Conversation> {
+  return authApiFetch<Conversation>(`/chat/conversations/${id}`);
+}
+
+export async function getConversationMessages(
+  id: string,
+  cursor?: string,
+): Promise<PaginatedResult<ChatMessage>> {
+  return authApiFetch<PaginatedResult<ChatMessage>>(
+    `/chat/conversations/${id}/messages`,
+    { params: { cursor: cursor || undefined } },
+  );
+}
+
+export async function startConversation(data: {
+  listingId: string;
+  message: string;
+}): Promise<{ conversation: Conversation; message: ChatMessage }> {
+  return authApiFetch('/chat/conversations', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
