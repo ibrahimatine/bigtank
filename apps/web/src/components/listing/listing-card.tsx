@@ -9,6 +9,18 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat('fr-SN').format(price) + ' FCFA';
 }
 
+function timeAgo(ts: number): string {
+  // Meilisearch stores createdAt as Unix seconds
+  const ms = ts < 1e10 ? ts * 1000 : ts;
+  const diff = Math.floor((Date.now() - ms) / 1000);
+  if (diff < 60) return "a l'instant";
+  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`;
+  if (diff < 604800) return `il y a ${Math.floor(diff / 86400)} j`;
+  if (diff < 2592000) return `il y a ${Math.floor(diff / 604800)} sem`;
+  return `il y a ${Math.floor(diff / 2592000)} mois`;
+}
+
 const CONDITION_COLORS: Record<ListingCondition, string> = {
   NEW: 'bg-green-100 text-green-700',
   LIKE_NEW: 'bg-blue-100 text-blue-700',
@@ -67,6 +79,9 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
               {listing.locationCity}
             </span>
           </div>
+          <p className="text-[10px] text-[var(--color-muted-foreground)]/60 mt-1">
+            {timeAgo(listing.createdAt)}
+          </p>
         </div>
       </div>
     </Link>

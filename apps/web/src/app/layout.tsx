@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { SocketProvider } from '@/components/providers/socket-provider';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 const inter = Inter({
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
+            <Toaster position="bottom-right" richColors closeButton />
           </SocketProvider>
         </AuthProvider>
       </body>

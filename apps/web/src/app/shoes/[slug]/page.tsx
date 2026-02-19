@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { MapPin, Eye, Calendar, User } from 'lucide-react';
+import { MapPin, Eye, Calendar, User, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { getListingBySlug, searchListings } from '@/lib/api';
 import { generateListingJsonLd } from '@/lib/seo';
 import { ListingGallery } from '@/components/listing/listing-gallery';
@@ -83,6 +84,22 @@ export default async function ListingPage({ params }: Props) {
       />
 
       <div className="max-w-[1280px] mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1 text-sm text-[var(--color-muted-foreground)] mb-6 flex-wrap">
+          <Link href="/" className="hover:text-[var(--color-foreground)] transition-colors">Accueil</Link>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <Link href="/search" className="hover:text-[var(--color-foreground)] transition-colors">Annonces</Link>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <Link
+            href={`/search?brand=${encodeURIComponent(listing.brand)}`}
+            className="hover:text-[var(--color-foreground)] transition-colors"
+          >
+            {listing.brand}
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <span className="text-[var(--color-foreground)] font-medium truncate max-w-[200px]">{listing.title}</span>
+        </nav>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Gallery */}
           <ListingGallery images={listing.images} />

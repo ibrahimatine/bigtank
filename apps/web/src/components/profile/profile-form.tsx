@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { profileSchema } from '@/lib/validations';
 import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -44,7 +45,6 @@ export function ProfileForm({ profile }: Props) {
     region: profile.region || '',
   });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
@@ -53,13 +53,11 @@ export function ProfileForm({ profile }: Props) {
 
   function updateField(key: string, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
-    setSuccess('');
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setFieldErrors({});
 
     const parsed = profileSchema.safeParse(form);
@@ -87,7 +85,7 @@ export function ProfileForm({ profile }: Props) {
         return;
       }
 
-      setSuccess('Profil mis a jour');
+      toast.success('Profil mis a jour');
       router.refresh();
     } catch {
       setError('Erreur de connexion');
@@ -106,15 +104,16 @@ export function ProfileForm({ profile }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || data.message || 'Erreur');
+        toast.error(data.error || data.message || 'Erreur');
         return;
       }
 
+      toast.success('Vous etes maintenant vendeur !');
       // Refresh JWT token to get SELLER role in claims
       await refreshUser();
       router.refresh();
     } catch {
-      setError('Erreur de connexion');
+      toast.error('Erreur de connexion');
     } finally {
       setUpgrading(false);
     }
@@ -168,9 +167,6 @@ export function ProfileForm({ profile }: Props) {
 
         {error && (
           <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm mb-4">{error}</div>
-        )}
-        {success && (
-          <div className="p-3 rounded-lg bg-green-50 text-green-600 text-sm mb-4">{success}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">

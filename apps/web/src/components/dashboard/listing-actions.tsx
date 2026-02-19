@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { MoreVertical, Pencil, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -41,8 +42,14 @@ export function ListingActions({ listingId, status }: ListingActionsProps) {
       });
 
       if (res.ok) {
+        const label = newStatus === 'SOLD' ? 'Marquee comme vendue' : 'Remise en vente';
+        toast.success(label);
         router.refresh();
+      } else {
+        toast.error('Impossible de modifier le statut');
       }
+    } catch {
+      toast.error('Erreur de connexion');
     } finally {
       setLoading(false);
     }
@@ -57,8 +64,13 @@ export function ListingActions({ listingId, status }: ListingActionsProps) {
 
       if (res.ok) {
         setDeleteOpen(false);
+        toast.success('Annonce supprimee');
         router.refresh();
+      } else {
+        toast.error("Impossible de supprimer l'annonce");
       }
+    } catch {
+      toast.error('Erreur de connexion');
     } finally {
       setLoading(false);
     }
@@ -85,12 +97,12 @@ export function ListingActions({ listingId, status }: ListingActionsProps) {
               Marquer vendu
             </DropdownMenuItem>
           )}
-          {status === 'SOLD' || status === 'RESERVED' ? (
+          {(status === 'SOLD' || status === 'RESERVED') && (
             <DropdownMenuItem onClick={() => handleStatusChange('ACTIVE')} className="flex items-center gap-2">
               <XCircle className="h-4 w-4" />
               Remettre en vente
             </DropdownMenuItem>
-          ) : null}
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setDeleteOpen(true)} className="flex items-center gap-2 text-red-500">
             <Trash2 className="h-4 w-4" />
