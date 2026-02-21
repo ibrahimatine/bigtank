@@ -33,11 +33,12 @@ export class ListingService {
     await this.rateLimitService.checkLimit(userId);
 
     const description = sanitizeDescription(dto.description);
+    const locationCity = dto.locationCity || '';
     const slug = generateListingSlug(
       dto.brand,
       dto.model,
       dto.sizeEu,
-      dto.locationCity,
+      locationCity,
     );
 
     const listing = await this.prisma.listing.create({
@@ -54,7 +55,7 @@ export class ListingService {
         condition: dto.condition as 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR',
         color: dto.color,
         priceXof: dto.priceXof,
-        locationCity: dto.locationCity,
+        locationCity,
         locationRegion: dto.locationRegion,
       },
       include: { images: true },
