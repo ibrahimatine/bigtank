@@ -197,7 +197,7 @@ export function ProfileForm({ profile }: Props) {
                 id="phone"
                 value={form.phone}
                 onChange={(e) => updateField('phone', e.target.value)}
-                placeholder="+221 77 000 00 00"
+                placeholder="77 000 00 00"
               />
               {fieldErrors.phone && <p className="text-xs text-red-500">{fieldErrors.phone}</p>}
             </div>

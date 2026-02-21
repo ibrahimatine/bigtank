@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { ShieldCheck, Search, Tag } from 'lucide-react';
 import { Hero } from '@/components/home/hero';
 import { RecentListings } from '@/components/home/recent-listings';
+import { SellerCta } from '@/components/home/seller-cta';
 import { ListingGridSkeleton } from '@/components/listing/listing-grid';
 import { generateWebsiteJsonLd } from '@/lib/seo';
 
@@ -101,31 +102,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA vendeur */}
-      <section className="bg-[var(--color-primary)] text-white py-14">
-        <div className="max-w-[1280px] mx-auto px-4 text-center">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold">
-            Vous avez des chaussures a vendre ?
-          </h2>
-          <p className="mt-3 text-white/60 max-w-sm mx-auto text-sm">
-            Publiez gratuitement. Touchez des milliers d&apos;acheteurs au Senegal.
-          </p>
-          <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
-            <Link
-              href="/register"
-              className="px-6 py-3 rounded-xl bg-[var(--color-accent)] text-white font-semibold text-sm hover:bg-[var(--color-accent)]/90 transition-colors"
-            >
-              Creer un compte vendeur
-            </Link>
-            <Link
-              href="/search"
-              className="px-6 py-3 rounded-xl border border-white/20 text-white/80 font-medium text-sm hover:bg-white/10 transition-colors"
-            >
-              Explorer d&apos;abord
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* CTA vendeur — contextuel selon le role */}
+      <SellerCta />
     </>
   );
 }

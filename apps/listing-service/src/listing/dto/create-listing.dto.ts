@@ -8,6 +8,7 @@ import {
   MaxLength,
   Min,
   Max,
+  IsNotEmpty,
 } from 'class-validator';
 import { ListingCondition } from '@bigtank/shared-types';
 import {
@@ -67,10 +68,11 @@ export class CreateListingDto {
   @Max(500000, { message: 'Le prix maximum est de 500 000 FCFA' })
   priceXof!: number;
 
+  @IsOptional()
   @IsString()
-  @MinLength(1)
+  @IsNotEmpty()
   @MaxLength(100)
-  locationCity!: string;
+  locationCity?: string;
 
   @IsIn([...SENEGAL_REGIONS], { message: 'Region invalide' })
   locationRegion!: string;

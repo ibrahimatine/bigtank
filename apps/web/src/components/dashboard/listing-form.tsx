@@ -138,8 +138,43 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const router = useRouter();
 
+  // Conversions de taille (approximations standards hommes)
+  function euFromUs(us: number): number { return Math.round(us + 33); }
+  function euFromUk(uk: number): number { return Math.round(uk + 33); }
+  function usFromEu(eu: number): number { return Math.round(eu - 33); }
+  function ukFromEu(eu: number): number { return Math.round(eu - 33); }
+
   function updateField(key: string, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+
+      // Auto-fill equivalences quand EU change
+      if (key === 'sizeEu' && value) {
+        const eu = parseFloat(value);
+        if (!isNaN(eu) && eu >= 38 && eu <= 60) {
+          if (!prev.sizeUs) next.sizeUs = String(usFromEu(eu));
+          if (!prev.sizeUk) next.sizeUk = String(ukFromEu(eu));
+        }
+      }
+
+      // Auto-fill EU quand US saisie
+      if (key === 'sizeUs' && value) {
+        const us = parseFloat(value);
+        if (!isNaN(us) && us >= 5 && us <= 20) {
+          next.sizeEu = String(euFromUs(us));
+        }
+      }
+
+      // Auto-fill EU quand UK saisie
+      if (key === 'sizeUk' && value) {
+        const uk = parseFloat(value);
+        if (!isNaN(uk) && uk >= 4 && uk <= 18) {
+          next.sizeEu = String(euFromUk(uk));
+        }
+      }
+
+      return next;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -167,6 +202,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       const body = { ...parsed.data };
       if (!body.sizeUs && body.sizeUs !== 0) delete (body as Record<string, unknown>).sizeUs;
       if (!body.sizeUk && body.sizeUk !== 0) delete (body as Record<string, unknown>).sizeUk;
+      if (!body.locationCity) delete (body as Record<string, unknown>).locationCity;
 
       const res = await fetch(url, {
         method: mode === 'create' ? 'POST' : 'PATCH',
@@ -328,6 +364,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               type="number"
               value={form.sizeUs}
               onChange={(e) => updateField('sizeUs', e.target.value)}
+              min={5}
+              max={20}
             />
           </div>
           <div className="space-y-2">
@@ -337,6 +375,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               type="number"
               value={form.sizeUk}
               onChange={(e) => updateField('sizeUk', e.target.value)}
+              min={4}
+              max={18}
             />
           </div>
         </div>
@@ -396,12 +436,12 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
             {fieldErrors.locationRegion && <p className="text-xs text-red-500">{fieldErrors.locationRegion}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="locationCity">Ville *</Label>
+            <Label htmlFor="locationCity">Ville</Label>
             <Input
               id="locationCity"
               value={form.locationCity}
               onChange={(e) => updateField('locationCity', e.target.value)}
-              placeholder="Dakar"
+              placeholder="Dakar (optionnel)"
             />
             {fieldErrors.locationCity && <p className="text-xs text-red-500">{fieldErrors.locationCity}</p>}
           </div>

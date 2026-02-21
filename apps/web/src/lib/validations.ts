@@ -3,6 +3,20 @@ import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
 
 const regionValues = SENEGAL_REGIONS as unknown as [string, ...string[]];
 
+// Validation telephone — accepte format local (77XXXXXXX) ou international (+221XXXXXXXXX)
+const phoneSchema = z
+  .string()
+  .refine(
+    (v) => {
+      if (!v) return true;
+      const n = v.replace(/[\s\-\.]/g, '');
+      return /^(\+?221|00221)?[0-9]{9}$/.test(n);
+    },
+    { message: 'Numero invalide (ex: 77 000 00 00)' },
+  )
+  .optional()
+  .or(z.literal(''));
+
 export const loginSchema = z.object({
   emailOrPhone: z.string().min(1, 'Email ou telephone requis'),
   password: z.string().min(6, 'Minimum 6 caracteres'),
@@ -12,7 +26,7 @@ export const registerSchema = z
   .object({
     name: z.string().min(2, 'Minimum 2 caracteres').max(100),
     email: z.string().email('Email invalide').optional().or(z.literal('')),
-    phone: z.string().optional().or(z.literal('')),
+    phone: phoneSchema,
     password: z.string().min(8, 'Minimum 8 caracteres'),
     confirmPassword: z.string(),
     city: z.string().optional().or(z.literal('')),
@@ -38,14 +52,14 @@ export const listingSchema = z.object({
   condition: z.enum(['NEW', 'LIKE_NEW', 'GOOD', 'FAIR']),
   color: z.string().min(1, 'Couleur requise'),
   priceXof: z.coerce.number().min(1000, 'Minimum 1 000 FCFA').max(500000),
-  locationCity: z.string().min(1, 'Ville requise'),
+  locationCity: z.string().optional().or(z.literal('')),
   locationRegion: z.enum(regionValues, { errorMap: () => ({ message: 'Region requise' }) }),
 });
 
 export const profileSchema = z.object({
   name: z.string().min(2, 'Minimum 2 caracteres'),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
-  phone: z.string().optional().or(z.literal('')),
+  phone: phoneSchema,
   city: z.string().optional().or(z.literal('')),
   region: z.enum(regionValues).optional().or(z.literal('')),
 });

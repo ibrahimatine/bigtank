@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,11 @@ function BrandCombobox({
   const [inputValue, setInputValue] = useState(value);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync avec URL (ex: apres reset)
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
 
   const filtered = inputValue
     ? POPULAR_BRANDS.filter((b) =>
@@ -123,6 +128,21 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
 
   const get = (key: string) => searchParams.get(key) || '';
 
+  // Inputs controles pour que le reset vide aussi les champs
+  const [sizeEuMin, setSizeEuMin] = useState(get('sizeEuMin'));
+  const [sizeEuMax, setSizeEuMax] = useState(get('sizeEuMax'));
+  const [priceMin, setPriceMin] = useState(get('priceMin'));
+  const [priceMax, setPriceMax] = useState(get('priceMax'));
+
+  // Synchronise les inputs locaux avec les params URL (apres reset ou navigation)
+  useEffect(() => {
+    setSizeEuMin(get('sizeEuMin'));
+    setSizeEuMax(get('sizeEuMax'));
+    setPriceMin(get('priceMin'));
+    setPriceMax(get('priceMax'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()]);
+
   const updateParams = useCallback(
     (updates: Record<string, string>) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -146,6 +166,30 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
     onApply?.();
   };
 
+  // Applique un filtre numerique sur blur ou Enter
+  function numericInputProps(
+    value: string,
+    setValue: (v: string) => void,
+    paramKey: string,
+    min?: number,
+    max?: number,
+  ) {
+    return {
+      type: 'number' as const,
+      value,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value),
+      onBlur: (e: React.FocusEvent<HTMLInputElement>) => updateParams({ [paramKey]: e.target.value }),
+      onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+          (e.target as HTMLInputElement).blur();
+        }
+      },
+      min,
+      max,
+      className: 'bg-white',
+    };
+  }
+
   return (
     <div className="space-y-5">
       <div>
@@ -160,20 +204,12 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
         <label className="text-sm font-medium mb-1.5 block">Taille EU</label>
         <div className="flex gap-2">
           <Input
-            type="number"
             placeholder="Min (46)"
-            defaultValue={get('sizeEuMin')}
-            onBlur={(e) => updateParams({ sizeEuMin: e.target.value })}
-            min={36}
-            max={60}
+            {...numericInputProps(sizeEuMin, setSizeEuMin, 'sizeEuMin', 38, 60)}
           />
           <Input
-            type="number"
             placeholder="Max (52)"
-            defaultValue={get('sizeEuMax')}
-            onBlur={(e) => updateParams({ sizeEuMax: e.target.value })}
-            min={36}
-            max={60}
+            {...numericInputProps(sizeEuMax, setSizeEuMax, 'sizeEuMax', 38, 60)}
           />
         </div>
       </div>
@@ -182,18 +218,12 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
         <label className="text-sm font-medium mb-1.5 block">Prix (FCFA)</label>
         <div className="flex gap-2">
           <Input
-            type="number"
             placeholder="Min"
-            defaultValue={get('priceMin')}
-            onBlur={(e) => updateParams({ priceMin: e.target.value })}
-            min={0}
+            {...numericInputProps(priceMin, setPriceMin, 'priceMin', 0)}
           />
           <Input
-            type="number"
             placeholder="Max"
-            defaultValue={get('priceMax')}
-            onBlur={(e) => updateParams({ priceMax: e.target.value })}
-            min={0}
+            {...numericInputProps(priceMax, setPriceMax, 'priceMax', 0)}
           />
         </div>
       </div>
