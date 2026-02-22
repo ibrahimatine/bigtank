@@ -21,6 +21,7 @@ interface SocketContextValue {
   unreadCount: number;
   setUnreadCount: (count: number) => void;
   decrementUnread: () => void;
+  refreshUnreadCount: () => Promise<void>;
   onMessage: (handler: (message: ChatMessage) => void) => () => void;
   sendMessage: (conversationId: string, content: string) => void;
   sendTyping: (conversationId: string, isTyping: boolean) => void;
@@ -29,24 +30,39 @@ interface SocketContextValue {
 
 const SocketContext = createContext<SocketContextValue | null>(null);
 
+async function fetchUnreadCount(): Promise<number> {
+  try {
+    const res = await fetch('/api/chat/unread-count', { cache: 'no-store' });
+    if (!res.ok) return 0;
+    const data = await res.json();
+    return data?.data?.count ?? data?.count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const refreshUnreadCount = useCallback(async () => {
+    const count = await fetchUnreadCount();
+    setUnreadCount(count);
+  }, []);
+
   useEffect(() => {
     if (!user) {
-      // Deconnexion si pas d'user
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
         setIsConnected(false);
+        setUnreadCount(0);
       }
       return;
     }
 
-    // Fetch le token JWT pour Socket.io (cookie httpOnly non accessible JS)
     let cancelled = false;
 
     async function initSocket() {
@@ -58,11 +74,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         if (!token || cancelled) return;
 
         // Fetch le nombre initial de non lus
-        const unreadRes = await fetch('/api/chat/unread-count');
-        if (unreadRes.ok && !cancelled) {
-          const unreadData = await unreadRes.json();
-          setUnreadCount(unreadData?.data?.count ?? unreadData?.count ?? 0);
-        }
+        const initialCount = await fetchUnreadCount();
+        if (!cancelled) setUnreadCount(initialCount);
 
         if (cancelled) return;
 
@@ -84,21 +97,30 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
           if (!cancelled) setIsConnected(false);
         });
 
-        // Quand un nouveau message arrive, incrementer le compteur non lus
-        socket.on('new_message', () => {
-          if (!cancelled) {
+        // Nouveau message — incrementer SEULEMENT si ce n'est pas le message de l'utilisateur courant
+        socket.on('new_message', (message: ChatMessage) => {
+          if (!cancelled && message.senderId !== user.id) {
             setUnreadCount((prev) => prev + 1);
           }
         });
       } catch {
-        // Erreur silencieuse — l'user pourra recharger
+        // Erreur silencieuse
       }
     }
 
     initSocket();
 
+    // Polling de secours toutes les 30s pour rester synchronise avec le serveur
+    const pollInterval = setInterval(async () => {
+      if (!cancelled) {
+        const count = await fetchUnreadCount();
+        if (!cancelled) setUnreadCount(count);
+      }
+    }, 30000);
+
     return () => {
       cancelled = true;
+      clearInterval(pollInterval);
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -147,6 +169,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         unreadCount,
         setUnreadCount,
         decrementUnread,
+        refreshUnreadCount,
         onMessage,
         sendMessage,
         sendTyping,

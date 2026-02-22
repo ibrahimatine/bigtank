@@ -3,19 +3,16 @@ import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
 
 const regionValues = SENEGAL_REGIONS as unknown as [string, ...string[]];
 
-// Validation telephone — accepte format local (77XXXXXXX) ou international (+221XXXXXXXXX)
-const phoneSchema = z
-  .string()
-  .refine(
-    (v) => {
-      if (!v) return true;
-      const n = v.replace(/[\s\-\.]/g, '');
-      return /^(\+?221|00221)?[0-9]{9}$/.test(n);
-    },
-    { message: 'Numero invalide (ex: 77 000 00 00)' },
-  )
-  .optional()
-  .or(z.literal(''));
+// Validation telephone — accepte vide, format local (77XXXXXXX) ou international (+221XXXXXXXXX)
+// Note: pas de .optional().or(z.literal('')) pour eviter les problemes de message d'erreur Zod union
+const phoneSchema = z.string().refine(
+  (v) => {
+    if (!v) return true; // vide = optionnel
+    const n = v.replace(/[\s\-\.]/g, '');
+    return /^(\+?221|00221)?[0-9]{9}$/.test(n);
+  },
+  { message: 'Numero invalide (ex: 77 000 00 00)' },
+);
 
 export const loginSchema = z.object({
   emailOrPhone: z.string().min(1, 'Email ou telephone requis'),

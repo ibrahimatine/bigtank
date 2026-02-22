@@ -77,7 +77,7 @@ export function MessageThread({
   initialMessages,
   currentUserId,
 }: MessageThreadProps) {
-  const { onMessage, sendMessage, sendTyping, markRead, socket } = useSocket();
+  const { onMessage, sendMessage, sendTyping, markRead, refreshUnreadCount, socket } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>(() => sortAsc(initialMessages));
   const [otherTyping, setOtherTyping] = useState(false);
 
@@ -93,10 +93,11 @@ export function MessageThread({
     }
   }, [socket, conversation.id]);
 
-  // Marquer comme lu a l'ouverture
+  // Marquer comme lu a l'ouverture + rafraichir le compteur de non lus
   useEffect(() => {
     markRead(conversation.id);
-  }, [markRead, conversation.id]);
+    refreshUnreadCount();
+  }, [markRead, refreshUnreadCount, conversation.id]);
 
   // Scroll : instant au montage, uniquement si pres du bas pour les nouveaux messages
   useEffect(() => {
@@ -120,10 +121,12 @@ export function MessageThread({
       if (message.conversationId !== conversation.id) return;
       setMessages((prev) => [...prev, message]);
       if (message.senderId !== currentUserId) {
+        // Marquer comme lu et rafraichir le compteur (l'utilisateur est en train de lire)
         markRead(conversation.id);
+        refreshUnreadCount();
       }
     },
-    [conversation.id, currentUserId, markRead],
+    [conversation.id, currentUserId, markRead, refreshUnreadCount],
   );
 
   useEffect(() => {
