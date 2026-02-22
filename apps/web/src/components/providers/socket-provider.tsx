@@ -99,7 +99,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
         // Nouveau message — incrementer SEULEMENT si ce n'est pas le message de l'utilisateur courant
         socket.on('new_message', (message: ChatMessage) => {
-          if (!cancelled && message.senderId !== user.id) {
+          if (!cancelled && message.senderId !== user?.id) {
             setUnreadCount((prev) => prev + 1);
           }
         });

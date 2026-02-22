@@ -17,22 +17,31 @@ enum UserRole {
   ADMIN
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
 model User {
-  id            String   @id @default(cuid())
-  email         String?  @unique
-  phone         String?  @unique
-  passwordHash  String?  @map("password_hash")
-  name          String
-  avatarUrl     String?  @map("avatar_url")
-  role          UserRole @default(USER)
-  emailVerified Boolean  @default(false) @map("email_verified")
-  phoneVerified Boolean  @default(false) @map("phone_verified")
-  provider      String?  // google, facebook, etc.
-  providerId    String?  @map("provider_id")
-  city          String?
-  region        String?
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id              String     @id @default(cuid())
+  email           String?    @unique
+  phone           String?    @unique
+  passwordHash    String?    @map("password_hash")
+  name            String
+  avatarUrl       String?    @map("avatar_url")
+  role            UserRole   @default(USER)
+  status          UserStatus @default(ACTIVE)
+  suspendedAt     DateTime?  @map("suspended_at")
+  suspendedReason String?    @map("suspended_reason")
+  emailVerified   Boolean    @default(false) @map("email_verified")
+  phoneVerified   Boolean    @default(false) @map("phone_verified")
+  provider        String?    // google, facebook, etc.
+  providerId      String?    @map("provider_id")
+  city            String?
+  region          String?
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
 
   // Relations
   sellerStats        SellerStats?

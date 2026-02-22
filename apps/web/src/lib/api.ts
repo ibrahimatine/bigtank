@@ -321,3 +321,70 @@ export async function startConversation(data: {
     body: JSON.stringify(data),
   });
 }
+
+// --- Admin types ---
+
+export interface AdminStats {
+  users: { total: number; sellers: number; suspended: number };
+  listings: { total: number; active: number; sold: number };
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  status: string;
+  suspendedAt: string | null;
+  suspendedReason: string | null;
+  createdAt: string;
+  _count: { listings: number };
+}
+
+export interface AdminListing {
+  id: string;
+  title: string;
+  brand: string;
+  priceXof: number;
+  status: string;
+  createdAt: string;
+  slug: string;
+  seller: { id: string; name: string; email: string | null };
+  images: { url: string }[];
+}
+
+export interface AdminPaginated<T> {
+  users?: T[];
+  listings?: T[];
+  logs?: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// --- Admin API functions (server-side) ---
+
+export async function getAdminStats(): Promise<AdminStats> {
+  return authApiFetch<AdminStats>('/admin/stats');
+}
+
+export async function getAdminUsers(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: string;
+  status?: string;
+}): Promise<AdminPaginated<AdminUser>> {
+  return authApiFetch<AdminPaginated<AdminUser>>('/admin/users', { params });
+}
+
+export async function getAdminListings(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}): Promise<AdminPaginated<AdminListing>> {
+  return authApiFetch<AdminPaginated<AdminListing>>('/admin/listings', { params });
+}
