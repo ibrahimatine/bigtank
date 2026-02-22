@@ -77,9 +77,28 @@ export class ChatService {
       },
     });
 
+    const firstMessage = conversation.messages[0];
+    const preview = firstMessage
+      ? firstMessage.content.length > 80
+        ? firstMessage.content.slice(0, 77) + '...'
+        : firstMessage.content
+      : '';
+
+    // Notifier le vendeur du nouveau message
+    await this.prisma.notification.create({
+      data: {
+        userId: listing.sellerId,
+        type: 'NEW_MESSAGE',
+        title: 'Nouveau message',
+        body: preview,
+        channel: 'IN_APP',
+        data: { conversationId: conversation.id },
+      },
+    });
+
     return {
       conversation,
-      message: conversation.messages[0],
+      message: firstMessage,
     };
   }
 
@@ -95,6 +114,12 @@ export class ChatService {
     this.checkParticipant(conversation, userId);
 
     const sanitizedContent = this.sanitizeMessage(content);
+    const recipientId =
+      conversation.buyerId === userId ? conversation.sellerId : conversation.buyerId;
+    const preview =
+      sanitizedContent.length > 80
+        ? sanitizedContent.slice(0, 77) + '...'
+        : sanitizedContent;
 
     const [message] = await this.prisma.$transaction([
       this.prisma.message.create({
@@ -112,6 +137,16 @@ export class ChatService {
       this.prisma.conversation.update({
         where: { id: conversationId },
         data: { lastMessageAt: new Date() },
+      }),
+      this.prisma.notification.create({
+        data: {
+          userId: recipientId,
+          type: 'NEW_MESSAGE',
+          title: 'Nouveau message',
+          body: preview,
+          channel: 'IN_APP',
+          data: { conversationId },
+        },
       }),
     ]);
 

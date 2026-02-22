@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SearchBar } from '@/components/search/search-bar';
 import { UserNav } from './user-nav';
+import { NotificationBell } from './notification-bell';
 
 export function Header() {
   return (
@@ -24,6 +25,7 @@ export function Header() {
           >
             Explorer
           </Link>
+          <NotificationBell />
           <UserNav />
         </nav>
       </div>

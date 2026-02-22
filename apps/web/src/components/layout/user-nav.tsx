@@ -50,16 +50,8 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity outline-none">
-        {/* Avatar avec badge non-lu visible sans ouvrir le menu */}
-        <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-xs font-bold text-white">
-            {initials}
-          </div>
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 leading-none">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
+        <div className="w-8 h-8 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-xs font-bold text-white">
+          {initials}
         </div>
         <span className="text-sm hidden sm:inline">{user.name.split(' ')[0]}</span>
       </DropdownMenuTrigger>
