@@ -27,7 +27,8 @@ API Gateway (:4000)  ──  JWT validation, rate limiting, routing
   ├── Chat Service     (:4003)  ──  messagerie temps reel (WebSocket)
   ├── Payment Service  (:4004)  ──  paiements (en cours)
   ├── Notif Service    (:4005)  ──  notifications (en cours)
-  └── Search Service   (:4006)  ──  recherche avancee (en cours)
+  ├── Search Service   (:4006)  ──  recherche avancee (en cours)
+  └── Admin Service    (:4007)  ──  panel administration (ADMIN uniquement)
 ```
 
 ## Prerequis
@@ -57,7 +58,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Les valeurs par defaut dans `.env.example` fonctionnent directement en developpement. Aucune modification n'est necessaire pour tester en local.
+Les valeurs par defaut dans `.env.example` fonctionnent directement en developpement.
 
 ### 4. Demarrer l'infrastructure Docker
 
@@ -85,23 +86,79 @@ Les 4 conteneurs doivent etre `healthy`. Le conteneur `minio-setup` s'arrete apr
 ### 5. Initialiser la base de donnees
 
 ```bash
+# Appliquer les migrations (cree les tables)
+pnpm db:migrate
+
 # Generer le client Prisma
 pnpm db:generate
-
-# Pousser le schema vers PostgreSQL
-pnpm db:push
 
 # Peupler avec des donnees de test
 pnpm db:seed
 ```
 
-### 6. Lancer tous les services
+### 6. Creer un compte administrateur
+
+```bash
+PGPASSWORD=bigtank_dev_2024 psql -h localhost -p 5433 -U bigtank bigtank -c "
+INSERT INTO users (id, name, phone, password_hash, role, status, phone_verified, created_at, updated_at)
+VALUES (
+  'admin_bigtank_001',
+  'Admin BigTank',
+  '+221770000000',
+  '\$2b\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+  'ADMIN',
+  'ACTIVE',
+  true,
+  NOW(),
+  NOW()
+);"
+```
+
+Identifiants : telephone `+221770000000` (ou `77 000 00 00`), mot de passe `password`.
+
+### 7. Lancer tous les services
 
 ```bash
 pnpm dev
 ```
 
 Tous les microservices demarrent en parallele via Turborepo.
+
+---
+
+## Interface web — http://localhost:3000
+
+### Comptes de test
+
+| Role | Telephone | Mot de passe | Acces |
+|------|-----------|--------------|-------|
+| **ADMIN** | `77 000 00 00` | `password` | Panel admin `/admin` |
+| SELLER | Cree via `/register` | — | Dashboard `/dashboard` |
+| USER | Cree via `/register` | — | Profil, chat |
+
+> Les comptes vendeurs/acheteurs se creent directement sur http://localhost:3000/register avec un telephone ou email.
+
+### Parcours utilisateur typique
+
+1. **S'inscrire** → http://localhost:3000/register
+   - Email OU telephone uniquement (les deux ne sont pas obligatoires)
+   - Mot de passe minimum 8 caracteres
+2. **Devenir vendeur** → Profile → "Activer le mode vendeur"
+3. **Publier une annonce** → Dashboard → "Nouvelle annonce"
+4. **Contacter un vendeur** → Page annonce → "Contacter le vendeur"
+5. **Messagerie** → http://localhost:3000/chat
+
+### Panel Admin → http://localhost:3000/admin
+
+Reserve au role ADMIN. Connexion → redirection automatique vers `/admin`.
+
+| Page | Description |
+|------|-------------|
+| `/admin` | Tableau de bord : stats utilisateurs, annonces |
+| `/admin/users` | Liste utilisateurs, filtres, suspendre / reactiver |
+| `/admin/listings` | Liste annonces, filtres, supprimer |
+
+---
 
 ## Tester les API
 
@@ -117,51 +174,57 @@ curl http://localhost:4000/api/health
 
 ### Auth Service — Inscription / Connexion
 
-#### Creer un compte
+#### Creer un compte (email ou telephone, pas les deux obligatoires)
 
 ```bash
+# Avec email uniquement
 curl -X POST http://localhost:4000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "test@example.com",
-    "password": "MonMotDePasse123!",
     "name": "Amadou Ba",
-    "phone": "221770001122",
-    "city": "Dakar",
-    "region": "Dakar"
+    "email": "amadou@exemple.com",
+    "password": "MonMotDePasse123!"
   }'
-```
 
-Reponse : un objet `user` + `accessToken` + `refreshToken`.
-
-#### Se connecter
-
-```bash
-curl -X POST http://localhost:4000/api/auth/login \
+# Avec telephone uniquement (format libre : 77XXXXXXX, +221XXXXXXXXX, 00221XXXXXXXXX)
+curl -X POST http://localhost:4000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "test@example.com",
+    "name": "Fatou Sall",
+    "phone": "77 123 45 67",
     "password": "MonMotDePasse123!"
   }'
 ```
 
-> **Important :** Copiez le `accessToken` retourne. Il sera utilise dans toutes les requetes authentifiees ci-dessous. On l'appellera `TOKEN` dans la suite.
+Reponse : un objet `user` avec `accessToken` et `refreshToken`.
+
+#### Se connecter
+
+```bash
+# Avec email
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "emailOrPhone": "amadou@exemple.com",
+    "password": "MonMotDePasse123!"
+  }'
+
+# Avec telephone (tous les formats acceptes)
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "emailOrPhone": "77 123 45 67",
+    "password": "MonMotDePasse123!"
+  }'
+```
+
+> **Important :** Copiez le `accessToken` retourne. Il sera utilise dans toutes les requetes authentifiees. On l'appellera `TOKEN` dans la suite.
 
 #### Voir son profil
 
 ```bash
 curl http://localhost:4000/api/auth/me \
   -H "Authorization: Bearer TOKEN"
-```
-
-#### Rafraichir le token
-
-```bash
-curl -X POST http://localhost:4000/api/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refreshToken": "VOTRE_REFRESH_TOKEN"
-  }'
 ```
 
 #### Passer vendeur
@@ -171,7 +234,7 @@ curl -X POST http://localhost:4000/api/auth/upgrade-to-seller \
   -H "Authorization: Bearer TOKEN"
 ```
 
-> Apres cette commande, reconnectez-vous (`/auth/login`) pour obtenir un nouveau token avec le role `SELLER`.
+> Apres cette commande, reconnectez-vous pour obtenir un nouveau token avec le role `SELLER`.
 
 #### Se deconnecter
 
@@ -179,16 +242,14 @@ curl -X POST http://localhost:4000/api/auth/upgrade-to-seller \
 curl -X POST http://localhost:4000/api/auth/logout \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "refreshToken": "VOTRE_REFRESH_TOKEN"
-  }'
+  -d '{"refreshToken": "VOTRE_REFRESH_TOKEN"}'
 ```
 
 ---
 
 ### Listing Service — Annonces
 
-> Les operations de creation/modification necessitent le role **SELLER**. Faites d'abord un `upgrade-to-seller` puis reconnectez-vous.
+> Les operations de creation/modification necessitent le role **SELLER**.
 
 #### Creer une annonce
 
@@ -206,16 +267,8 @@ curl -X POST http://localhost:4000/api/listings \
     "condition": "NEW",
     "color": "Blanc",
     "priceXof": 45000,
-    "locationCity": "Dakar",
     "locationRegion": "Dakar"
   }'
-```
-
-#### Lister ses annonces
-
-```bash
-curl http://localhost:4000/api/listings/my \
-  -H "Authorization: Bearer TOKEN"
 ```
 
 #### Rechercher des annonces (public)
@@ -228,25 +281,13 @@ curl "http://localhost:4000/api/listings/search?q=nike"
 curl "http://localhost:4000/api/listings/search?brand=Nike&minSize=46&maxPrice=50000&region=Dakar"
 ```
 
-Filtres disponibles : `q`, `brand`, `condition`, `minSize`, `maxSize`, `minPrice`, `maxPrice`, `region`, `city`, `page`, `limit`.
+Filtres disponibles : `q`, `brand`, `condition`, `minSize`, `maxSize`, `minPrice`, `maxPrice`, `region`, `city`, `sortBy`, `limit`.
 
-#### Voir une annonce par slug (public)
-
-```bash
-curl http://localhost:4000/api/listings/nike-air-force-1-47-dakar-xxxxx
-```
-
-Le slug exact est retourne lors de la creation.
-
-#### Modifier une annonce
+#### Mes annonces
 
 ```bash
-curl -X PATCH http://localhost:4000/api/listings/LISTING_ID \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "priceXof": 40000
-  }'
+curl http://localhost:4000/api/listings/my \
+  -H "Authorization: Bearer TOKEN"
 ```
 
 #### Changer le statut d'une annonce
@@ -255,58 +296,16 @@ curl -X PATCH http://localhost:4000/api/listings/LISTING_ID \
 curl -X PATCH http://localhost:4000/api/listings/LISTING_ID/status \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "status": "SOLD"
-  }'
+  -d '{"status": "SOLD"}'
 ```
 
 Statuts : `ACTIVE`, `SOLD`, `RESERVED`, `DELETED`.
-
-#### Supprimer une annonce
-
-```bash
-curl -X DELETE http://localhost:4000/api/listings/LISTING_ID \
-  -H "Authorization: Bearer TOKEN"
-```
-
-#### Upload d'image
-
-Etape 1 — Obtenir une URL presignee :
-
-```bash
-curl -X POST http://localhost:4000/api/listings/LISTING_ID/images/presign \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "filename": "photo.jpg",
-    "contentType": "image/jpeg"
-  }'
-```
-
-Etape 2 — Uploader le fichier vers l'URL presignee retournee :
-
-```bash
-curl -X PUT "URL_PRESIGNEE_RETOURNEE" \
-  -H "Content-Type: image/jpeg" \
-  --data-binary @photo.jpg
-```
-
-Etape 3 — Confirmer l'upload :
-
-```bash
-curl -X POST http://localhost:4000/api/listings/LISTING_ID/images/confirm \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key": "CLE_RETOURNEE_PAR_PRESIGN"
-  }'
-```
 
 ---
 
 ### Chat Service — Messagerie temps reel
 
-#### Demarrer une conversation (REST)
+#### Demarrer une conversation
 
 ```bash
 curl -X POST http://localhost:4000/api/chat/conversations \
@@ -327,16 +326,7 @@ curl http://localhost:4000/api/chat/conversations \
   -H "Authorization: Bearer TOKEN"
 ```
 
-#### Voir les messages d'une conversation
-
-```bash
-curl http://localhost:4000/api/chat/conversations/CONVERSATION_ID/messages \
-  -H "Authorization: Bearer TOKEN"
-```
-
-Pagination par curseur : `?cursor=MESSAGE_ID&limit=20`
-
-#### Nombre de messages non lus
+#### Messages non lus
 
 ```bash
 curl http://localhost:4000/api/chat/unread-count \
@@ -345,10 +335,7 @@ curl http://localhost:4000/api/chat/unread-count \
 
 #### Messagerie temps reel (WebSocket)
 
-Pour tester les WebSockets, vous pouvez utiliser un client Socket.io comme [websocat](https://github.com/nicktomlin/wscat) ou un script Node.js :
-
 ```javascript
-// test-websocket.js
 const { io } = require("socket.io-client");
 
 const socket = io("http://localhost:4003", {
@@ -356,155 +343,163 @@ const socket = io("http://localhost:4003", {
 });
 
 socket.on("connect", () => {
-  console.log("Connecte au chat !");
-
-  // Rejoindre une conversation
   socket.emit("join_conversation", { conversationId: "CONVERSATION_ID" });
-
-  // Envoyer un message
   socket.emit("send_message", {
     conversationId: "CONVERSATION_ID",
-    content: "Salut depuis le WebSocket !"
+    content: "Salut !"
   });
-
-  // Indicateur de frappe
-  socket.emit("typing", { conversationId: "CONVERSATION_ID" });
-
-  // Marquer comme lu
-  socket.emit("mark_read", { conversationId: "CONVERSATION_ID" });
 });
 
-// Recevoir les messages
 socket.on("new_message", (message) => {
   console.log("Nouveau message :", message);
 });
-
-// Notification de frappe
-socket.on("user_typing", (data) => {
-  console.log("L'autre utilisateur tape...");
-});
-
-// Confirmation de lecture
-socket.on("messages_read", (data) => {
-  console.log("Messages lus");
-});
-
-socket.on("error", (err) => {
-  console.error("Erreur :", err);
-});
 ```
 
+---
+
+### Admin Service — Panel d'administration
+
+> Toutes les routes necessitent un token avec le role `ADMIN`.
+
+#### Statistiques globales
+
 ```bash
-node test-websocket.js
+curl http://localhost:4000/api/admin/stats \
+  -H "Authorization: Bearer ADMIN_TOKEN"
+```
+
+#### Lister les utilisateurs
+
+```bash
+# Tous les utilisateurs
+curl http://localhost:4000/api/admin/users \
+  -H "Authorization: Bearer ADMIN_TOKEN"
+
+# Avec filtres
+curl "http://localhost:4000/api/admin/users?search=moussa&role=SELLER&status=ACTIVE&page=1&limit=20" \
+  -H "Authorization: Bearer ADMIN_TOKEN"
+```
+
+#### Suspendre un utilisateur
+
+```bash
+curl -X PATCH http://localhost:4000/api/admin/users/USER_ID/suspend \
+  -H "Authorization: Bearer ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Comportement frauduleux signale"}'
+```
+
+#### Reactiver un utilisateur
+
+```bash
+curl -X PATCH http://localhost:4000/api/admin/users/USER_ID/activate \
+  -H "Authorization: Bearer ADMIN_TOKEN"
+```
+
+#### Supprimer une annonce (soft delete)
+
+```bash
+curl -X DELETE http://localhost:4000/api/admin/listings/LISTING_ID \
+  -H "Authorization: Bearer ADMIN_TOKEN"
+```
+
+#### Historique des actions admin
+
+```bash
+curl "http://localhost:4000/api/admin/audit-logs?page=1&limit=50" \
+  -H "Authorization: Bearer ADMIN_TOKEN"
 ```
 
 ---
 
 ## Scenario de test complet
 
-Voici un parcours utilisateur complet pour tester toutes les fonctionnalites :
-
-### 1. Creer deux comptes
+### 1. Demarrer les services
 
 ```bash
-# Compte vendeur
-curl -s -X POST http://localhost:4000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "vendeur@test.com",
-    "password": "Vendeur123!",
-    "name": "Moussa Diop",
-    "city": "Dakar",
-    "region": "Dakar"
-  }'
-
-# Compte acheteur
-curl -s -X POST http://localhost:4000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "acheteur@test.com",
-    "password": "Acheteur123!",
-    "name": "Fatou Sall",
-    "city": "Thies",
-    "region": "Thies"
-  }'
+pnpm docker:up
+pnpm dev
 ```
 
-### 2. Passer le premier compte en vendeur
+### 2. Creer deux comptes (telephone uniquement)
+
+```bash
+# Vendeur
+curl -s -X POST http://localhost:4000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Moussa Diop", "phone": "77 100 00 01", "password": "Vendeur123!"}'
+
+# Acheteur
+curl -s -X POST http://localhost:4000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Fatou Sall", "phone": "77 100 00 02", "password": "Acheteur123!"}'
+```
+
+### 3. Passer le premier compte en vendeur
 
 ```bash
 # Login vendeur
-curl -s -X POST http://localhost:4000/api/auth/login \
+VENDEUR_TOKEN=$(curl -s -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "vendeur@test.com", "password": "Vendeur123!"}' | jq .accessToken
+  -d '{"emailOrPhone": "77 100 00 01", "password": "Vendeur123!"}' | jq -r '.accessToken // .data.accessToken')
 
-# Upgrade en vendeur (avec le token obtenu)
+# Upgrade
 curl -s -X POST http://localhost:4000/api/auth/upgrade-to-seller \
-  -H "Authorization: Bearer VENDEUR_TOKEN"
+  -H "Authorization: Bearer $VENDEUR_TOKEN"
 
-# Re-login pour avoir le token avec role SELLER
-curl -s -X POST http://localhost:4000/api/auth/login \
+# Re-login pour obtenir token SELLER
+VENDEUR_TOKEN=$(curl -s -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "vendeur@test.com", "password": "Vendeur123!"}' | jq .accessToken
+  -d '{"emailOrPhone": "77 100 00 01", "password": "Vendeur123!"}' | jq -r '.accessToken // .data.accessToken')
 ```
 
-### 3. Publier une annonce
+### 4. Publier une annonce
 
 ```bash
-curl -s -X POST http://localhost:4000/api/listings \
-  -H "Authorization: Bearer VENDEUR_TOKEN" \
+LISTING=$(curl -s -X POST http://localhost:4000/api/listings \
+  -H "Authorization: Bearer $VENDEUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Jordan 1 Retro High - Taille 48",
-    "description": "Air Jordan 1 Retro High OG, neuves dans leur boite.",
+    "description": "Air Jordan 1 Retro High OG, neuves dans leur boite originale.",
     "brand": "Nike",
     "model": "Air Jordan 1 Retro High",
     "sizeEu": 48,
-    "sizeUs": 14,
     "condition": "NEW",
     "color": "Rouge/Noir",
     "priceXof": 75000,
-    "locationCity": "Dakar",
     "locationRegion": "Dakar"
-  }'
+  }')
+LISTING_ID=$(echo $LISTING | jq -r '.id // .data.id')
 ```
 
-> Notez le `id` et le `slug` de l'annonce dans la reponse.
-
-### 4. Rechercher l'annonce
+### 5. Contacter le vendeur
 
 ```bash
-curl -s "http://localhost:4000/api/listings/search?q=jordan&minSize=47"
-```
-
-### 5. Contacter le vendeur (en tant qu'acheteur)
-
-```bash
-# Login acheteur
-curl -s -X POST http://localhost:4000/api/auth/login \
+ACHETEUR_TOKEN=$(curl -s -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "acheteur@test.com", "password": "Acheteur123!"}' | jq .accessToken
+  -d '{"emailOrPhone": "77 100 00 02", "password": "Acheteur123!"}' | jq -r '.accessToken // .data.accessToken')
 
-# Demarrer une conversation
 curl -s -X POST http://localhost:4000/api/chat/conversations \
-  -H "Authorization: Bearer ACHETEUR_TOKEN" \
+  -H "Authorization: Bearer $ACHETEUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "listingId": "ID_DE_LANNONCE",
-    "message": "Bonjour ! La paire est toujours dispo ? Possible de faire 70000 ?"
-  }'
+  -d "{\"listingId\": \"$LISTING_ID\", \"message\": \"Bonjour, paire encore dispo ?\"}"
 ```
 
-### 6. Le vendeur repond
+### 6. Tester le panel admin
 
 ```bash
-# Voir les conversations du vendeur
-curl -s http://localhost:4000/api/chat/conversations \
-  -H "Authorization: Bearer VENDEUR_TOKEN"
+ADMIN_TOKEN=$(curl -s -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"emailOrPhone": "77 000 00 00", "password": "password"}' | jq -r '.accessToken // .data.accessToken')
 
-# Voir les messages
-curl -s http://localhost:4000/api/chat/conversations/CONVERSATION_ID/messages \
-  -H "Authorization: Bearer VENDEUR_TOKEN"
+# Stats
+curl -s http://localhost:4000/api/admin/stats \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | jq .
+
+# Liste utilisateurs
+curl -s http://localhost:4000/api/admin/users \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | jq '.data.total'
 ```
 
 ---
@@ -517,25 +512,20 @@ curl -s http://localhost:4000/api/chat/conversations/CONVERSATION_ID/messages \
 pnpm db:studio
 ```
 
-Ouvre une interface web sur http://localhost:5555 pour explorer et modifier les donnees.
+Ouvre une interface web sur http://localhost:5555.
 
 ### Meilisearch Dashboard
 
-Accessible sur http://localhost:7700 avec la cle `bigtank_meili_dev_key`.
+http://localhost:7700 — cle : `bigtank_meili_dev_key`
 
 ### MinIO Console
 
-Accessible sur http://localhost:9001 avec les identifiants :
-- **User :** `bigtank_minio`
-- **Password :** `bigtank_minio_secret`
+http://localhost:9001 — `bigtank_minio` / `bigtank_minio_secret`
 
 ### Logs Docker
 
 ```bash
-# Tous les services
 pnpm docker:logs
-
-# Un service specifique
 docker logs bigtank-postgres -f
 docker logs bigtank-redis -f
 ```
@@ -553,11 +543,10 @@ docker logs bigtank-redis -f
 | `pnpm docker:up` | Demarrer PostgreSQL, Redis, Meilisearch, MinIO |
 | `pnpm docker:down` | Arreter les conteneurs Docker |
 | `pnpm docker:logs` | Voir les logs des conteneurs |
+| `pnpm db:migrate` | Creer et appliquer une migration Prisma |
 | `pnpm db:generate` | Generer le client Prisma |
-| `pnpm db:push` | Appliquer le schema a la BDD |
 | `pnpm db:seed` | Peupler la BDD avec des donnees de test |
 | `pnpm db:studio` | Ouvrir Prisma Studio |
-| `pnpm db:migrate` | Creer une migration Prisma |
 
 ## Structure du projet
 
@@ -571,7 +560,8 @@ bigtank/
 │   ├── payment-service/      # Paiements (:4004) — en cours
 │   ├── notification-service/ # Notifications (:4005) — en cours
 │   ├── search-service/       # Recherche (:4006) — en cours
-│   └── web/                  # Frontend Next.js (:3000) — pages publiques + auth + chat
+│   ├── admin-service/        # Administration (:4007)
+│   └── web/                  # Frontend Next.js (:3000)
 ├── packages/
 │   ├── database/             # Schema Prisma et migrations
 │   ├── shared-types/         # Types TypeScript partages
@@ -579,90 +569,57 @@ bigtank/
 │   └── shared-config/        # Config ESLint, TSConfig, Prettier
 ├── docker/
 │   └── docker-compose.dev.yml
-├── docs/                     # Documentation des phases
-└── .env.example              # Template des variables d'environnement
+├── docs/                     # Rapports de phases
+└── .env.example
 ```
 
-## Securite implementee
+## Frontend — Pages
 
-- **Mots de passe** : hashage bcrypt (12 rounds)
-- **Tokens** : JWT access (15 min) + refresh (7 jours), rotation automatique
-- **Rate limiting** : 5 tentatives de login puis blocage 15 min, 5 annonces/heure par vendeur, 100 requetes/min globalement
-- **XSS** : sanitization de tout le contenu utilisateur (descriptions, messages)
-- **CORS** : origines autorisees strictement definies
-- **Headers HTTP** : Helmet.js
-- **Roles** : USER, SELLER, ADMIN avec controles d'acces
-- **Audit** : journalisation des connexions et actions sensibles
+### Pages publiques
 
-## Frontend
-
-Le frontend Next.js couvre l'integralite de l'experience utilisateur (pages publiques SEO + pages authentifiees + messagerie temps reel).
-
-### Pages publiques (SEO-first)
-
-| Route | Rendu | Description |
-|-------|-------|-------------|
-| `/` | Static (SSG) | Landing : hero, filtres rapides, annonces recentes, "Pourquoi BigTank?", CTA vendeur |
-| `/search` | Dynamic (ISR 60s) | Recherche avec filtres (marque libre, taille, prix, etat, region, tri) |
-| `/shoes/[slug]` | Dynamic (SSR) | Detail annonce : galerie images, infos vendeur, bouton contacter, JSON-LD Product |
+| Route | Description |
+|-------|-------------|
+| `/` | Landing : hero, annonces recentes, CTA vendeur |
+| `/search` | Recherche avec filtres (marque, taille, prix, etat, region) |
+| `/shoes/[slug]` | Detail annonce : galerie, infos vendeur, contacter |
 
 ### Pages authentifiees
 
 | Route | Acces | Description |
 |-------|-------|-------------|
 | `/login` | Public | Connexion email ou telephone |
-| `/register` | Public | Inscription (creer un compte acheteur ou futur vendeur) |
-| `/dashboard` | USER + SELLER | SELLER : gestion CRUD annonces / USER : invitation a activer le mode vendeur |
-| `/dashboard/new` | SELLER uniquement | Formulaire creation annonce avec upload photos inline |
-| `/dashboard/[id]/edit` | SELLER | Modification annonce + gestion photos |
-| `/profile` | USER + SELLER | Profil utilisateur, stats vendeur, bouton "Devenir vendeur" |
-| `/chat` | USER + SELLER | Liste de toutes les conversations |
-| `/chat/[id]` | Participant | Messagerie temps reel (Socket.io) |
+| `/register` | Public | Inscription avec email OU telephone |
+| `/dashboard` | SELLER | CRUD annonces |
+| `/dashboard/new` | SELLER | Creer une annonce + upload photos |
+| `/dashboard/[id]/edit` | SELLER | Modifier une annonce |
+| `/profile` | Tous | Profil, stats vendeur, devenir vendeur |
+| `/chat` | Tous | Liste conversations |
+| `/chat/[id]` | Participant | Messagerie temps reel |
+| `/admin` | **ADMIN** | Dashboard stats |
+| `/admin/users` | **ADMIN** | Gestion utilisateurs (suspendre / reactiver) |
+| `/admin/listings` | **ADMIN** | Moderation annonces (supprimer) |
 
-### Design system
-
-- **Couleurs :** Navy `#1a1a2e` + Rouge accent `#e94560` + Background `#f5f5f5`
-- **Fonts :** Inter (body) + Space Grotesk (titres, prix)
-- **Responsive :** grid adaptatif 1→2→3→4 colonnes, filtres en Sheet mobile, header SearchBar repliable
-- **SEO :** JSON-LD (Product + WebSite), OpenGraph dynamique, metadata template par page
-- **Auth :** BFF pattern — tokens JWT en cookies httpOnly (navigateur ne voit jamais le token)
-- **Temps reel :** Socket.io avec token via `/api/auth/socket-token` (contournement cookie httpOnly)
-
-### Flux roles utilisateurs
+### Flux roles
 
 ```
 Inscription → role USER (acheteur)
   → Dashboard : invitation "Devenir vendeur"
-  → Profile : bouton "Activer mode vendeur" → POST /auth/upgrade-to-seller
-  → Reconnexion → nouveau token JWT avec role SELLER
-  → Dashboard : acces CRUD annonces + upload photos
+  → Profile → "Activer mode vendeur" → POST /auth/upgrade-to-seller
+  → Reconnexion → token SELLER → acces CRUD annonces
+
+Admin → connexion → redirection automatique vers /admin
+  → menu dropdown : "Panel Admin" (icone bouclier)
 ```
 
-**Lancer le frontend :**
+## Securite
 
-```bash
-pnpm --filter @bigtank/web dev
-```
-
-Puis ouvrir http://localhost:3000.
-
-> Les pages dynamiques necessitent les services backend en cours d'execution (`pnpm dev`).
-
----
-
-## Donnees de seed
-
-Apres `pnpm db:seed`, les comptes suivants sont disponibles :
-
-| Role | Email | Note |
-|------|-------|------|
-| ADMIN | admin@bigtank.com | Mot de passe placeholder (non fonctionnel via API) |
-| SELLER | vendeur@test.com | Mot de passe placeholder (non fonctionnel via API) |
-| USER | acheteur@test.com | Mot de passe placeholder (non fonctionnel via API) |
-
-> Les comptes de seed utilisent un hash placeholder. Pour tester l'API, creez de nouveaux comptes via `/auth/register`.
-
-3 annonces de test sont egalement creees (Nike Air Max 90, Adidas Yeezy Boost 350, Puma RS-X).
+- **Mots de passe** : bcrypt 12 rounds
+- **Tokens** : JWT access (15 min) + refresh (7 jours), rotation automatique
+- **Rate limiting** : 5 tentatives login → blocage 15 min, 5 annonces/heure, 100 req/min global
+- **Roles** : USER, SELLER, ADMIN — controles d'acces par route et middleware JWT
+- **Admin** : verification role dans le middleware Next.js (decode JWT) + verification `x-user-role` dans admin-service
+- **Audit** : toutes les actions admin sont journalisees (suspension, activation, suppression)
+- **XSS / CORS / Helmet** : protections standard appliquees
 
 ## Licence
 
