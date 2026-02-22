@@ -4,6 +4,14 @@ import { setAuthCookies } from '@/lib/auth-cookies';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
+function normalizePhone(v: string): string {
+  const n = v.replace(/[\s\-\.]/g, '');
+  if (n.startsWith('+221')) return n;
+  if (n.startsWith('00221')) return '+' + n.slice(2);
+  if (/^[0-9]{9}$/.test(n)) return '+221' + n;
+  return v;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -17,6 +25,11 @@ export async function POST(request: Request) {
     }
 
     const { confirmPassword, ...registerData } = parsed.data;
+
+    // Normalize phone to +221XXXXXXXXX before sending to backend
+    if (registerData.phone) {
+      registerData.phone = normalizePhone(registerData.phone);
+    }
 
     // Remove empty optional fields
     const cleanData = Object.fromEntries(

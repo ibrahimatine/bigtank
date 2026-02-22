@@ -7,7 +7,7 @@ import type { AuthUser } from '@/types/auth';
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  login: (emailOrPhone: string, password: string) => Promise<{ error?: string }>;
+  login: (emailOrPhone: string, password: string) => Promise<{ error?: string; user?: AuthUser }>;
   register: (data: Record<string, string>) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUser(data.user);
-      return {};
+      return { user: data.user as AuthUser };
     },
     [],
   );

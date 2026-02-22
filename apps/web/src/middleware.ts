@@ -45,7 +45,10 @@ export function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth routes
   if (AUTH_ROUTES.some((r) => pathname.startsWith(r)) && accessToken) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const role = getJwtRole(accessToken);
+    return NextResponse.redirect(
+      new URL(role === 'ADMIN' ? '/admin' : '/dashboard', request.url),
+    );
   }
 
   return NextResponse.next();

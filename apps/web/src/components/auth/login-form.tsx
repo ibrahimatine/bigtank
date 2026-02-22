@@ -18,7 +18,7 @@ export function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/dashboard';
+  const rawRedirect = searchParams.get('redirect');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +42,9 @@ export function LoginForm() {
     if (result.error) {
       setError(result.error);
     } else {
-      router.push(redirect);
+      const role = result.user?.role;
+      const destination = rawRedirect || (role === 'ADMIN' ? '/admin' : '/dashboard');
+      router.push(destination);
       router.refresh();
     }
   }

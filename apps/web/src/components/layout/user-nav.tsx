@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, LayoutDashboard, UserCircle, MessageCircle } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, UserCircle, MessageCircle, Shield } from 'lucide-react';
 
 export function UserNav() {
   const { user, loading, logout } = useAuth();
@@ -81,7 +81,15 @@ export function UserNav() {
             )}
           </Link>
         </DropdownMenuItem>
-        {(user.role === 'SELLER' || user.role === 'ADMIN') && (
+        {user.role === 'ADMIN' && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin" className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-red-500" />
+              Panel Admin
+            </Link>
+          </DropdownMenuItem>
+        )}
+        {user.role === 'SELLER' && (
           <DropdownMenuItem asChild>
             <Link href="/dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />

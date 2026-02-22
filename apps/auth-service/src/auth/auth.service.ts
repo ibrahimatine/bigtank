@@ -99,10 +99,11 @@ export class AuthService {
     }
 
     const isEmail = dto.emailOrPhone.includes('@');
+    const identifier = isEmail
+      ? dto.emailOrPhone
+      : this.normalizePhone(dto.emailOrPhone);
     const user = await this.prisma.user.findUnique({
-      where: isEmail
-        ? { email: dto.emailOrPhone }
-        : { phone: dto.emailOrPhone },
+      where: isEmail ? { email: identifier } : { phone: identifier },
     });
 
     if (!user || !user.passwordHash) {
@@ -242,6 +243,14 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  private normalizePhone(v: string): string {
+    const n = v.replace(/[\s\-\.]/g, '');
+    if (n.startsWith('+221')) return n;
+    if (n.startsWith('00221')) return '+' + n.slice(2);
+    if (/^[0-9]{9}$/.test(n)) return '+221' + n;
+    return v;
   }
 
   private async logLoginAttempt(
