@@ -16,9 +16,11 @@ import { sanitizeDescription } from '../common/utils/sanitize.util';
 import { DEFAULT_PAGE_SIZE } from '@bigtank/shared-utils';
 
 const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
-  ACTIVE: ['RESERVED', 'SOLD'],
+  DRAFT: ['ACTIVE'],
+  ACTIVE: ['RESERVED', 'SOLD', 'EXPIRED'],
   RESERVED: ['ACTIVE', 'SOLD'],
   SOLD: ['ACTIVE'],
+  EXPIRED: ['ACTIVE'],
 };
 
 @Injectable()
@@ -57,6 +59,7 @@ export class ListingService {
         priceXof: dto.priceXof,
         locationCity,
         locationRegion: dto.locationRegion,
+        status: 'DRAFT',
       },
       include: { images: true },
     });
@@ -198,6 +201,17 @@ export class ListingService {
     this.updateSellerStats(listing.sellerId).catch(() => {});
 
     return updated;
+  }
+
+  async activateAfterPayment(id: string, expiresAt: Date) {
+    const listing = await this.prisma.listing.update({
+      where: { id },
+      data: { status: 'ACTIVE', expiresAt },
+      include: { images: { orderBy: { order: 'asc' } } },
+    });
+    this.searchService.indexListing(listing).catch(() => {});
+    this.updateSellerStats(listing.sellerId).catch(() => {});
+    return listing;
   }
 
   async reindexListing(id: string) {

@@ -58,6 +58,7 @@ model User {
   reviewsReceived    Review[]       @relation("ReviewedReviews")
   refreshTokens      RefreshToken[]
   auditLogs          AuditLog[]
+  listingPayments    ListingPayment[]
 
   @@map("users")
 }
@@ -101,9 +102,11 @@ enum ListingCondition {
 }
 
 enum ListingStatus {
+  DRAFT
   ACTIVE
   SOLD
   RESERVED
+  EXPIRED
   DELETED
 }
 
@@ -127,14 +130,16 @@ model Listing {
   viewsCount     Int              @default(0) @map("views_count")
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
+  expiresAt      DateTime?        @map("expires_at")
   deletedAt      DateTime?        @map("deleted_at")
   deletedBy      String?          @map("deleted_by")
 
   // Relations
-  seller        User           @relation(fields: [sellerId], references: [id])
-  images        ListingImage[]
-  offers        Offer[]
-  conversations Conversation[]
+  seller          User             @relation(fields: [sellerId], references: [id])
+  images          ListingImage[]
+  offers          Offer[]
+  conversations   Conversation[]
+  listingPayments ListingPayment[]
 
   @@index([sellerId])
   @@index([status, createdAt])
@@ -259,6 +264,41 @@ model Transaction {
   @@index([status])
   @@index([paymentRef])
   @@map("transactions")
+}
+
+// ============================================================
+// LISTING PAYMENTS (publication fees)
+// ============================================================
+
+enum ListingPaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  FREE
+}
+
+model ListingPayment {
+  id            String               @id @default(cuid())
+  listingId     String               @map("listing_id")
+  sellerId      String               @map("seller_id")
+  amount        Int                  // Commission en FCFA
+  listingPrice  Int                  @map("listing_price")
+  status        ListingPaymentStatus @default(PENDING)
+  refCommand    String               @unique @map("ref_command")
+  paymentToken  String?              @map("payment_token")
+  paymentMethod String?              @map("payment_method")
+  ipnPayload    Json?                @map("ipn_payload")
+  paidAt        DateTime?            @map("paid_at")
+  createdAt     DateTime             @default(now()) @map("created_at")
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  seller  User    @relation(fields: [sellerId], references: [id])
+
+  @@index([sellerId])
+  @@index([listingId])
+  @@index([status])
+  @@map("listing_payments")
 }
 
 // ============================================================

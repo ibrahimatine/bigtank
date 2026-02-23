@@ -96,6 +96,15 @@ export class ListingController {
     return this.listingService.updateStatus(id, user.id, dto.status);
   }
 
+  /** Endpoint interne : activation après paiement confirmé (appelé par payment-service) */
+  @Patch(':id/activate')
+  async activateAfterPayment(
+    @Param('id') id: string,
+    @Body() body: { expiresAt: string },
+  ) {
+    return this.listingService.activateAfterPayment(id, new Date(body.expiresAt));
+  }
+
   @Delete(':id')
   @UseGuards(GatewayAuthGuard)
   async delete(

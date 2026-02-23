@@ -267,12 +267,11 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
         <Button
           type="button"
           onClick={() => {
-            router.push('/dashboard');
-            router.refresh();
+            router.push(`/dashboard/pay/${createdListingId}`);
           }}
           className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90"
         >
-          Publier l&apos;annonce
+          Continuer vers le paiement →
         </Button>
       </div>
     );
