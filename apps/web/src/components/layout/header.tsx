@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { SearchBar } from '@/components/search/search-bar';
+import { NavSearchBar } from './nav-search-bar';
 import { UserNav } from './user-nav';
 import { NotificationBell } from './notification-bell';
 
@@ -15,7 +15,7 @@ export function Header() {
         </Link>
 
         <div className="hidden sm:block flex-1 max-w-md">
-          <SearchBar />
+          <NavSearchBar />
         </div>
 
         <nav className="flex items-center gap-4 text-sm">
@@ -31,7 +31,7 @@ export function Header() {
       </div>
 
       <div className="sm:hidden px-4 pb-3">
-        <SearchBar />
+        <NavSearchBar />
       </div>
     </header>
   );

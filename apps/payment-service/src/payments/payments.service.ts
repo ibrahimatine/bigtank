@@ -23,6 +23,7 @@ export class PaymentsService {
   private readonly apiSecret = process.env.PAYTECH_API_SECRET || '';
   private readonly paytechEnv = process.env.PAYTECH_ENV || 'test';
   private readonly webUrl = process.env.WEB_URL || 'http://localhost:3000';
+  private readonly listingServiceUrl = process.env.LISTING_SERVICE_URL || 'http://localhost:4002';
 
   constructor(@Inject('PRISMA') private prisma: PrismaClient) {}
 
@@ -86,6 +87,8 @@ export class PaymentsService {
         }),
       ]);
 
+      const freeExpiresAt = new Date(Date.now() + LISTING_DURATION_DAYS * 86400000);
+      this.notifyListingActivate(listingId, freeExpiresAt);
       return { isFree: true, redirectUrl: null, amount: 0 };
     }
 
@@ -201,7 +204,16 @@ export class PaymentsService {
       }),
     ]);
 
+    this.notifyListingActivate(payment.listingId, expiresAt);
     return { processed: true, listingId: payment.listingId };
+  }
+
+  private notifyListingActivate(listingId: string, expiresAt: Date): void {
+    fetch(`${this.listingServiceUrl}/listings/${listingId}/activate`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expiresAt: expiresAt.toISOString() }),
+    }).catch(() => {});
   }
 
   async getPaymentByListing(sellerId: string, listingId: string) {
