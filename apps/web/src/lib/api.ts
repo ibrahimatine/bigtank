@@ -115,7 +115,24 @@ export interface PaginatedResult<T> {
   hasMore: boolean;
 }
 
+export interface SellerProfile {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  city: string | null;
+  region: string | null;
+  createdAt: string;
+  totalListings: number;
+  totalSales: number;
+}
+
 // API functions
+
+export async function getSellerProfile(id: string): Promise<SellerProfile> {
+  return apiFetch<SellerProfile>(`/users/seller/${id}`, {
+    next: { revalidate: 300 },
+  });
+}
 
 export async function searchListings(
   filters: Record<string, string | number | undefined>,

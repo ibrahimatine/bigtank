@@ -63,6 +63,8 @@ export class PaymentsService {
 
     if (freeRemaining > 0) {
       // Publication gratuite
+      const expiresAt = new Date(Date.now() + LISTING_DURATION_DAYS * 86400000);
+
       await this.prisma.$transaction([
         this.prisma.listingPayment.create({
           data: {
@@ -78,7 +80,7 @@ export class PaymentsService {
           where: { id: listingId },
           data: {
             status: 'ACTIVE',
-            expiresAt: new Date(Date.now() + LISTING_DURATION_DAYS * 86400000),
+            expiresAt,
           },
         }),
         this.prisma.sellerStats.update({
@@ -87,8 +89,8 @@ export class PaymentsService {
         }),
       ]);
 
-      const freeExpiresAt = new Date(Date.now() + LISTING_DURATION_DAYS * 86400000);
-      this.notifyListingActivate(listingId, freeExpiresAt);
+      // Notify listing-service to update Meilisearch index
+      await this.notifyListingActivate(listingId, expiresAt);
       return { isFree: true, redirectUrl: null, amount: 0 };
     }
 
@@ -204,16 +206,25 @@ export class PaymentsService {
       }),
     ]);
 
-    this.notifyListingActivate(payment.listingId, expiresAt);
+    await this.notifyListingActivate(payment.listingId, expiresAt);
     return { processed: true, listingId: payment.listingId };
   }
 
-  private notifyListingActivate(listingId: string, expiresAt: Date): void {
-    fetch(`${this.listingServiceUrl}/listings/${listingId}/activate`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expiresAt: expiresAt.toISOString() }),
-    }).catch(() => {});
+  private async notifyListingActivate(listingId: string, expiresAt: Date): Promise<void> {
+    const url = `${this.listingServiceUrl}/listings/${listingId}/activate`;
+    const body = JSON.stringify({ expiresAt: expiresAt.toISOString() });
+    const headers = { 'Content-Type': 'application/json' };
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(url, { method: 'PATCH', headers, body });
+        if (res.ok) return;
+      } catch {
+        // retry
+      }
+      await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+    }
+    console.error(`[payment-service] Failed to notify listing-service for listing ${listingId}`);
   }
 
   async getPaymentByListing(sellerId: string, listingId: string) {

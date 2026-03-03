@@ -29,6 +29,7 @@ export class SearchService implements OnModuleInit {
       'locationCity',
       'status',
       'priceXof',
+      'sellerId',
     ]);
 
     await index.updateSortableAttributes([
@@ -48,6 +49,7 @@ export class SearchService implements OnModuleInit {
 
   async indexListing(listing: {
     id: string;
+    sellerId: string;
     slug: string;
     title: string;
     description: string;
@@ -103,6 +105,7 @@ export class SearchService implements OnModuleInit {
     if (filters.region)
       filterArray.push(`locationRegion = "${filters.region}"`);
     if (filters.city) filterArray.push(`locationCity = "${filters.city}"`);
+    if (filters.sellerId) filterArray.push(`sellerId = "${filters.sellerId}"`);
 
     let sort: string[] = [];
     switch (filters.sortBy) {

@@ -5,11 +5,16 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @Get('seller/:id')
+  async getPublicSellerProfile(@Param('id') id: string) {
+    return this.userService.getPublicSellerProfile(id);
+  }
+
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   async getUserById(@Param('id') id: string) {
     return this.userService.getUserProfile(id);

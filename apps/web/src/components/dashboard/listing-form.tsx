@@ -18,11 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ChevronDown, X } from 'lucide-react';
-import { ImageUpload } from '@/components/dashboard/image-upload';
+import { ImagePicker } from '@/components/dashboard/image-picker';
 import type { ListingCondition } from '@bigtank/shared-types';
 import type { ListingDetail } from '@/lib/api';
-
-type UploadedImage = { id: string; url: string; key: string; order: number };
 
 function BrandCombobox({
   value,
@@ -134,8 +132,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [createdListingId, setCreatedListingId] = useState<string | null>(null);
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState('');
   const router = useRouter();
 
   // Conversions de taille (approximations standards hommes)
@@ -175,6 +173,41 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
 
       return next;
     });
+  }
+
+  async function uploadPhotos(listingId: string) {
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      setUploadProgress(`Upload photo ${i + 1}/${selectedFiles.length}...`);
+
+      // 1. Get presigned URL
+      const presignRes = await fetch(`/api/listings/${listingId}/images/presign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, contentType: file.type }),
+      });
+      if (!presignRes.ok) throw new Error(`Erreur presign photo ${i + 1}`);
+      const presignData = await presignRes.json();
+      const { uploadUrl, key } = presignData.data || presignData;
+
+      // 2. Upload to S3
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+
+      // 3. Get image dimensions
+      const dimensions = await getImageDimensions(file);
+
+      // 4. Confirm upload
+      const confirmRes = await fetch(`/api/listings/${listingId}/images/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, order: i, ...dimensions }),
+      });
+      if (!confirmRes.ok) throw new Error(`Erreur confirmation photo ${i + 1}`);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -220,8 +253,17 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       const listing = data.data || data;
 
       if (mode === 'create') {
-        setCreatedListingId(listing.id);
-        setUploadedImages([]);
+        // Upload photos if any
+        if (selectedFiles.length > 0) {
+          try {
+            await uploadPhotos(listing.id);
+          } catch (uploadErr) {
+            // Listing was created, continue to payment even if upload failed
+            toast.error('Certaines photos n\'ont pas pu etre uploadees');
+          }
+        }
+        setUploadProgress('');
+        router.push(`/dashboard/pay/${listing.id}`);
       } else {
         toast.success('Annonce mise a jour');
         router.push('/dashboard');
@@ -231,50 +273,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       setError('Erreur de connexion');
     } finally {
       setLoading(false);
+      setUploadProgress('');
     }
-  }
-
-  async function refreshImages() {
-    if (!createdListingId) return;
-    try {
-      const res = await fetch(`/api/listings/my/${createdListingId}`);
-      if (res.ok) {
-        const data = await res.json();
-        const listing = data.data || data;
-        setUploadedImages(listing.images || []);
-      }
-    } catch {
-      // silent — photos sont quand meme uploadees
-    }
-  }
-
-  // Step 2 — upload photos apres creation
-  if (createdListingId) {
-    return (
-      <div className="space-y-6">
-        <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-          <p className="text-green-700 text-sm font-medium">
-            Annonce creee ! Ajoutez des photos pour la mettre en valeur (optionnel).
-          </p>
-        </div>
-
-        <ImageUpload
-          listingId={createdListingId}
-          existingImages={uploadedImages}
-          onImagesChange={refreshImages}
-        />
-
-        <Button
-          type="button"
-          onClick={() => {
-            router.push(`/dashboard/pay/${createdListingId}`);
-          }}
-          className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90"
-        >
-          Continuer vers le paiement →
-        </Button>
-      </div>
-    );
   }
 
   return (
@@ -447,17 +447,46 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
         </div>
       </fieldset>
 
+      {/* Photos — create mode only */}
+      {mode === 'create' && (
+        <fieldset className="space-y-4">
+          <legend className="font-semibold text-lg">Photos</legend>
+          <ImagePicker files={selectedFiles} onChange={setSelectedFiles} />
+        </fieldset>
+      )}
+
+      {uploadProgress && (
+        <div className="p-3 rounded-lg bg-blue-50 text-blue-700 text-sm">
+          {uploadProgress}
+        </div>
+      )}
+
       <Button
         type="submit"
         className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90"
         disabled={loading}
       >
         {loading
-          ? 'Sauvegarde...'
+          ? uploadProgress || 'Sauvegarde...'
           : mode === 'create'
             ? 'Creer l\'annonce'
             : 'Enregistrer les modifications'}
       </Button>
     </form>
   );
+}
+
+function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => {
+      resolve({ width: 0, height: 0 });
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
+  });
 }

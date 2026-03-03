@@ -1,7 +1,6 @@
 'use client';
 
 import { ArrowDown } from 'lucide-react';
-import { SearchBar } from '@/components/search/search-bar';
 
 export function Hero() {
   const scrollToListings = () => {
@@ -24,14 +23,9 @@ export function Hero() {
           Nike, Jordan, Adidas et bien d&apos;autres — livrables partout au Senegal.
         </p>
 
-        {/* Barre de recherche prominente dans le hero */}
-        <div className="mt-7 max-w-lg mx-auto">
-          <SearchBar />
-        </div>
-
         <button
           onClick={scrollToListings}
-          className="mt-5 flex items-center gap-1.5 mx-auto text-white/40 hover:text-white/70 transition-colors text-xs"
+          className="mt-7 flex items-center gap-1.5 mx-auto text-white/40 hover:text-white/70 transition-colors text-xs"
         >
           <ArrowDown className="h-3.5 w-3.5" />
           Explorer les annonces

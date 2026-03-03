@@ -57,6 +57,10 @@ export class ListingFiltersDto {
 
   @IsOptional()
   @IsString()
+  sellerId?: string;
+
+  @IsOptional()
+  @IsString()
   query?: string;
 
   @IsOptional()

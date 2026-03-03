@@ -70,6 +70,32 @@ export class UserService {
     return { message: 'Profil mis à jour', user: userWithoutPassword };
   }
 
+  async getPublicSellerProfile(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { sellerStats: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    }
+
+    if (user.role !== 'SELLER' && user.role !== 'ADMIN') {
+      throw new NotFoundException('Vendeur non trouvé');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      city: user.city,
+      region: user.region,
+      createdAt: user.createdAt,
+      totalListings: user.sellerStats?.totalListings ?? 0,
+      totalSales: user.sellerStats?.totalSales ?? 0,
+    };
+  }
+
   async upgradeToSeller(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

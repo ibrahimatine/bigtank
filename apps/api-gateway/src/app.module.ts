@@ -10,6 +10,7 @@ import { ChatProxyController } from './chat-proxy.controller';
 import { AdminProxyController } from './admin-proxy.controller';
 import { NotificationProxyController } from './notification-proxy.controller';
 import { PaymentProxyController } from './payment-proxy.controller';
+import { UserProxyController } from './user-proxy.controller';
 import { JwtAuthMiddleware } from './jwt-auth.middleware';
 
 @Module({
@@ -23,7 +24,7 @@ import { JwtAuthMiddleware } from './jwt-auth.middleware';
     ]),
     HttpModule,
   ],
-  controllers: [HealthController, AuthProxyController, ListingProxyController, ChatProxyController, AdminProxyController, NotificationProxyController, PaymentProxyController],
+  controllers: [HealthController, AuthProxyController, UserProxyController, ListingProxyController, ChatProxyController, AdminProxyController, NotificationProxyController, PaymentProxyController],
   providers: [
     {
       provide: APP_GUARD,

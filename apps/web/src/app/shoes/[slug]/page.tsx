@@ -145,15 +145,19 @@ export default async function ListingPage({ params }: Props) {
             <Separator className="my-6" />
 
             {/* Seller info */}
-            <div className="flex items-center gap-3">
+            <Link
+              href={`/seller/${listing.sellerId}`}
+              className="flex items-center gap-3 group/seller p-2 -m-2 rounded-lg hover:bg-[var(--color-muted)]/50 transition-colors"
+            >
               <div className="w-10 h-10 rounded-full bg-[var(--color-muted)] flex items-center justify-center">
                 <User className="h-5 w-5 text-[var(--color-muted-foreground)]" />
               </div>
-              <div>
-                <p className="font-medium text-sm">{listing.seller.name}</p>
-                <p className="text-xs text-[var(--color-muted-foreground)]">Vendeur</p>
+              <div className="flex-1">
+                <p className="font-medium text-sm group-hover/seller:text-[var(--color-accent)] transition-colors">{listing.seller.name}</p>
+                <p className="text-xs text-[var(--color-muted-foreground)]">Voir le profil</p>
               </div>
-            </div>
+              <ChevronRight className="h-4 w-4 text-[var(--color-muted-foreground)] opacity-0 group-hover/seller:opacity-100 transition-opacity" />
+            </Link>
 
             <Separator className="my-6" />
 
