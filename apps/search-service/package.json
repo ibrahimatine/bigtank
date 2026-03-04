@@ -15,15 +15,20 @@
     "@bigtank/shared-types": "workspace:*",
     "@bigtank/shared-utils": "workspace:*",
     "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
-    "@nestjs/config": "^4.0.0",
     "meilisearch": "^0.44.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
+    "@bigtank/shared-config": "workspace:*",
+    "@eslint/js": "^10.0.1",
     "@nestjs/cli": "^11.0.0",
-    "typescript": "^5.4.0"
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.56.1"
   }
 }

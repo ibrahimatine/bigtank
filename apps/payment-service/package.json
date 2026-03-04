@@ -24,8 +24,13 @@
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
+    "@bigtank/shared-config": "workspace:*",
+    "@eslint/js": "^10.0.1",
     "@nestjs/cli": "^11.0.0",
     "@types/express": "^5.0.6",
-    "typescript": "^5.4.0"
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.56.1"
   }
 }

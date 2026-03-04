@@ -10,6 +10,11 @@
     "lint": "eslint src/"
   },
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "@bigtank/shared-config": "workspace:*",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "typescript": "^5.4.0",
+    "typescript-eslint": "^8.56.1"
   }
 }
