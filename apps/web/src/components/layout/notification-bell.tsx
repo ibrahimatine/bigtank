@@ -31,6 +31,9 @@ function getNotifUrl(notif: AppNotification): string | null {
   if (notif.type === 'NEW_MESSAGE' && notif.data.conversationId) {
     return `/chat/${notif.data.conversationId}`;
   }
+  if (notif.type === 'NEW_LISTING_PUBLISHED' && notif.data.listingId) {
+    return `/admin/listings`;
+  }
   return null;
 }
 

@@ -44,8 +44,14 @@ export const listingSchema = z.object({
   brand: z.string().min(1, 'Marque requise'),
   model: z.string().optional().or(z.literal('')),
   sizeEu: z.coerce.number().min(20, 'Taille minimum 20').max(55),
-  sizeUs: z.coerce.number().min(5).max(20).optional().or(z.literal('')),
-  sizeUk: z.coerce.number().min(4).max(18).optional().or(z.literal('')),
+  sizeUs: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
+    z.number().min(5).max(20).optional(),
+  ),
+  sizeUk: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
+    z.number().min(4).max(18).optional(),
+  ),
   condition: z.enum(['NEW', 'LIKE_NEW', 'GOOD', 'FAIR']),
   color: z.string().min(1, 'Couleur requise'),
   priceXof: z.coerce.number().min(500, 'Minimum 500 FCFA').max(500000),

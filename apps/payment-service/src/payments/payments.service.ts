@@ -249,18 +249,27 @@ export class PaymentsService {
         select: { id: true },
       });
 
+      console.log(`[payment-service] Found ${admins.length} admin(s) to notify for listing ${listingId}`);
+
       if (admins.length === 0) return;
 
-      await this.prisma.notification.createMany({
-        data: admins.map((admin) => ({
-          userId: admin.id,
-          type: 'NEW_LISTING_PUBLISHED' as const,
-          title: 'Nouvelle annonce publiée',
-          body: `${sellerName} vient de publier "${listingTitle}"`,
-          channel: 'IN_APP' as const,
-          data: { listingId },
-        })),
-      });
+      // Utiliser create en boucle au lieu de createMany pour eviter les problemes de serialisation JSON
+      await Promise.all(
+        admins.map((admin) =>
+          this.prisma.notification.create({
+            data: {
+              userId: admin.id,
+              type: 'NEW_LISTING_PUBLISHED',
+              title: 'Nouvelle annonce publiée',
+              body: `${sellerName} vient de publier "${listingTitle}"`,
+              channel: 'IN_APP',
+              data: { listingId },
+            },
+          }),
+        ),
+      );
+
+      console.log(`[payment-service] Successfully notified ${admins.length} admin(s) for listing "${listingTitle}"`);
     } catch (err) {
       console.error('[payment-service] Failed to notify admins:', err);
     }

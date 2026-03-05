@@ -9,7 +9,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
     DatabaseModule,
     PaymentsModule,
   ],

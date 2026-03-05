@@ -3,22 +3,27 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getAdminListings } from '@/lib/api';
 import { ListingDeleteAction } from '@/components/admin/listing-delete-action';
+import { ListingStatusAction } from '@/components/admin/listing-status-action';
 import { ShoppingBag } from 'lucide-react';
 
 export const metadata: Metadata = { title: 'Annonces' };
 export const dynamic = 'force-dynamic';
 
 const STATUS_STYLES: Record<string, string> = {
+  DRAFT: 'bg-gray-50 text-gray-700',
   ACTIVE: 'bg-green-50 text-green-700',
   SOLD: 'bg-blue-50 text-blue-700',
   RESERVED: 'bg-yellow-50 text-yellow-700',
+  EXPIRED: 'bg-orange-50 text-orange-700',
   DELETED: 'bg-red-50 text-red-700',
 };
 
 const STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Brouillon',
   ACTIVE: 'Disponible',
   SOLD: 'Vendue',
   RESERVED: 'Réservée',
+  EXPIRED: 'Expirée',
   DELETED: 'Supprimée',
 };
 
@@ -61,9 +66,11 @@ export default async function AdminListingsPage({ searchParams }: Props) {
           className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
         >
           <option value="">Tous les statuts</option>
+          <option value="DRAFT">Brouillon</option>
           <option value="ACTIVE">Disponible</option>
           <option value="SOLD">Vendue</option>
           <option value="RESERVED">Réservée</option>
+          <option value="EXPIRED">Expirée</option>
           <option value="DELETED">Supprimée</option>
         </select>
         <button
@@ -151,12 +158,20 @@ export default async function AdminListingsPage({ searchParams }: Props) {
                       {new Date(listing.createdAt).toLocaleDateString('fr-SN')}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {listing.status !== 'DELETED' && (
-                        <ListingDeleteAction
-                          listingId={listing.id}
-                          listingTitle={listing.title}
-                        />
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        {listing.status !== 'DELETED' && (
+                          <>
+                            <ListingStatusAction
+                              listingId={listing.id}
+                              currentStatus={listing.status}
+                            />
+                            <ListingDeleteAction
+                              listingId={listing.id}
+                              listingTitle={listing.title}
+                            />
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

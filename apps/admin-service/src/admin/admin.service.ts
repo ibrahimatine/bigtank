@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaClient, UserStatus, ListingStatus } from '@prisma/client';
 
 @Injectable()
@@ -237,6 +237,36 @@ export class AdminService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async updateListingStatus(adminId: string, listingId: string, newStatus: string) {
+    const validStatuses = ['ACTIVE', 'SOLD', 'RESERVED', 'DRAFT', 'EXPIRED'];
+    if (!validStatuses.includes(newStatus)) {
+      throw new BadRequestException(`Statut invalide. Statuts autorises : ${validStatuses.join(', ')}`);
+    }
+
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: listingId },
+    });
+    if (!listing) throw new NotFoundException('Annonce introuvable');
+
+    const updated = await this.prisma.listing.update({
+      where: { id: listingId },
+      data: { status: newStatus as ListingStatus },
+      select: { id: true, status: true, title: true },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_UPDATE_LISTING_STATUS',
+        targetId: listingId,
+        targetType: 'Listing',
+        details: `${listing.title}: ${listing.status} → ${newStatus}`,
+      },
+    });
+
+    return updated;
   }
 
   async deleteListing(adminId: string, listingId: string) {

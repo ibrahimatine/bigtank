@@ -10,6 +10,7 @@ import {
   Max,
   IsNotEmpty,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ListingCondition } from '@bigtank/shared-types';
 import {
   SENEGAL_REGIONS,
@@ -44,13 +45,15 @@ export class CreateListingDto {
   sizeEu!: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'La taille US doit etre un nombre' })
   @Min(5)
   @Max(20)
   sizeUs?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'La taille UK doit etre un nombre' })
   @Min(4)
   @Max(18)
   sizeUk?: number;

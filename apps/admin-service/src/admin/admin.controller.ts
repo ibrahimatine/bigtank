@@ -106,6 +106,17 @@ export class AdminController {
     });
   }
 
+  @Patch('listings/:id/status')
+  updateListingStatus(
+    @Headers('x-user-role') role: string,
+    @Headers('x-user-id') adminId: string,
+    @Param('id') listingId: string,
+    @Body() body: { status: string },
+  ) {
+    this.requireAdmin(role);
+    return this.adminService.updateListingStatus(adminId, listingId, body.status);
+  }
+
   @Delete('listings/:id')
   deleteListing(
     @Headers('x-user-role') role: string,
