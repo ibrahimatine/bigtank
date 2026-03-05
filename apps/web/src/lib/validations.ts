@@ -46,11 +46,11 @@ export const listingSchema = z.object({
   sizeEu: z.coerce.number().min(20, 'Taille minimum 20').max(55),
   sizeUs: z.preprocess(
     (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
-    z.number().min(5).max(20).optional(),
+    z.number().min(0, 'La taille US ne peut pas etre negative').max(20).optional(),
   ),
   sizeUk: z.preprocess(
     (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
-    z.number().min(4).max(18).optional(),
+    z.number().min(0, 'La taille UK ne peut pas etre negative').max(18).optional(),
   ),
   condition: z.enum(['NEW', 'LIKE_NEW', 'GOOD', 'FAIR']),
   color: z.string().min(1, 'Couleur requise'),

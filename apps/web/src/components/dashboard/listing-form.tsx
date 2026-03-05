@@ -136,43 +136,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
   const [uploadProgress, setUploadProgress] = useState('');
   const router = useRouter();
 
-  // Conversions de taille (approximations standards hommes)
-  function euFromUs(us: number): number { return Math.round(us + 33); }
-  function euFromUk(uk: number): number { return Math.round(uk + 33); }
-  function usFromEu(eu: number): number { return Math.round(eu - 33); }
-  function ukFromEu(eu: number): number { return Math.round(eu - 33); }
-
   function updateField(key: string, value: string) {
-    setForm((prev) => {
-      const next = { ...prev, [key]: value };
-
-      // Auto-fill equivalences quand EU change
-      if (key === 'sizeEu' && value) {
-        const eu = parseFloat(value);
-        if (!isNaN(eu) && eu >= 20 && eu <= 60) {
-          if (!prev.sizeUs) next.sizeUs = String(usFromEu(eu));
-          if (!prev.sizeUk) next.sizeUk = String(ukFromEu(eu));
-        }
-      }
-
-      // Auto-fill EU quand US saisie
-      if (key === 'sizeUs' && value) {
-        const us = parseFloat(value);
-        if (!isNaN(us) && us >= 5 && us <= 20) {
-          next.sizeEu = String(euFromUs(us));
-        }
-      }
-
-      // Auto-fill EU quand UK saisie
-      if (key === 'sizeUk' && value) {
-        const uk = parseFloat(value);
-        if (!isNaN(uk) && uk >= 4 && uk <= 18) {
-          next.sizeEu = String(euFromUk(uk));
-        }
-      }
-
-      return next;
-    });
+    setForm((prev) => ({ ...prev, [key]: value }));
   }
 
   async function uploadPhotos(listingId: string) {
@@ -363,7 +328,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               type="number"
               value={form.sizeUs}
               onChange={(e) => updateField('sizeUs', e.target.value)}
-              min={5}
+              min={0}
               max={20}
             />
           </div>
@@ -374,7 +339,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               type="number"
               value={form.sizeUk}
               onChange={(e) => updateField('sizeUk', e.target.value)}
-              min={4}
+              min={0}
               max={18}
             />
           </div>

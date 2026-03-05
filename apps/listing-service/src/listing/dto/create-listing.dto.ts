@@ -47,14 +47,14 @@ export class CreateListingDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'La taille US doit etre un nombre' })
-  @Min(5)
+  @Min(0, { message: 'La taille US ne peut pas etre negative' })
   @Max(20)
   sizeUs?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'La taille UK doit etre un nombre' })
-  @Min(4)
+  @Min(0, { message: 'La taille UK ne peut pas etre negative' })
   @Max(18)
   sizeUk?: number;
 
