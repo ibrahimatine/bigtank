@@ -16,7 +16,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  ACTIVE: 'Active',
+  ACTIVE: 'Disponible',
   SOLD: 'Vendue',
   RESERVED: 'Réservée',
   DELETED: 'Supprimée',
@@ -61,7 +61,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
           className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
         >
           <option value="">Tous les statuts</option>
-          <option value="ACTIVE">Active</option>
+          <option value="ACTIVE">Disponible</option>
           <option value="SOLD">Vendue</option>
           <option value="RESERVED">Réservée</option>
           <option value="DELETED">Supprimée</option>

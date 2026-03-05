@@ -13,6 +13,12 @@ import { CONDITION_LABELS } from '@/types';
 import { StartConversationButton } from '@/components/chat/start-conversation-button';
 import type { ListingCondition } from '@bigtank/shared-types';
 
+const STATUS_CONFIG: Record<string, { label: string; style: string; bg: string }> = {
+  ACTIVE: { label: 'Disponible', style: 'bg-green-100 text-green-700', bg: '' },
+  SOLD: { label: 'Vendue', style: 'bg-red-100 text-red-700', bg: 'bg-red-50 border-red-200' },
+  RESERVED: { label: 'Reservee', style: 'bg-yellow-100 text-yellow-700', bg: 'bg-yellow-50 border-yellow-200' },
+};
+
 export const dynamic = 'force-dynamic';
 
 interface Props {
@@ -121,9 +127,24 @@ export default async function ListingPage({ params }: Props) {
               <Badge variant="secondary">{conditionLabel}</Badge>
             </div>
 
-            <p className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-accent)] mt-4">
-              {formatPrice(listing.priceXof)}
-            </p>
+            <div className="flex items-center gap-3 mt-4">
+              <p className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--color-accent)]">
+                {formatPrice(listing.priceXof)}
+              </p>
+              {STATUS_CONFIG[listing.status] && (
+                <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_CONFIG[listing.status].style}`}>
+                  {STATUS_CONFIG[listing.status].label}
+                </span>
+              )}
+            </div>
+
+            {(listing.status === 'SOLD' || listing.status === 'RESERVED') && (
+              <div className={`mt-3 px-4 py-2.5 rounded-xl border text-sm font-medium ${STATUS_CONFIG[listing.status]?.bg}`}>
+                {listing.status === 'SOLD'
+                  ? 'Cet article a deja ete vendu.'
+                  : 'Cet article est actuellement reserve.'}
+              </div>
+            )}
 
             <Separator className="my-6" />
 
@@ -179,10 +200,19 @@ export default async function ListingPage({ params }: Props) {
 
             {/* Actions */}
             <div className="flex gap-3 mt-8">
-              <StartConversationButton
-                listingId={listing.id}
-                sellerId={listing.sellerId}
-              />
+              {listing.status === 'ACTIVE' ? (
+                <StartConversationButton
+                  listingId={listing.id}
+                  sellerId={listing.sellerId}
+                />
+              ) : (
+                <button
+                  disabled
+                  className="flex-1 py-3 rounded-xl bg-gray-200 text-gray-500 font-semibold text-sm cursor-not-allowed"
+                >
+                  {listing.status === 'SOLD' ? 'Article vendu' : 'Article reserve'}
+                </button>
+              )}
               <ShareButton
                 title={listing.title}
                 url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://bigtank.sn'}/shoes/${listing.slug}`}

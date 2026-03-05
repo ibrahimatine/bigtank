@@ -356,6 +356,7 @@ enum NotificationType {
   PAYMENT_RECEIVED
   PAYMENT_SENT
   LISTING_DELETED_BY_ADMIN
+  NEW_LISTING_PUBLISHED
 }
 
 enum NotificationChannel {

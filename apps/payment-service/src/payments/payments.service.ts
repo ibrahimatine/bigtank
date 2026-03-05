@@ -10,8 +10,8 @@ import * as crypto from 'crypto';
 
 const COMMISSION_RATE = 0.02;
 const MIN_COMMISSION = 100; // 100 FCFA minimum
-const MIN_LISTING_PRICE = 3000; // 3 000 FCFA minimum
-const LISTING_DURATION_DAYS = 30;
+const MIN_LISTING_PRICE = 500; // 500 FCFA minimum
+const LISTING_DURATION_DAYS = 60;
 
 function calculateCommission(priceXof: number): number {
   return Math.max(MIN_COMMISSION, Math.round(priceXof * COMMISSION_RATE));
@@ -91,6 +91,7 @@ export class PaymentsService {
 
       // Notify listing-service to update Meilisearch index
       await this.notifyListingActivate(listingId, expiresAt);
+      await this.notifyAdminsNewListing(listing.title, listing.seller.name, listingId);
       return { isFree: true, redirectUrl: null, amount: 0 };
     }
 
@@ -207,6 +208,16 @@ export class PaymentsService {
     ]);
 
     await this.notifyListingActivate(payment.listingId, expiresAt);
+
+    // Notifier les admins de la nouvelle publication
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: payment.listingId },
+      include: { seller: { select: { name: true } } },
+    });
+    if (listing) {
+      await this.notifyAdminsNewListing(listing.title, listing.seller.name, payment.listingId);
+    }
+
     return { processed: true, listingId: payment.listingId };
   }
 
@@ -225,6 +236,34 @@ export class PaymentsService {
       await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
     }
     console.error(`[payment-service] Failed to notify listing-service for listing ${listingId}`);
+  }
+
+  private async notifyAdminsNewListing(
+    listingTitle: string,
+    sellerName: string,
+    listingId: string,
+  ): Promise<void> {
+    try {
+      const admins = await this.prisma.user.findMany({
+        where: { role: 'ADMIN' },
+        select: { id: true },
+      });
+
+      if (admins.length === 0) return;
+
+      await this.prisma.notification.createMany({
+        data: admins.map((admin) => ({
+          userId: admin.id,
+          type: 'NEW_LISTING_PUBLISHED' as const,
+          title: 'Nouvelle annonce publiée',
+          body: `${sellerName} vient de publier "${listingTitle}"`,
+          channel: 'IN_APP' as const,
+          data: { listingId },
+        })),
+      });
+    } catch (err) {
+      console.error('[payment-service] Failed to notify admins:', err);
+    }
   }
 
   async getPaymentByListing(sellerId: string, listingId: string) {

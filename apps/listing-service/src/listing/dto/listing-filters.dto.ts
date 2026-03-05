@@ -19,7 +19,7 @@ export class ListingFiltersDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  @Min(38)
+  @Min(20)
   sizeEuMin?: number;
 
   @IsOptional()

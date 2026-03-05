@@ -29,15 +29,23 @@ const CONDITION_COLORS: Record<ListingCondition, string> = {
   FAIR: 'bg-gray-100 text-gray-500',
 };
 
+const STATUS_CONFIG: Record<string, { label: string; style: string }> = {
+  ACTIVE: { label: 'Disponible', style: 'bg-green-500 text-white' },
+  SOLD: { label: 'Vendue', style: 'bg-red-500 text-white' },
+  RESERVED: { label: 'Reservee', style: 'bg-yellow-500 text-white' },
+};
+
 export function ListingCard({ listing }: { listing: ListingSearchResult }) {
   const conditionLabel =
     CONDITION_LABELS[listing.condition as ListingCondition] || listing.condition;
   const conditionColor =
     CONDITION_COLORS[listing.condition as ListingCondition] || 'bg-gray-100 text-gray-500';
+  const isSoldOrReserved = listing.status === 'SOLD' || listing.status === 'RESERVED';
+  const statusInfo = STATUS_CONFIG[listing.status];
 
   return (
     <Link href={`/shoes/${listing.slug}`} className="group block">
-      <div className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 duration-200">
+      <div className={`bg-white rounded-xl border border-[var(--color-border)] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 duration-200 ${isSoldOrReserved ? 'opacity-75' : ''}`}>
         {/* Image — ratio 4/3 pour avoir plus d'espace infos */}
         <div className="relative aspect-[4/3] bg-[var(--color-muted)]">
           {listing.thumbnailUrl ? (
@@ -45,7 +53,7 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
               src={listing.thumbnailUrl}
               alt={listing.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className={`object-cover group-hover:scale-105 transition-transform duration-300 ${isSoldOrReserved ? 'grayscale' : ''}`}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
@@ -58,6 +66,12 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
           <div className="absolute top-2 left-2 bg-[var(--color-primary)] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
             EU {listing.sizeEu}
           </div>
+          {/* Badge statut */}
+          {statusInfo && (
+            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm ${statusInfo.style}`}>
+              {statusInfo.label}
+            </div>
+          )}
         </div>
 
         {/* Infos */}

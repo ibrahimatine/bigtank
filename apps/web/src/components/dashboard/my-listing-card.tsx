@@ -13,7 +13,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  ACTIVE: 'Active',
+  ACTIVE: 'Disponible',
   SOLD: 'Vendue',
   RESERVED: 'Reservee',
   DELETED: 'Supprimee',

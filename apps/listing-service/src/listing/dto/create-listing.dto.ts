@@ -39,7 +39,7 @@ export class CreateListingDto {
   model!: string;
 
   @IsNumber()
-  @Min(38)
+  @Min(20, { message: 'La taille minimum est 20' })
   @Max(55)
   sizeEu!: number;
 
@@ -64,7 +64,7 @@ export class CreateListingDto {
   color!: string;
 
   @IsNumber()
-  @Min(3000, { message: 'Le prix minimum est de 3 000 FCFA' })
+  @Min(500, { message: 'Le prix minimum est de 500 FCFA' })
   @Max(500000, { message: 'Le prix maximum est de 500 000 FCFA' })
   priceXof!: number;
 

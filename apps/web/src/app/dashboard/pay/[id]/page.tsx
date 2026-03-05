@@ -214,7 +214,7 @@ export default function PayListingPage() {
             </button>
 
             <p className="text-center text-xs text-gray-400">
-              Paiement sécurisé via PayTech · Durée de publication : 30 jours
+              Paiement sécurisé via PayTech · Durée de publication : 60 jours
             </p>
           </div>
         </div>

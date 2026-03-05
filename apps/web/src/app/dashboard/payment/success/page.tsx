@@ -13,7 +13,7 @@ export default function PaymentSuccessPage() {
         </h1>
         <p className="text-gray-500 text-sm mb-6">
           Votre annonce est maintenant visible par tous les acheteurs.
-          Elle restera active pendant <strong>30 jours</strong>.
+          Elle restera active pendant <strong>60 jours</strong>.
         </p>
         <div className="flex flex-col gap-3">
           <Link

@@ -149,7 +149,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       // Auto-fill equivalences quand EU change
       if (key === 'sizeEu' && value) {
         const eu = parseFloat(value);
-        if (!isNaN(eu) && eu >= 38 && eu <= 60) {
+        if (!isNaN(eu) && eu >= 20 && eu <= 60) {
           if (!prev.sizeUs) next.sizeUs = String(usFromEu(eu));
           if (!prev.sizeUk) next.sizeUk = String(ukFromEu(eu));
         }
@@ -351,7 +351,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               type="number"
               value={form.sizeEu}
               onChange={(e) => updateField('sizeEu', e.target.value)}
-              min={38}
+              min={20}
               max={55}
             />
             {fieldErrors.sizeEu && <p className="text-xs text-red-500">{fieldErrors.sizeEu}</p>}
@@ -408,7 +408,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               type="number"
               value={form.priceXof}
               onChange={(e) => updateField('priceXof', e.target.value)}
-              min={1000}
+              min={500}
               max={500000}
             />
             {fieldErrors.priceXof && <p className="text-xs text-red-500">{fieldErrors.priceXof}</p>}

@@ -205,11 +205,11 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
         <div className="flex gap-2">
           <Input
             placeholder="Min (46)"
-            {...numericInputProps(sizeEuMin, setSizeEuMin, 'sizeEuMin', 38, 60)}
+            {...numericInputProps(sizeEuMin, setSizeEuMin, 'sizeEuMin', 20, 60)}
           />
           <Input
             placeholder="Max (52)"
-            {...numericInputProps(sizeEuMax, setSizeEuMax, 'sizeEuMax', 38, 60)}
+            {...numericInputProps(sizeEuMax, setSizeEuMax, 'sizeEuMax', 20, 60)}
           />
         </div>
       </div>

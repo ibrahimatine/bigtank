@@ -197,7 +197,11 @@ export class AdminService {
         { brand: { contains: search, mode: 'insensitive' } },
       ];
     }
-    if (status) where.status = status;
+    if (status) {
+      where.status = status;
+    } else {
+      where.status = { not: 'DELETED' };
+    }
 
     const [listings, total] = await Promise.all([
       this.prisma.listing.findMany({
