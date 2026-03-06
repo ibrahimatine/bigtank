@@ -8,7 +8,7 @@ export function Hero() {
   };
 
   return (
-    <section className="bg-[var(--color-primary)] text-white py-12 sm:py-16">
+    <section className="bg-[var(--color-primary)] text-white py-10 sm:py-12 lg:py-16">
       <div className="max-w-[1280px] mx-auto px-4 text-center">
         <p className="text-[var(--color-accent)] text-xs font-semibold tracking-widest uppercase mb-3">
           Marketplace #1 au Senegal
@@ -19,7 +19,7 @@ export function Hero() {
           <br className="hidden sm:block" />
           {' '}EU 46 et plus
         </h1>
-        <p className="mt-3 text-white/60 max-w-sm mx-auto text-sm">
+        <p className="mt-3 text-white/60 max-w-xs sm:max-w-sm mx-auto text-sm">
           Nike, Jordan, Adidas et bien d&apos;autres — livrables partout au Senegal.
         </p>
 

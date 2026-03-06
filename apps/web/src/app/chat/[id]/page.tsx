@@ -97,7 +97,7 @@ export default async function ConversationPage({ params }: Props) {
       </div>
 
       {/* Thread de messages */}
-      <div className="flex-1 bg-white rounded-xl border border-[var(--color-border)] overflow-hidden">
+      <div className="flex-1 bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
         <MessageThread
           conversation={conversation}
           initialMessages={messagesData.data}

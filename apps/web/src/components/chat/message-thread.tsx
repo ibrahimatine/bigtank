@@ -240,7 +240,7 @@ export function MessageThread({
       </div>
 
       {/* Input */}
-      <div className="border-t border-[var(--color-border)] p-4 bg-white">
+      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-card)]">
         <MessageInput
           onSend={(content) => sendMessage(conversation.id, content)}
           onTypingChange={(typing) => sendTyping(conversation.id, typing)}

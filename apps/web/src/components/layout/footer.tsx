@@ -9,11 +9,11 @@ const PAYMENT_METHODS = [
 
 export function Footer() {
   return (
-    <footer className="bg-[var(--color-secondary)] text-white/70 mt-16">
-      <div className="max-w-[1280px] mx-auto px-4 pt-12 pb-6">
+    <footer className="bg-[var(--color-secondary)] text-white/70 mt-8">
+      <div className="max-w-[1280px] mx-auto px-4 pt-8 pb-4">
 
         {/* Grille principale */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-white/10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-6 border-b border-white/10">
 
           {/* Branding */}
           <div>
@@ -28,8 +28,8 @@ export function Footer() {
 
           {/* Explorer */}
           <div>
-            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Explorer</h4>
-            <ul className="space-y-2.5 text-sm">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-2">Explorer</h4>
+            <ul className="space-y-1.5 text-sm">
               <li>
                 <Link href="/search" className="hover:text-white transition-colors">
                   Toutes les annonces
@@ -60,8 +60,8 @@ export function Footer() {
 
           {/* Liens */}
           <div>
-            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Informations</h4>
-            <ul className="space-y-2.5 text-sm">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-2">Informations</h4>
+            <ul className="space-y-1.5 text-sm">
               <li>
                 <Link href="/about" className="hover:text-white transition-colors">
                   A propos
@@ -87,7 +87,7 @@ export function Footer() {
 
           {/* Paiements */}
           <div>
-            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-4">Moyens de paiement</h4>
+            <h4 className="text-xs font-semibold text-white uppercase tracking-widest mb-2">Moyens de paiement</h4>
             <div className="flex flex-wrap gap-2">
               {PAYMENT_METHODS.map(({ label, color }) => (
                 <span
@@ -109,7 +109,7 @@ export function Footer() {
         </div>
 
         {/* Bas de footer */}
-        <div className="pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-white/30">
+        <div className="pt-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-white/30">
           <p>&copy; {new Date().getFullYear()} BigTank. Tous droits reserves.</p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="hover:text-white/60 transition-colors">CGU</Link>

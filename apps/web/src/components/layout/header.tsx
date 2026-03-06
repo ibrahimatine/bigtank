@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { NavSearchBar } from './nav-search-bar';
 import { UserNav } from './user-nav';
 import { NotificationBell } from './notification-bell';
+import { ThemeToggle } from './theme-toggle';
 
 export function Header() {
   return (
@@ -25,6 +26,7 @@ export function Header() {
           >
             Explorer
           </Link>
+          <ThemeToggle />
           <NotificationBell />
           <UserNav />
         </nav>

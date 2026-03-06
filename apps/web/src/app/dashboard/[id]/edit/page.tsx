@@ -30,12 +30,12 @@ export default async function EditListingPage({ params }: Props) {
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold mb-6">
           Modifier l&apos;annonce
         </h1>
-        <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+        <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
           <ListingForm mode="edit" initialData={listing} />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+      <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
         <ImageUploadWrapper listingId={listing.id} images={listing.images} />
       </div>
     </div>

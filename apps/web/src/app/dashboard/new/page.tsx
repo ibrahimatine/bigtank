@@ -24,7 +24,7 @@ export default async function NewListingPage() {
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold mb-6">
         Publier une annonce
       </h1>
-      <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+      <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
         <ListingForm mode="create" />
       </div>
     </div>

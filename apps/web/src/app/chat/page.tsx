@@ -23,7 +23,7 @@ export default async function ChatPage() {
         </h1>
       </div>
 
-      <div className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden">
+      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
         <ConversationList initialConversations={conversations} />
       </div>
     </div>

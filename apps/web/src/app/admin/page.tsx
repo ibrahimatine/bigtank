@@ -17,7 +17,7 @@ function StatCard({
   accent?: string;
 }) {
   return (
-    <div className="bg-white border border-[var(--color-border)] rounded-xl p-5">
+    <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm text-[var(--color-muted-foreground)]">{label}</span>
         <div className={`p-2 rounded-lg ${accent || 'bg-[var(--color-muted)]'}`}>
@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-[var(--color-border)] rounded-xl p-5">
+        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5">
           <h2 className="font-semibold mb-4">Gestion rapide</h2>
           <div className="space-y-2 text-sm">
             <a href="/admin/users" className="flex items-center gap-2 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
@@ -60,7 +60,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-[var(--color-border)] rounded-xl p-5">
+        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5">
           <h2 className="font-semibold mb-4">Indicateurs</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">

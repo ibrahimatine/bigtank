@@ -70,7 +70,7 @@ export default async function SellerProfilePage({ params }: Props) {
       </nav>
 
       {/* Profile card */}
-      <div className="bg-white rounded-xl border border-[var(--color-border)] p-6 sm:p-8">
+      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
           {/* Avatar */}
           {seller.avatarUrl ? (

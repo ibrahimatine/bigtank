@@ -45,7 +45,7 @@ export default function PayListingPage() {
   const [phone, setPhone] = useState('');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodKey>('ORANGE_MONEY');
   const [waitingConfirmation, setWaitingConfirmation] = useState(false);
-  const [refCommand, setRefCommand] = useState<string | null>(null);
+  const [, setRefCommand] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Charger les données initiales + numéro de téléphone du profil
@@ -170,7 +170,7 @@ export default function PayListingPage() {
     return (
       <div className="min-h-screen bg-gray-50 py-10 px-4">
         <div className="max-w-lg mx-auto">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="bg-[var(--color-primary)] px-6 py-5 text-white">
               <h1 className="text-lg font-bold">En attente de confirmation</h1>
               <p className="text-sm opacity-80 mt-0.5">
@@ -229,7 +229,7 @@ export default function PayListingPage() {
           Retour au tableau de bord
         </Link>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           {/* Header */}
           <div className="bg-[var(--color-primary)] px-6 py-5 text-white">
             <h1 className="text-lg font-bold">Publier votre annonce</h1>

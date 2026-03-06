@@ -42,7 +42,7 @@ export default function ContactPage() {
         ].map(({ icon: Icon, title, desc, value, href }) => (
           <div
             key={title}
-            className="bg-white rounded-xl border border-[var(--color-border)] p-6"
+            className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-6"
           >
             <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center mb-4">
               <Icon className="h-5 w-5 text-[var(--color-accent)]" />
@@ -60,7 +60,7 @@ export default function ContactPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-[var(--color-border)] p-8">
+      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-8">
         <h2 className="font-[family-name:var(--font-display)] text-xl font-bold mb-6">
           Envoyer un message
         </h2>

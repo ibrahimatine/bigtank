@@ -12,7 +12,7 @@ export function ListingGrid({ listings }: { listings: ListingSearchResult[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       {listings.map((listing) => (
         <ListingCard key={listing.id} listing={listing} />
       ))}
@@ -22,7 +22,7 @@ export function ListingGrid({ listings }: { listings: ListingSearchResult[] }) {
 
 export function ListingGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       {Array.from({ length: count }).map((_, i) => (
         <ListingCardSkeleton key={i} />
       ))}

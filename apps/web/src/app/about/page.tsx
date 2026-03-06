@@ -77,7 +77,7 @@ export default function AboutPage() {
             ].map(({ title, desc }) => (
               <div
                 key={title}
-                className="bg-white rounded-xl border border-[var(--color-border)] p-5"
+                className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-5"
               >
                 <h3 className="font-semibold text-[var(--color-foreground)] mb-2">{title}</h3>
                 <p className="text-sm">{desc}</p>

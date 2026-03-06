@@ -61,7 +61,7 @@ export function ListingStatusAction({ listingId, currentStatus }: ListingStatusA
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-1 bg-white border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden min-w-[140px]">
+          <div className="absolute right-0 z-50 mt-1 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden min-w-[140px]">
             {STATUS_OPTIONS.filter((o) => o.value !== currentStatus).map((option) => (
               <button
                 key={option.value}

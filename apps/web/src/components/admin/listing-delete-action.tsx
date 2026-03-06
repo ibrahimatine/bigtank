@@ -44,7 +44,7 @@ export function ListingDeleteAction({ listingId, listingTitle }: ListingDeleteAc
 
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+          <div className="bg-[var(--color-card)] rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="font-semibold mb-2">Supprimer l&apos;annonce</h3>
             <p className="text-sm text-[var(--color-muted-foreground)] mb-6">
               Voulez-vous supprimer <strong>&quot;{listingTitle}&quot;</strong> ? Cette action

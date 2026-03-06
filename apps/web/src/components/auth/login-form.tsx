@@ -43,7 +43,7 @@ export function LoginForm() {
       setError(result.error);
     } else {
       const role = result.user?.role;
-      const destination = rawRedirect || (role === 'ADMIN' ? '/admin' : '/dashboard');
+      const destination = rawRedirect || (role === 'ADMIN' ? '/admin' : '/');
       router.push(destination);
       router.refresh();
     }

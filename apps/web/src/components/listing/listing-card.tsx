@@ -45,7 +45,7 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
 
   return (
     <Link href={`/shoes/${listing.slug}`} className="group block">
-      <div className={`bg-white rounded-xl border border-[var(--color-border)] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 duration-200 ${isSoldOrReserved ? 'opacity-75' : ''}`}>
+      <div className={`bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5 duration-200 ${isSoldOrReserved ? 'opacity-75' : ''}`}>
         {/* Image — ratio 4/3 pour avoir plus d'espace infos */}
         <div className="relative aspect-[4/3] bg-[var(--color-muted)]">
           {listing.thumbnailUrl ? (
@@ -53,7 +53,7 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
               src={listing.thumbnailUrl}
               alt={listing.title}
               fill
-              className={`object-cover group-hover:scale-105 transition-transform duration-300 ${isSoldOrReserved ? 'grayscale' : ''}`}
+              className={`object-contain group-hover:scale-105 transition-transform duration-300 ${isSoldOrReserved ? 'grayscale' : ''}`}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
@@ -63,12 +63,12 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
             </div>
           )}
           {/* Badge taille sur fond solide — jamais texte sur image brute */}
-          <div className="absolute top-2 left-2 bg-[var(--color-primary)] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
+          <div className="absolute top-2 left-2 bg-[var(--color-primary)] text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm">
             EU {listing.sizeEu}
           </div>
           {/* Badge statut */}
           {statusInfo && (
-            <div className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm ${statusInfo.style}`}>
+            <div className={`absolute top-2 right-2 text-[11px] font-bold px-2 py-0.5 rounded-md shadow-sm ${statusInfo.style}`}>
               {statusInfo.label}
             </div>
           )}
@@ -76,27 +76,27 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
 
         {/* Infos */}
         <div className="p-3">
-          <p className="text-[10px] text-[var(--color-muted-foreground)] uppercase tracking-widest font-medium">
+          <p className="text-[11px] text-[var(--color-muted-foreground)] uppercase tracking-widest font-medium">
             {listing.brand}
           </p>
           <h3 className="font-semibold text-sm mt-0.5 line-clamp-1 group-hover:text-[var(--color-accent)] transition-colors">
             {listing.title}
           </h3>
 
-          <span className={`inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full ${conditionColor}`}>
+          <span className={`inline-block mt-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${conditionColor}`}>
             {conditionLabel}
           </span>
 
           <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[var(--color-border)]">
-            <span className="font-[family-name:var(--font-display)] font-bold text-[var(--color-accent)] text-sm">
+            <span className="font-[family-name:var(--font-display)] font-bold text-[var(--color-accent)] text-sm truncate">
               {formatPrice(listing.priceXof)}
             </span>
-            <span className="flex items-center gap-0.5 text-[10px] text-[var(--color-muted-foreground)]">
-              <MapPin className="h-3 w-3" />
-              {listing.locationCity}
+            <span className="flex items-center gap-0.5 text-[11px] text-[var(--color-muted-foreground)] shrink-0">
+              <MapPin className="h-3 w-3 shrink-0" />
+              <span className="truncate max-w-[60px]">{listing.locationCity}</span>
             </span>
           </div>
-          <p className="text-[10px] text-[var(--color-muted-foreground)]/60 mt-1">
+          <p className="text-[11px] text-[var(--color-muted-foreground)]/60 mt-1">
             {timeAgo(listing.createdAt)}
           </p>
         </div>
@@ -107,7 +107,7 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
 
 export function ListingCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-[var(--color-border)] overflow-hidden">
+    <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
       <Skeleton className="aspect-[4/3]" />
       <div className="p-3 space-y-2">
         <Skeleton className="h-3 w-14" />

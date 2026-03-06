@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { SocketProvider } from '@/components/providers/socket-provider';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -59,8 +60,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="fr" className={`${inter.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body className="font-[family-name:var(--font-sans)] bg-[var(--color-background)] text-[var(--color-foreground)] min-h-screen flex flex-col">
+        <ThemeProvider>
         <AuthProvider>
           <SocketProvider>
             <Header />
@@ -69,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Toaster position="bottom-right" richColors closeButton />
           </SocketProvider>
         </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

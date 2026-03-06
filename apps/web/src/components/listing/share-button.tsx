@@ -47,7 +47,7 @@ export function ShareButton({ title, url }: Props) {
             className="fixed inset-0 z-40"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 bottom-full mb-2 bg-white rounded-lg shadow-xl border border-[var(--color-border)] z-50 overflow-hidden w-48">
+          <div className="absolute right-0 bottom-full mb-2 bg-[var(--color-card)] rounded-lg shadow-xl border border-[var(--color-border)] z-50 overflow-hidden w-48">
             <a
               href={whatsappUrl}
               target="_blank"

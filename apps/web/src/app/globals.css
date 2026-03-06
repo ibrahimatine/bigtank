@@ -44,6 +44,30 @@
     outline-offset: 2px;
     border-radius: 4px;
   }
+
+  /* Mode sombre — redefinit les variables CSS */
+  .dark {
+    --color-primary: #0f0f1a;
+    --color-primary-foreground: #e0e0e0;
+    --color-secondary: #0a0a14;
+    --color-secondary-foreground: #e0e0e0;
+    --color-accent: #e94560;
+    --color-accent-foreground: #ffffff;
+    --color-background: #0f0f0f;
+    --color-foreground: #e0e0e0;
+    --color-muted: #1e1e3a;
+    --color-muted-foreground: #9999aa;
+    --color-border: #2a2a4a;
+    --color-success: #27ae60;
+    --color-warning: #f39c12;
+    --color-destructive: #e74c3c;
+    --color-card: #1a1a2e;
+    --color-card-foreground: #e0e0e0;
+    --color-popover: #1a1a2e;
+    --color-popover-foreground: #e0e0e0;
+    --color-input: #2a2a4a;
+    --color-ring: #e94560;
+  }
 }
 
 @keyframes shimmer {
@@ -55,4 +79,9 @@
   background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(90deg, #2a2a4a 25%, #1e1e3a 50%, #2a2a4a 75%);
+  background-size: 200% 100%;
 }

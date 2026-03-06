@@ -28,7 +28,7 @@ export function MyListingCard({ listing }: { listing: ListingDetail }) {
     CONDITION_LABELS[listing.condition as ListingCondition] || listing.condition;
 
   return (
-    <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
+    <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] overflow-hidden">
       <div className="relative aspect-video bg-[var(--color-muted)]">
         {listing.images?.[0] ? (
           <Image

@@ -83,7 +83,7 @@ function BrandCombobox({
         )}
       </div>
       {open && (filtered.length > 0 || showCustom) && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-[var(--color-border)] bg-white shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] shadow-lg max-h-48 overflow-y-auto">
           {filtered.map((b) => (
             <button
               key={b}
@@ -356,7 +356,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               <SelectTrigger>
                 <SelectValue placeholder="Choisir" />
               </SelectTrigger>
-              <SelectContent className="bg-white shadow-lg border border-[var(--color-border)]">
+              <SelectContent className="bg-[var(--color-card)] shadow-lg border border-[var(--color-border)]">
                 {(Object.entries(CONDITION_LABELS) as [ListingCondition, string][]).map(
                   ([value, label]) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
@@ -391,7 +391,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
               <SelectTrigger>
                 <SelectValue placeholder="Choisir" />
               </SelectTrigger>
-              <SelectContent className="bg-white shadow-lg border border-[var(--color-border)]">
+              <SelectContent className="bg-[var(--color-card)] shadow-lg border border-[var(--color-border)]">
                 {SENEGAL_REGIONS.map((r) => (
                   <SelectItem key={r} value={r}>{r}</SelectItem>
                 ))}

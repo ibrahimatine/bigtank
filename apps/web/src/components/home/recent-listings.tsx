@@ -1,34 +1,35 @@
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-import { getRecentListings } from '@/lib/api';
+import { searchListings } from '@/lib/api';
 import { ListingGrid } from '@/components/listing/listing-grid';
+import { LoadMore } from '@/components/search/load-more';
 
 export async function RecentListings() {
-  let listings: Awaited<ReturnType<typeof getRecentListings>>['data'] = [];
+  let result: Awaited<ReturnType<typeof searchListings>> = {
+    data: [],
+    cursor: null,
+    hasMore: false,
+  };
 
   try {
-    const result = await getRecentListings(8);
-    listings = result.data;
+    result = await searchListings({ sortBy: 'date', limit: 20 });
   } catch {
     // API not available — show empty state
   }
 
   return (
     <section id="recent-listings" className="max-w-[1280px] mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-          Annonces recentes
-        </h2>
-        <Link
-          href="/search"
-          className="flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline"
-        >
-          Voir tout <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
+      <h2 className="font-[family-name:var(--font-display)] text-2xl font-bold mb-6">
+        Toutes les annonces
+      </h2>
 
-      {listings.length > 0 ? (
-        <ListingGrid listings={listings} />
+      {result.data.length > 0 ? (
+        <>
+          <ListingGrid listings={result.data} />
+          <LoadMore
+            filters={{ sortBy: 'date', limit: 20 }}
+            initialCursor={result.cursor}
+            initialHasMore={result.hasMore}
+          />
+        </>
       ) : (
         <div className="text-center py-12 text-[var(--color-muted-foreground)]">
           <p>Aucune annonce pour le moment.</p>

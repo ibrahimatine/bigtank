@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
     }
     const role = getJwtRole(accessToken);
     if (role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/', request.url));
     }
     return NextResponse.next();
   }
@@ -47,7 +47,7 @@ export function middleware(request: NextRequest) {
   if (AUTH_ROUTES.some((r) => pathname.startsWith(r)) && accessToken) {
     const role = getJwtRole(accessToken);
     return NextResponse.redirect(
-      new URL(role === 'ADMIN' ? '/admin' : '/dashboard', request.url),
+      new URL(role === 'ADMIN' ? '/admin' : '/', request.url),
     );
   }
 

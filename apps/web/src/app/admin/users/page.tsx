@@ -80,7 +80,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
       </form>
 
       {/* Table */}
-      <div className="bg-white border border-[var(--color-border)] rounded-xl overflow-hidden">
+      <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

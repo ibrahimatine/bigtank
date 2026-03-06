@@ -11,7 +11,7 @@ export default function RegisterPage() {
       <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-center mb-8">
         Creer un compte
       </h1>
-      <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+      <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
         <RegisterForm />
       </div>
     </div>

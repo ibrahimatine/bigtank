@@ -4,7 +4,7 @@ import Link from 'next/link';
 export default function PaymentSuccessPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+      <div className="max-w-md w-full bg-[var(--color-card)] rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
         <div className="flex justify-center mb-4">
           <CheckCircle2 className="h-16 w-16 text-green-500" />
         </div>

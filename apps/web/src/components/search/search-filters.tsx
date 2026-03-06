@@ -81,7 +81,7 @@ function BrandCombobox({
           onFocus={() => setOpen(true)}
           onBlur={handleBlur}
           placeholder="Toutes les marques"
-          className="pr-8 bg-white"
+          className="pr-8 bg-[var(--color-card)]"
         />
         {inputValue && (
           <button
@@ -96,7 +96,7 @@ function BrandCombobox({
       </div>
 
       {open && (filtered.length > 0 || isCustomValue) && (
-        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden max-h-52 overflow-y-auto">
           {filtered.map((brand) => (
             <button
               key={brand}
@@ -186,7 +186,7 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
       },
       min,
       max,
-      className: 'bg-white',
+      className: 'bg-[var(--color-card)]',
     };
   }
 
@@ -234,10 +234,10 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
           value={get('condition') || '__all__'}
           onValueChange={(v) => handleSelect('condition', v)}
         >
-          <SelectTrigger className="bg-white">
+          <SelectTrigger className="bg-[var(--color-card)]">
             <SelectValue placeholder="Tous les etats" />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-[var(--color-border)] shadow-lg">
+          <SelectContent className="bg-[var(--color-card)] border border-[var(--color-border)] shadow-lg">
             <SelectItem value="__all__">Tous les etats</SelectItem>
             {(Object.entries(CONDITION_LABELS) as [ListingCondition, string][]).map(
               ([value, label]) => (
@@ -256,10 +256,10 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
           value={get('sortBy') || 'date'}
           onValueChange={(v) => handleSelect('sortBy', v)}
         >
-          <SelectTrigger className="bg-white">
+          <SelectTrigger className="bg-[var(--color-card)]">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-white border border-[var(--color-border)] shadow-lg">
+          <SelectContent className="bg-[var(--color-card)] border border-[var(--color-border)] shadow-lg">
             {SORT_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
@@ -291,12 +291,12 @@ export function SearchFilters() {
       <div className="lg:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2 bg-white">
+            <Button variant="outline" size="sm" className="gap-2 bg-[var(--color-card)]">
               <SlidersHorizontal className="h-4 w-4" />
               Filtres
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="bg-white w-80 overflow-y-auto">
+          <SheetContent side="left" className="bg-[var(--color-card)] w-80 overflow-y-auto">
             <SheetHeader>
               <SheetTitle>Filtres</SheetTitle>
             </SheetHeader>

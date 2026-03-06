@@ -80,7 +80,7 @@ export function UserActions({ userId, userStatus, userName }: UserActionsProps) 
 
       {showSuspendDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+          <div className="bg-[var(--color-card)] rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="font-semibold mb-1">Suspendre {userName}</h3>
             <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
               Indiquez la raison de la suspension (visible par l&apos;équipe).

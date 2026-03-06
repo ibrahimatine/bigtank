@@ -65,7 +65,7 @@ export function MessageInput({ onSend, onTypingChange }: MessageInputProps) {
           onKeyDown={handleKeyDown}
           placeholder="Ecrire un message... (Entree pour envoyer)"
           rows={1}
-          className="w-full resize-none rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 pr-16 text-sm outline-none focus:border-[var(--color-accent)] transition-colors max-h-32 overflow-y-auto"
+          className="w-full resize-none rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3 pr-16 text-sm outline-none focus:border-[var(--color-accent)] transition-colors max-h-32 overflow-y-auto"
           style={{ minHeight: '48px' }}
         />
         {isNearLimit && (

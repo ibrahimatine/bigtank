@@ -50,7 +50,7 @@ export function LoadMore({ filters, initialCursor, initialHasMore }: Props) {
   return (
     <>
       {listings.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
           {listings.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))}
@@ -58,7 +58,7 @@ export function LoadMore({ filters, initialCursor, initialHasMore }: Props) {
       )}
 
       {loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <ListingCardSkeleton key={i} />
           ))}

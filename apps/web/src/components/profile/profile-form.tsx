@@ -125,7 +125,7 @@ export function ProfileForm({ profile }: Props) {
     <div className="space-y-8">
       {/* Seller Stats */}
       {isSeller && profile.sellerStats && (
-        <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+        <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
           <h2 className="font-semibold text-lg mb-4">Statistiques vendeur</h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
@@ -162,7 +162,7 @@ export function ProfileForm({ profile }: Props) {
       )}
 
       {/* Profile form */}
-      <div className="bg-white rounded-lg border border-[var(--color-border)] p-6">
+      <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
         <h2 className="font-semibold text-lg mb-4">Informations personnelles</h2>
 
         {error && (
