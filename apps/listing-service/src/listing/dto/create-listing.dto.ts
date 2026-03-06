@@ -34,10 +34,10 @@ export class CreateListingDto {
   @MaxLength(50)
   brand!: string;
 
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(100)
-  model!: string;
+  model?: string;
 
   @IsNumber()
   @Min(20, { message: 'La taille minimum est 20' })

@@ -2,18 +2,10 @@ import { NextResponse } from 'next/server';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
-// PayTech envoie le webhook en POST form-urlencoded ou JSON
+// Intech envoie le callback en JSON
 export async function POST(request: Request) {
   try {
-    const contentType = request.headers.get('content-type') || '';
-    let body: Record<string, string>;
-
-    if (contentType.includes('application/x-www-form-urlencoded')) {
-      const text = await request.text();
-      body = Object.fromEntries(new URLSearchParams(text));
-    } else {
-      body = await request.json();
-    }
+    const body = await request.json();
 
     const res = await fetch(`${API_BASE}/payments/webhook`, {
       method: 'POST',

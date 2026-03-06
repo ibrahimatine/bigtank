@@ -117,7 +117,7 @@ model Listing {
   title          String
   description    String
   brand          String
-  model          String
+  model          String?
   sizeEu         Float            @map("size_eu")
   sizeUs         Float?           @map("size_us")
   sizeUk         Float?           @map("size_uk")
@@ -235,6 +235,7 @@ enum PaymentProvider {
   PAYDUNYA
   PAYTECH
   NABOOPAY
+  INTECH
 }
 
 model Transaction {
@@ -275,6 +276,7 @@ enum ListingPaymentStatus {
   COMPLETED
   FAILED
   FREE
+  REFUNDED
 }
 
 model ListingPayment {
@@ -285,7 +287,7 @@ model ListingPayment {
   listingPrice  Int                  @map("listing_price")
   status        ListingPaymentStatus @default(PENDING)
   refCommand    String               @unique @map("ref_command")
-  paymentToken  String?              @map("payment_token")
+  intechTransactionId String?         @map("intech_transaction_id")
   paymentMethod String?              @map("payment_method")
   ipnPayload    Json?                @map("ipn_payload")
   paidAt        DateTime?            @map("paid_at")

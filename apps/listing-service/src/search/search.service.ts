@@ -54,7 +54,7 @@ export class SearchService implements OnModuleInit {
     title: string;
     description: string;
     brand: string;
-    model: string;
+    model: string | null;
     sizeEu: number;
     priceXof: number;
     condition: string;

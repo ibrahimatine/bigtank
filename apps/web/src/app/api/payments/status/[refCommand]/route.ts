@@ -3,21 +3,18 @@ import { getAccessToken } from '@/lib/auth-cookies';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
-export async function POST(request: Request) {
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ refCommand: string }> },
+) {
   const token = await getAccessToken();
   if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
 
-  const body = await request.json();
+  const { refCommand } = await params;
 
-  // body doit contenir : { listingId, phone, paymentMethod }
   try {
-    const res = await fetch(`${API_BASE}/payments/initiate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
+    const res = await fetch(`${API_BASE}/payments/status/${refCommand}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });

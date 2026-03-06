@@ -7,7 +7,7 @@ export interface Listing {
   title: string;
   description: string;
   brand: string;
-  model: string;
+  model: string | null;
   sizeEu: number;
   sizeUs: number | null;
   sizeUk: number | null;
@@ -37,7 +37,7 @@ export interface CreateListingDto {
   title: string;
   description: string;
   brand: string;
-  model: string;
+  model?: string;
   sizeEu: number;
   sizeUs?: number;
   sizeUk?: number;

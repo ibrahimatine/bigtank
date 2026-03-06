@@ -3,11 +3,12 @@ import { nanoid } from 'nanoid';
 
 export function generateListingSlug(
   brand: string,
-  model: string,
+  model: string | null | undefined,
   sizeEu: number,
   city: string,
 ): string {
-  const base = slugify(`${brand} ${model} ${sizeEu} ${city}`, {
+  const parts = [brand, model, sizeEu, city].filter(Boolean).join(' ');
+  const base = slugify(parts, {
     lower: true,
     strict: true,
     locale: 'fr',

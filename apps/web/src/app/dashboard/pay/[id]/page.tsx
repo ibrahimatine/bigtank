@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, CreditCard, Smartphone, Gift, Loader2 } from 'lucide-react';
+import { ArrowLeft, Smartphone, Gift, Loader2, CheckCircle2, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 interface CommissionPreview {
@@ -19,6 +19,14 @@ interface Listing {
   images: { url: string }[];
 }
 
+type PaymentMethodKey = 'ORANGE_MONEY' | 'WAVE' | 'FREE_MONEY';
+
+const PAYMENT_METHODS: { key: PaymentMethodKey; label: string; color: string; bgColor: string }[] = [
+  { key: 'ORANGE_MONEY', label: 'Orange Money', color: 'text-orange-700', bgColor: 'bg-orange-50 border-orange-200' },
+  { key: 'WAVE', label: 'Wave', color: 'text-blue-700', bgColor: 'bg-blue-50 border-blue-200' },
+  { key: 'FREE_MONEY', label: 'Free Money', color: 'text-green-700', bgColor: 'bg-green-50 border-green-200' },
+];
+
 function formatXof(amount: number) {
   return new Intl.NumberFormat('fr-SN').format(amount) + ' FCFA';
 }
@@ -33,12 +41,21 @@ export default function PayListingPage() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Nouveaux états pour Intech
+  const [phone, setPhone] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodKey>('ORANGE_MONEY');
+  const [waitingConfirmation, setWaitingConfirmation] = useState(false);
+  const [refCommand, setRefCommand] = useState<string | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Charger les données initiales + numéro de téléphone du profil
   useEffect(() => {
     async function load() {
       try {
-        const [previewRes, listingRes] = await Promise.all([
+        const [previewRes, listingRes, profileRes] = await Promise.all([
           fetch(`/api/payments/preview/${id}`),
           fetch(`/api/listings/${id}`),
+          fetch('/api/auth/me'),
         ]);
 
         if (previewRes.ok) {
@@ -49,6 +66,11 @@ export default function PayListingPage() {
           const d = await listingRes.json();
           setListing(d.data ?? d);
         }
+        if (profileRes.ok) {
+          const d = await profileRes.json();
+          const user = d.data ?? d.user ?? d;
+          if (user.phone) setPhone(user.phone);
+        }
       } catch {
         setError('Impossible de charger les informations de paiement.');
       } finally {
@@ -58,20 +80,62 @@ export default function PayListingPage() {
     load();
   }, [id]);
 
+  // Polling du statut de paiement
+  const startPolling = useCallback((ref: string) => {
+    if (pollingRef.current) clearInterval(pollingRef.current);
+
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/payments/status/${encodeURIComponent(ref)}`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const status = data.data?.status ?? data.status;
+
+        if (status === 'COMPLETED') {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          router.push('/dashboard/payment/success');
+        } else if (status === 'FAILED') {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          setWaitingConfirmation(false);
+          setError('Le paiement a échoué. Veuillez réessayer.');
+        }
+      } catch {
+        // Silently retry
+      }
+    }, 5000);
+  }, [router]);
+
+  // Cleanup du polling
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
+
   const handlePay = async () => {
+    if (!phone.trim()) {
+      setError('Veuillez entrer votre numéro de téléphone.');
+      return;
+    }
+
     setPaying(true);
     setError(null);
     try {
       const res = await fetch('/api/payments/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listingId: id }),
+        body: JSON.stringify({
+          listingId: id,
+          phone: phone.trim(),
+          paymentMethod: selectedMethod,
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || data.data?.error || 'Erreur lors du paiement.');
+        setError(data.error || data.data?.error || data.message || 'Erreur lors du paiement.');
         return;
       }
 
@@ -82,9 +146,10 @@ export default function PayListingPage() {
         return;
       }
 
-      if (result.redirectUrl) {
-        window.location.href = result.redirectUrl;
-      }
+      // Le push USSD a été envoyé — passer en mode attente
+      setRefCommand(result.refCommand);
+      setWaitingConfirmation(true);
+      startPolling(result.refCommand);
     } catch {
       setError('Erreur réseau. Réessaye.');
     } finally {
@@ -96,6 +161,59 @@ export default function PayListingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+      </div>
+    );
+  }
+
+  // Écran d'attente de confirmation (après envoi du push USSD)
+  if (waitingConfirmation) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-10 px-4">
+        <div className="max-w-lg mx-auto">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-[var(--color-primary)] px-6 py-5 text-white">
+              <h1 className="text-lg font-bold">En attente de confirmation</h1>
+              <p className="text-sm opacity-80 mt-0.5">
+                Validez le paiement sur votre téléphone
+              </p>
+            </div>
+
+            <div className="p-6 space-y-6 text-center">
+              <div className="flex justify-center">
+                <div className="relative">
+                  <Clock className="h-16 w-16 text-[var(--color-primary)] animate-pulse" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-lg font-semibold text-gray-900">
+                  Vérifiez votre téléphone
+                </p>
+                <p className="text-sm text-gray-600">
+                  Un message de paiement a été envoyé sur le numéro <strong>{phone}</strong>.
+                  Entrez votre code PIN pour confirmer le paiement de{' '}
+                  <strong>{preview ? formatXof(preview.commission) : '...'}</strong>.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 justify-center text-sm text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Vérification en cours...
+              </div>
+
+              <button
+                onClick={() => {
+                  if (pollingRef.current) clearInterval(pollingRef.current);
+                  setWaitingConfirmation(false);
+                  setRefCommand(null);
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700 underline"
+              >
+                Annuler et réessayer
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -144,7 +262,7 @@ export default function PayListingPage() {
             {preview && (
               <div className="border border-gray-100 rounded-xl divide-y divide-gray-100">
                 <div className="flex justify-between items-center px-4 py-3 text-sm">
-                  <span className="text-gray-600">Prix de l'annonce</span>
+                  <span className="text-gray-600">Prix de l&apos;annonce</span>
                   <span className="font-medium">{formatXof(preview.listingPrice)}</span>
                 </div>
                 <div className="flex justify-between items-center px-4 py-3 text-sm">
@@ -160,32 +278,61 @@ export default function PayListingPage() {
               </div>
             )}
 
-            {/* Méthodes de paiement */}
+            {/* Sélecteur de méthode de paiement */}
             <div>
               <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
-                Méthodes acceptées
+                Méthode de paiement
               </p>
-              <div className="flex gap-2">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-xs font-medium">
-                  <Smartphone className="h-3.5 w-3.5" />
-                  Orange Money
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
-                  <Smartphone className="h-3.5 w-3.5" />
-                  Wave
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-700 rounded-lg text-xs font-medium">
-                  <CreditCard className="h-3.5 w-3.5" />
-                  Carte
-                </div>
+              <div className="grid grid-cols-3 gap-2">
+                {PAYMENT_METHODS.map((method) => (
+                  <button
+                    key={method.key}
+                    type="button"
+                    onClick={() => setSelectedMethod(method.key)}
+                    className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl text-xs font-medium border-2 transition-all ${
+                      selectedMethod === method.key
+                        ? `${method.bgColor} ${method.color} ring-2 ring-offset-1 ring-current`
+                        : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'
+                    }`}
+                  >
+                    <Smartphone className="h-5 w-5" />
+                    {method.label}
+                    {selectedMethod === method.key && (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                ))}
               </div>
+            </div>
+
+            {/* Champ numéro de téléphone */}
+            <div>
+              <label htmlFor="phone" className="text-xs text-gray-500 mb-1.5 block font-medium uppercase tracking-wide">
+                Numéro de téléphone
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-2.5 rounded-lg font-medium">
+                  +221
+                </span>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="77 000 00 00"
+                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Le numéro sur lequel vous recevrez la demande de paiement
+              </p>
             </div>
 
             {/* Note annonce gratuite */}
             <div className="flex items-start gap-2 p-3 bg-green-50 rounded-xl text-sm text-green-700">
               <Gift className="h-4 w-4 shrink-0 mt-0.5" />
               <p>
-                Si c'est votre première annonce, elle sera publiée{' '}
+                Si c&apos;est votre première annonce, elle sera publiée{' '}
                 <strong>gratuitement</strong> — aucun paiement requis.
               </p>
             </div>
@@ -197,24 +344,24 @@ export default function PayListingPage() {
             {/* CTA */}
             <button
               onClick={handlePay}
-              disabled={paying}
+              disabled={paying || !phone.trim()}
               className="w-full flex items-center justify-center gap-2 bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90 disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl transition-colors"
             >
               {paying ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Chargement…
+                  Envoi en cours…
                 </>
               ) : (
                 <>
-                  <CreditCard className="h-4 w-4" />
+                  <Smartphone className="h-4 w-4" />
                   {preview ? `Payer ${formatXof(preview.commission)}` : 'Publier l\'annonce'}
                 </>
               )}
             </button>
 
             <p className="text-center text-xs text-gray-400">
-              Paiement sécurisé via PayTech · Durée de publication : 60 jours
+              Paiement sécurisé via Intech · Durée de publication : 60 jours
             </p>
           </div>
         </div>
