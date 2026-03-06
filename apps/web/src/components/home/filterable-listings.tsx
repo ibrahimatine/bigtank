@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { ListingGrid } from '@/components/listing/listing-grid';
 import { ListingCardSkeleton } from '@/components/listing/listing-card';
 import type { ListingSearchResult } from '@/lib/api';
@@ -35,6 +35,7 @@ export function FilterableListings() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchListings = useCallback(async (f: Filters, loadCursor?: string) => {
     const params = new URLSearchParams();
@@ -62,7 +63,6 @@ export function FilterableListings() {
     };
   }, []);
 
-  // Chargement initial
   useEffect(() => {
     setLoading(true);
     fetchListings(EMPTY_FILTERS)
@@ -77,6 +77,7 @@ export function FilterableListings() {
 
   function handleSearch() {
     setLoading(true);
+    setShowFilters(false);
     fetchListings(filters)
       .then((result) => {
         setListings(result.data);
@@ -120,19 +121,45 @@ export function FilterableListings() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }
 
+  const hasActiveFilters = Object.values(filters).some((v) => v !== '');
+
   return (
     <>
       {/* Barre de filtres */}
       <div className="border-b border-[var(--color-border)] bg-[var(--color-card)]">
         <div className="max-w-[1280px] mx-auto px-4 py-3">
-          <div className="flex flex-wrap items-end gap-2">
+
+          {/* Mobile : bouton pour ouvrir/fermer les filtres */}
+          <div className="flex items-center justify-between lg:hidden mb-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium hover:bg-[var(--color-muted)] transition-colors"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtrer
+              {hasActiveFilters && (
+                <span className="w-2 h-2 rounded-full bg-[var(--color-accent)]" />
+              )}
+            </button>
+            {hasActiveFilters && (
+              <button
+                onClick={() => { setFilters(EMPTY_FILTERS); handleQuickFilter({}); }}
+                className="text-xs text-[var(--color-muted-foreground)] hover:text-[var(--color-accent)] transition-colors"
+              >
+                Effacer les filtres
+              </button>
+            )}
+          </div>
+
+          {/* Filtres — toujours visible sur lg+, toggle sur mobile */}
+          <div className={`${showFilters ? 'flex' : 'hidden'} lg:flex flex-col lg:flex-row flex-wrap items-stretch lg:items-end gap-3 lg:gap-2`}>
             {/* Marque */}
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-medium text-[var(--color-muted-foreground)] uppercase tracking-wider">Marque</label>
               <select
                 value={filters.brand}
                 onChange={(e) => updateFilter('brand', e.target.value)}
-                className="h-9 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm min-w-[120px]"
+                className="h-9 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
               >
                 <option value="">Toutes</option>
                 {POPULAR_BRANDS.map((b) => (
@@ -150,14 +177,14 @@ export function FilterableListings() {
                   placeholder="Min"
                   value={filters.sizeEuMin}
                   onChange={(e) => updateFilter('sizeEuMin', e.target.value)}
-                  className="h-9 w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full lg:w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
                 <input
                   type="number"
                   placeholder="Max"
                   value={filters.sizeEuMax}
                   onChange={(e) => updateFilter('sizeEuMax', e.target.value)}
-                  className="h-9 w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full lg:w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
               </div>
             </div>
@@ -171,14 +198,14 @@ export function FilterableListings() {
                   placeholder="Min"
                   value={filters.priceMin}
                   onChange={(e) => updateFilter('priceMin', e.target.value)}
-                  className="h-9 w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full lg:w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
                 <input
                   type="number"
                   placeholder="Max"
                   value={filters.priceMax}
                   onChange={(e) => updateFilter('priceMax', e.target.value)}
-                  className="h-9 w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full lg:w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
               </div>
             </div>
@@ -189,7 +216,7 @@ export function FilterableListings() {
               <select
                 value={filters.condition}
                 onChange={(e) => updateFilter('condition', e.target.value)}
-                className="h-9 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm min-w-[120px]"
+                className="h-9 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
               >
                 <option value="">Tous</option>
                 {(Object.entries(CONDITION_LABELS) as [ListingCondition, string][]).map(([key, label]) => (
@@ -201,7 +228,7 @@ export function FilterableListings() {
             {/* Bouton Rechercher */}
             <button
               onClick={handleSearch}
-              className="h-9 px-4 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5"
+              className="h-9 px-4 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
             >
               <Search className="h-3.5 w-3.5" />
               Rechercher
@@ -229,7 +256,6 @@ export function FilterableListings() {
           <>
             <ListingGrid listings={listings} />
 
-            {/* Load more */}
             {loadingMore && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
                 {Array.from({ length: 4 }).map((_, i) => (
