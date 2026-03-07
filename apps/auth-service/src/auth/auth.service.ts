@@ -23,12 +23,33 @@ const BCRYPT_ROUNDS = 12;
 
 @Injectable()
 export class AuthService {
+  private readonly notificationServiceUrl =
+    process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:4005';
+
   constructor(
     @Inject('PRISMA') private prisma: PrismaClient,
     private jwtService: JwtService,
     private configService: ConfigService,
     private loginRateLimit: LoginRateLimitService,
   ) {}
+
+  private async sendNotification(payload: {
+    userId: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+  }): Promise<void> {
+    try {
+      await fetch(`${this.notificationServiceUrl}/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error('[auth-service] Erreur envoi notification:', err);
+    }
+  }
 
   async register(dto: RegisterDto) {
     if (dto.email) {
@@ -82,6 +103,14 @@ export class AuthService {
         details: `Inscription via ${dto.phone ? 'téléphone' : 'email'}`,
       },
     });
+
+    // Notification de bienvenue (IN_APP + email)
+    this.sendNotification({
+      userId: user.id,
+      type: 'WELCOME',
+      title: 'Bienvenue sur BigTank !',
+      body: `Bienvenue ${user.name} ! Votre compte a ete cree avec succes.`,
+    }).catch(() => {});
 
     return { message: 'Inscription réussie', user };
   }

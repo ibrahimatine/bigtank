@@ -1,9 +1,21 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { EmailService } from './email.service';
+
+export interface CreateNotificationDto {
+  userId: string;
+  type: string;
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+}
 
 @Injectable()
 export class NotificationsService {
-  constructor(@Inject('PRISMA') private readonly prisma: PrismaClient) {}
+  constructor(
+    @Inject('PRISMA') private readonly prisma: PrismaClient,
+    private readonly emailService: EmailService,
+  ) {}
 
   async getNotifications(userId: string, params: { page: number; limit: number }) {
     const { page, limit } = params;
@@ -62,5 +74,90 @@ export class NotificationsService {
       data: { readAt: new Date() },
     });
     return { updated: result.count };
+  }
+
+  /**
+   * Cree une notification IN_APP + envoie un email si l'utilisateur a un email.
+   * Appele par les autres services via HTTP.
+   */
+  async createAndSend(dto: CreateNotificationDto) {
+    // 1. Creer la notification IN_APP
+    const notification = await this.prisma.notification.create({
+      data: {
+        userId: dto.userId,
+        type: dto.type as never,
+        title: dto.title,
+        body: dto.body,
+        channel: 'IN_APP',
+        data: dto.data ? JSON.parse(JSON.stringify(dto.data)) : undefined,
+      },
+    });
+
+    // 2. Recuperer l'email de l'utilisateur
+    const user = await this.prisma.user.findUnique({
+      where: { id: dto.userId },
+      select: { email: true, name: true },
+    });
+
+    // 3. Envoyer l'email si l'utilisateur a un email
+    if (user?.email) {
+      try {
+        await this.sendEmailByType(dto, user.email, user.name);
+      } catch (err) {
+        console.error('[notification-service] Erreur envoi email:', err);
+      }
+    }
+
+    return notification;
+  }
+
+  private async sendEmailByType(
+    dto: CreateNotificationDto,
+    email: string,
+    userName: string,
+  ): Promise<void> {
+    const data = dto.data || {};
+
+    switch (dto.type) {
+      case 'WELCOME':
+        await this.emailService.sendWelcome(email, userName);
+        break;
+
+      case 'NEW_MESSAGE':
+        await this.emailService.sendNewMessage(
+          email,
+          userName,
+          (data.senderName as string) || 'Un utilisateur',
+          dto.body,
+          (data.conversationId as string) || '',
+        );
+        break;
+
+      case 'NEW_LISTING_PUBLISHED':
+        await this.emailService.sendListingPublished(
+          email,
+          userName,
+          (data.listingTitle as string) || dto.title,
+          (data.listingSlug as string) || '',
+        );
+        break;
+
+      case 'LISTING_SOLD':
+        await this.emailService.sendListingSold(
+          email,
+          userName,
+          (data.listingTitle as string) || dto.body,
+        );
+        break;
+
+      default:
+        // Pour les autres types, envoyer un email generique
+        await this.emailService.send({
+          to: email,
+          subject: dto.title,
+          html: `<p>${dto.body}</p>`,
+        });
+        break;
+    }
   }
 }

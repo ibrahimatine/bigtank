@@ -1,9 +1,11 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Param,
   Query,
+  Body,
   Headers,
   HttpCode,
   HttpStatus,
@@ -18,6 +20,18 @@ export class NotificationsController {
   private requireUser(userId: string | undefined): string {
     if (!userId) throw new ForbiddenException('Non authentifié');
     return userId;
+  }
+
+  /**
+   * Endpoint interne appele par les autres services pour creer une notification + email.
+   * Pas besoin d'auth user — appele service-to-service.
+   */
+  @Post('send')
+  @HttpCode(HttpStatus.CREATED)
+  async createAndSend(
+    @Body() body: { userId: string; type: string; title: string; body: string; data?: Record<string, unknown> },
+  ) {
+    return this.notificationsService.createAndSend(body);
   }
 
   @Get()

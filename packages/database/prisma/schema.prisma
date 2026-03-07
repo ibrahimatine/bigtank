@@ -46,16 +46,10 @@ model User {
   // Relations
   sellerStats        SellerStats?
   listings           Listing[]
-  offersAsBuyer      Offer[]        @relation("BuyerOffers")
-  offersAsSeller     Offer[]        @relation("SellerOffers")
-  transactionsAsBuyer  Transaction[] @relation("BuyerTransactions")
-  transactionsAsSeller Transaction[] @relation("SellerTransactions")
   conversationsAsBuyer  Conversation[] @relation("BuyerConversations")
   conversationsAsSeller Conversation[] @relation("SellerConversations")
   messagesSent       Message[]
   notifications      Notification[]
-  reviewsGiven       Review[]       @relation("ReviewerReviews")
-  reviewsReceived    Review[]       @relation("ReviewedReviews")
   refreshTokens      RefreshToken[]
   auditLogs          AuditLog[]
   listingPayments    ListingPayment[]
@@ -137,7 +131,6 @@ model Listing {
   // Relations
   seller          User             @relation(fields: [sellerId], references: [id])
   images          ListingImage[]
-  offers          Offer[]
   conversations   Conversation[]
   listingPayments ListingPayment[]
 
@@ -166,105 +159,6 @@ model ListingImage {
 
   @@index([listingId])
   @@map("listing_images")
-}
-
-// ============================================================
-// OFFERS
-// ============================================================
-
-enum OfferStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  COUNTERED
-  EXPIRED
-  CANCELLED
-}
-
-model Offer {
-  id            String      @id @default(cuid())
-  listingId     String      @map("listing_id")
-  buyerId       String      @map("buyer_id")
-  sellerId      String      @map("seller_id")
-  amountXof     Int         @map("amount_xof")
-  status        OfferStatus @default(PENDING)
-  message       String?
-  parentOfferId String?     @map("parent_offer_id")
-  expiresAt     DateTime    @map("expires_at")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
-
-  // Relations
-  listing     Listing      @relation(fields: [listingId], references: [id])
-  buyer       User         @relation("BuyerOffers", fields: [buyerId], references: [id])
-  seller      User         @relation("SellerOffers", fields: [sellerId], references: [id])
-  parentOffer Offer?       @relation("OfferChain", fields: [parentOfferId], references: [id])
-  counterOffers Offer[]    @relation("OfferChain")
-  transaction Transaction?
-
-  @@index([listingId])
-  @@index([buyerId])
-  @@index([sellerId])
-  @@index([status])
-  @@map("offers")
-}
-
-// ============================================================
-// TRANSACTIONS
-// ============================================================
-
-enum TransactionStatus {
-  PENDING_PAYMENT
-  PAID
-  ESCROW
-  CONFIRMED
-  COMPLETED
-  DISPUTED
-  REFUNDED
-  CANCELLED
-}
-
-enum PaymentMethod {
-  WAVE
-  ORANGE_MONEY
-  FREE_MONEY
-  CARD
-}
-
-enum PaymentProvider {
-  PAYDUNYA
-  PAYTECH
-  NABOOPAY
-  INTECH
-}
-
-model Transaction {
-  id              String            @id @default(cuid())
-  offerId         String            @unique @map("offer_id")
-  buyerId         String            @map("buyer_id")
-  sellerId        String            @map("seller_id")
-  amountXof       Int               @map("amount_xof")
-  commissionXof   Int               @default(0) @map("commission_xof")
-  paymentProvider PaymentProvider   @map("payment_provider")
-  paymentRef      String?           @map("payment_ref")
-  paymentMethod   PaymentMethod     @map("payment_method")
-  transferRef     String?           @map("transfer_ref")
-  status          TransactionStatus @default(PENDING_PAYMENT)
-  confirmedAt     DateTime?         @map("confirmed_at")
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
-
-  // Relations
-  offer   Offer    @relation(fields: [offerId], references: [id])
-  buyer   User     @relation("BuyerTransactions", fields: [buyerId], references: [id])
-  seller  User     @relation("SellerTransactions", fields: [sellerId], references: [id])
-  reviews Review[]
-
-  @@index([buyerId])
-  @@index([sellerId])
-  @@index([status])
-  @@index([paymentRef])
-  @@map("transactions")
 }
 
 // ============================================================
@@ -351,9 +245,6 @@ model Message {
 enum NotificationType {
   WELCOME
   LISTING_SOLD
-  NEW_OFFER
-  OFFER_ACCEPTED
-  OFFER_REJECTED
   NEW_MESSAGE
   PAYMENT_RECEIVED
   PAYMENT_SENT
@@ -385,29 +276,6 @@ model Notification {
   @@index([userId, readAt])
   @@index([userId, createdAt])
   @@map("notifications")
-}
-
-// ============================================================
-// REVIEWS
-// ============================================================
-
-model Review {
-  id            String   @id @default(cuid())
-  transactionId String   @map("transaction_id")
-  reviewerId    String   @map("reviewer_id")
-  reviewedId    String   @map("reviewed_id")
-  rating        Int      // 1-5
-  comment       String?
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  // Relations
-  transaction Transaction @relation(fields: [transactionId], references: [id])
-  reviewer    User        @relation("ReviewerReviews", fields: [reviewerId], references: [id])
-  reviewed    User        @relation("ReviewedReviews", fields: [reviewedId], references: [id])
-
-  @@unique([transactionId, reviewerId])
-  @@index([reviewedId])
-  @@map("reviews")
 }
 
 // ============================================================

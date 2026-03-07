@@ -11,7 +11,28 @@ import { DEFAULT_PAGE_SIZE } from '@bigtank/shared-utils';
 
 @Injectable()
 export class ChatService {
+  private readonly notificationServiceUrl =
+    process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:4005';
+
   constructor(@Inject('PRISMA') private prisma: PrismaClient) {}
+
+  private async sendNotification(payload: {
+    userId: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+  }): Promise<void> {
+    try {
+      await fetch(`${this.notificationServiceUrl}/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error('[chat-service] Erreur envoi notification:', err);
+    }
+  }
 
   async startConversation(userId: string, listingId: string, message: string) {
     const listing = await this.prisma.listing.findUnique({
@@ -84,17 +105,23 @@ export class ChatService {
         : firstMessage.content
       : '';
 
-    // Notifier le vendeur du nouveau message
-    await this.prisma.notification.create({
-      data: {
-        userId: listing.sellerId,
-        type: 'NEW_MESSAGE',
-        title: 'Nouveau message',
-        body: preview,
-        channel: 'IN_APP',
-        data: { conversationId: conversation.id },
-      },
+    // Recuperer le nom de l'acheteur pour l'email
+    const sender = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true },
     });
+
+    // Notifier le vendeur du nouveau message (IN_APP + email)
+    this.sendNotification({
+      userId: listing.sellerId,
+      type: 'NEW_MESSAGE',
+      title: 'Nouveau message',
+      body: preview,
+      data: {
+        conversationId: conversation.id,
+        senderName: sender?.name || 'Un utilisateur',
+      },
+    }).catch(() => {});
 
     return {
       conversation,
@@ -138,17 +165,19 @@ export class ChatService {
         where: { id: conversationId },
         data: { lastMessageAt: new Date() },
       }),
-      this.prisma.notification.create({
-        data: {
-          userId: recipientId,
-          type: 'NEW_MESSAGE',
-          title: 'Nouveau message',
-          body: preview,
-          channel: 'IN_APP',
-          data: { conversationId },
-        },
-      }),
     ]);
+
+    // Notifier le destinataire du nouveau message (IN_APP + email)
+    this.sendNotification({
+      userId: recipientId,
+      type: 'NEW_MESSAGE',
+      title: 'Nouveau message',
+      body: preview,
+      data: {
+        conversationId,
+        senderName: message.sender?.name || 'Un utilisateur',
+      },
+    }).catch(() => {});
 
     return message;
   }

@@ -25,11 +25,32 @@ const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
 
 @Injectable()
 export class ListingService {
+  private readonly notificationServiceUrl =
+    process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:4005';
+
   constructor(
     @Inject('PRISMA') private prisma: PrismaClient,
     private searchService: SearchService,
     private rateLimitService: ListingRateLimitService,
   ) {}
+
+  private async sendNotification(payload: {
+    userId: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+  }): Promise<void> {
+    try {
+      await fetch(`${this.notificationServiceUrl}/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error('[listing-service] Erreur envoi notification:', err);
+    }
+  }
 
   async create(userId: string, dto: CreateListingDto) {
     await this.rateLimitService.checkLimit(userId);
@@ -171,6 +192,20 @@ export class ListingService {
 
     this.searchService.indexListing(updated).catch(() => {});
 
+    // Notifier le vendeur quand l'annonce est publiee
+    if (newStatus === 'ACTIVE') {
+      this.sendNotification({
+        userId: listing.sellerId,
+        type: 'NEW_LISTING_PUBLISHED',
+        title: 'Annonce publiee !',
+        body: `Votre annonce "${updated.title}" est maintenant en ligne.`,
+        data: {
+          listingTitle: updated.title,
+          listingSlug: updated.slug,
+        },
+      }).catch(() => {});
+    }
+
     // Update seller stats (fire and forget)
     this.updateSellerStats(listing.sellerId).catch(() => {});
 
@@ -211,6 +246,19 @@ export class ListingService {
     });
     this.searchService.indexListing(listing).catch(() => {});
     this.updateSellerStats(listing.sellerId).catch(() => {});
+
+    // Notifier le vendeur que son annonce est en ligne apres paiement
+    this.sendNotification({
+      userId: listing.sellerId,
+      type: 'NEW_LISTING_PUBLISHED',
+      title: 'Annonce publiee !',
+      body: `Votre annonce "${listing.title}" est maintenant en ligne.`,
+      data: {
+        listingTitle: listing.title,
+        listingSlug: listing.slug,
+      },
+    }).catch(() => {});
+
     return listing;
   }
 
