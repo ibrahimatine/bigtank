@@ -14,6 +14,7 @@ import { ListingService } from './listing.service';
 import { ImageService } from '../image/image.service';
 import { GatewayAuthGuard } from '../common/guards/gateway-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { InternalApiGuard } from '../common/guards/internal-api.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CreateListingDto } from './dto/create-listing.dto';
@@ -98,6 +99,7 @@ export class ListingController {
 
   /** Endpoint interne : activation après paiement confirmé (appelé par payment-service) */
   @Patch(':id/activate')
+  @UseGuards(InternalApiGuard)
   async activateAfterPayment(
     @Param('id') id: string,
     @Body() body: { expiresAt: string },

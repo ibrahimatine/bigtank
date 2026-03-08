@@ -150,6 +150,33 @@ export class NotificationsService {
         );
         break;
 
+      case 'PAYMENT_RECEIVED':
+        await this.emailService.sendPaymentSuccess(
+          email,
+          userName,
+          (data.listingTitle as string) || dto.title,
+          (data.amount as string) || '',
+        );
+        break;
+
+      case 'PASSWORD_RESET':
+        await this.emailService.sendPasswordReset(
+          email,
+          userName,
+          (data.resetLink as string) || '',
+        );
+        break;
+
+      case 'LISTING_EXPIRING':
+        await this.emailService.sendListingExpiringSoon(
+          email,
+          userName,
+          (data.listingTitle as string) || dto.title,
+          (data.daysLeft as number) || 7,
+          (data.listingSlug as string) || '',
+        );
+        break;
+
       default:
         // Pour les autres types, envoyer un email generique
         await this.emailService.send({

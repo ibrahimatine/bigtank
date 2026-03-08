@@ -20,7 +20,8 @@ interface JwtPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
   },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -34,8 +35,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private chatService: ChatService,
     configService: ConfigService,
   ) {
-    this.jwtSecret =
-      configService.get<string>('JWT_SECRET') || 'fallback-secret';
+    const secret = configService.get<string>('JWT_SECRET');
+    if (!secret) throw new Error('JWT_SECRET doit etre defini dans les variables d\'environnement');
+    this.jwtSecret = secret;
   }
 
   async handleConnection(client: Socket) {
@@ -147,12 +149,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('join_conversation')
-  handleJoinConversation(
+  async handleJoinConversation(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { conversationId: string },
   ) {
     const user = client.data.user;
     if (!user) return;
+
+    // Verifier que l'utilisateur est bien participant de la conversation
+    const userConversationIds = await this.chatService.getUserConversationIds(user.id);
+    if (!userConversationIds.includes(data.conversationId)) {
+      return { success: false, error: 'Vous n\'avez pas acces a cette conversation' };
+    }
 
     client.join(`conversation:${data.conversationId}`);
     return { success: true };

@@ -10,8 +10,10 @@ import {
   HttpCode,
   HttpStatus,
   ForbiddenException,
+  UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
+import { InternalApiGuard } from '../common/guards/internal-api.guard';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -27,6 +29,7 @@ export class NotificationsController {
    * Pas besoin d'auth user — appele service-to-service.
    */
   @Post('send')
+  @UseGuards(InternalApiGuard)
   @HttpCode(HttpStatus.CREATED)
   async createAndSend(
     @Body() body: { userId: string; type: string; title: string; body: string; data?: Record<string, unknown> },

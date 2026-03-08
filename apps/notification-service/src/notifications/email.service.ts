@@ -171,6 +171,98 @@ export class EmailService {
     });
   }
 
+  async sendPaymentSuccess(
+    to: string,
+    sellerName: string,
+    listingTitle: string,
+    amount: string,
+  ): Promise<boolean> {
+    return this.send({
+      to,
+      subject: `Paiement confirme pour "${listingTitle}"`,
+      html: this.wrapTemplate(`
+        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Paiement recu !</h1>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Bonjour ${this.escape(sellerName)},
+        </p>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Votre paiement de <strong>${this.escape(amount)}</strong> pour l'annonce
+          <strong>"${this.escape(listingTitle)}"</strong> a ete confirme.
+        </p>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Votre annonce est maintenant <strong>active</strong> et visible par tous les acheteurs pendant 60 jours.
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${this.getWebUrl()}/dashboard"
+             style="background: #16a34a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Voir mon tableau de bord
+          </a>
+        </div>
+      `),
+    });
+  }
+
+  async sendListingExpiringSoon(
+    to: string,
+    sellerName: string,
+    listingTitle: string,
+    daysLeft: number,
+    listingSlug: string,
+  ): Promise<boolean> {
+    return this.send({
+      to,
+      subject: `Votre annonce "${listingTitle}" expire dans ${daysLeft} jours`,
+      html: this.wrapTemplate(`
+        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Annonce bientot expiree</h1>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Bonjour ${this.escape(sellerName)},
+        </p>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Votre annonce <strong>"${this.escape(listingTitle)}"</strong> expire dans
+          <strong>${daysLeft} jour${daysLeft > 1 ? 's' : ''}</strong>.
+        </p>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Si elle n'a pas encore trouve preneur, vous pourrez la republier apres expiration.
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${this.getWebUrl()}/shoes/${listingSlug}"
+             style="background: #f59e0b; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Voir mon annonce
+          </a>
+        </div>
+      `),
+    });
+  }
+
+  async sendPasswordReset(
+    to: string,
+    userName: string,
+    resetLink: string,
+  ): Promise<boolean> {
+    return this.send({
+      to,
+      subject: 'Reinitialisation de votre mot de passe BigTank',
+      html: this.wrapTemplate(`
+        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Mot de passe oublie ?</h1>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Bonjour ${this.escape(userName)},
+        </p>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Vous avez demande la reinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau :
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${this.escape(resetLink)}"
+             style="background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Reinitialiser mon mot de passe
+          </a>
+        </div>
+        <p style="color: #888; font-size: 14px;">
+          Ce lien expire dans 1 heure. Si vous n'avez pas fait cette demande, ignorez simplement cet email.
+        </p>
+      `),
+    });
+  }
+
   // =============================================
   // Helpers
   // =============================================

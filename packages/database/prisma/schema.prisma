@@ -40,6 +40,8 @@ model User {
   providerId      String?    @map("provider_id")
   city            String?
   region          String?
+  passwordResetToken     String?   @unique @map("password_reset_token")
+  passwordResetExpiresAt DateTime? @map("password_reset_expires_at")
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 

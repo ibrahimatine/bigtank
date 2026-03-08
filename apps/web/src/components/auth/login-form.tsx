@@ -86,6 +86,12 @@ export function LoginForm() {
         )}
       </div>
 
+      <div className="flex justify-end">
+        <Link href="/forgot-password" className="text-xs text-[var(--color-accent)] hover:underline">
+          Mot de passe oublie ?
+        </Link>
+      </div>
+
       <Button type="submit" className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90" disabled={loading}>
         {loading ? 'Connexion...' : 'Se connecter'}
       </Button>

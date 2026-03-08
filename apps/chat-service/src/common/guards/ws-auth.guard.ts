@@ -13,8 +13,9 @@ export class WsAuthGuard implements CanActivate {
   private readonly jwtSecret: string;
 
   constructor(configService: ConfigService) {
-    this.jwtSecret =
-      configService.get<string>('JWT_SECRET') || 'fallback-secret';
+    const secret = configService.get<string>('JWT_SECRET');
+    if (!secret) throw new Error('JWT_SECRET doit etre defini dans les variables d\'environnement');
+    this.jwtSecret = secret;
   }
 
   canActivate(context: ExecutionContext): boolean {

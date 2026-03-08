@@ -432,7 +432,10 @@ export class PaymentsService {
   private async notifyListingActivate(listingId: string, expiresAt: Date): Promise<void> {
     const url = `${this.listingServiceUrl}/listings/${listingId}/activate`;
     const body = JSON.stringify({ expiresAt: expiresAt.toISOString() });
-    const headers = { 'Content-Type': 'application/json' };
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Internal-Key': process.env.INTERNAL_API_KEY || '',
+    };
 
     for (let attempt = 0; attempt < 3; attempt++) {
       try {

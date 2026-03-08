@@ -11,12 +11,15 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import {
   ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_EXPIRY,
 } from '@bigtank/shared-utils';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { LoginRateLimitService } from './login-rate-limit.service';
 
 const BCRYPT_ROUNDS = 12;
@@ -43,7 +46,10 @@ export class AuthService {
     try {
       await fetch(`${this.notificationServiceUrl}/notifications/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Internal-Key': process.env.INTERNAL_API_KEY || '',
+        },
         body: JSON.stringify(payload),
       });
     } catch (err) {
@@ -239,6 +245,140 @@ export class AuthService {
     }
 
     throw new NotFoundException('Token non trouvé');
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    if (!dto.email && !dto.phone) {
+      throw new HttpException(
+        'Veuillez fournir un email ou un numero de telephone',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Chercher l'utilisateur par email ou telephone
+    const identifier = dto.email
+      ? dto.email
+      : this.normalizePhone(dto.phone!);
+    const user = await this.prisma.user.findUnique({
+      where: dto.email ? { email: identifier } : { phone: identifier },
+      select: { id: true, email: true, name: true },
+    });
+
+    // Toujours repondre "OK" meme si l'utilisateur n'existe pas (securite)
+    if (!user || !user.email) {
+      return { message: 'Si un compte existe avec ces informations, un email de reinitialisation a ete envoye.' };
+    }
+
+    // Generer un token unique
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
+
+    // Stocker le token en base
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: token,
+        passwordResetExpiresAt: expiresAt,
+      },
+    });
+
+    // Envoyer l'email directement via le notification service
+    const webUrl = process.env.WEB_URL || 'http://localhost:3000';
+    const resetLink = `${webUrl}/reset-password?token=${token}`;
+
+    this.sendNotification({
+      userId: user.id,
+      type: 'PASSWORD_RESET',
+      title: 'Reinitialisation de mot de passe',
+      body: `Cliquez sur le lien pour reinitialiser votre mot de passe`,
+      data: { resetLink },
+    }).catch(() => {});
+
+    return { message: 'Si un compte existe avec ces informations, un email de reinitialisation a ete envoye.' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    // Trouver l'utilisateur avec ce token
+    const user = await this.prisma.user.findUnique({
+      where: { passwordResetToken: dto.token },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'Lien de reinitialisation invalide ou expire',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Verifier que le token n'a pas expire
+    if (!user.passwordResetExpiresAt || user.passwordResetExpiresAt < new Date()) {
+      // Nettoyer le token expire
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { passwordResetToken: null, passwordResetExpiresAt: null },
+      });
+      throw new HttpException(
+        'Ce lien a expire. Veuillez refaire une demande.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Hasher le nouveau mot de passe
+    const passwordHash = await bcrypt.hash(dto.newPassword, BCRYPT_ROUNDS);
+
+    // Mettre a jour le mot de passe et supprimer le token
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
+      },
+    });
+
+    // Audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'PASSWORD_RESET',
+        details: 'Mot de passe reinitialise via lien email',
+      },
+    });
+
+    return { message: 'Mot de passe reinitialise avec succes' };
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true },
+    });
+
+    if (!user || !user.passwordHash) {
+      throw new NotFoundException('Utilisateur non trouve');
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Mot de passe actuel incorrect');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'PASSWORD_CHANGE',
+        details: 'Mot de passe modifie depuis le profil',
+      },
+    });
+
+    return { message: 'Mot de passe modifie avec succes' };
   }
 
   private async generateTokens(user: { id: string; email: string | null; phone: string | null; role: string }) {
