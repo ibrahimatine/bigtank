@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { HealthController } from './health.controller';
 import { DatabaseModule } from './database/database.module';
@@ -10,6 +11,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     ListingModule,
   ],

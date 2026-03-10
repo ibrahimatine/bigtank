@@ -1,6 +1,6 @@
 # BigTank — Plan de mise en production
 
-> Derniere mise a jour : 2026-03-08
+> Derniere mise a jour : 2026-03-10
 > Ce fichier liste TOUT ce qu'il reste a faire avant de passer en production.
 > On coche au fur et a mesure qu'on avance.
 
@@ -71,29 +71,29 @@ Le code est pret, il faut juste configurer.
 ## PHASE 3 — FONCTIONNALITES MANQUANTES
 
 ### 3.1 Mot de passe oublie (Forgot Password)
-- [ ] Backend : endpoint `POST /auth/forgot-password` → genere un token + envoie email
-- [ ] Backend : endpoint `POST /auth/reset-password` → verifie token + change mot de passe
-- [ ] Frontend : page `/forgot-password` avec formulaire email/telephone
-- [ ] Frontend : page `/reset-password?token=xxx` avec formulaire nouveau mot de passe
-- [ ] Template email Resend pour le lien de reinitialisation
+- [x] Backend : endpoint `POST /auth/forgot-password` → genere un token + envoie email
+- [x] Backend : endpoint `POST /auth/reset-password` → verifie token + change mot de passe
+- [x] Frontend : page `/forgot-password` avec formulaire email/telephone
+- [x] Frontend : page `/reset-password?token=xxx` avec formulaire nouveau mot de passe
+- [x] Template email Resend pour le lien de reinitialisation
 
 ### 3.2 Expiration des annonces
-- [ ] Backend : CRON job qui desactive les annonces expirees (apres 60 jours)
-- [ ] Backend : CRON job de rappel (email/notif 7 jours avant expiration)
-- [ ] Frontend : afficher "Expire dans X jours" sur le dashboard vendeur
+- [x] Backend : CRON job qui desactive les annonces expirees (apres 60 jours)
+- [x] Backend : CRON job de rappel (email/notif 3 jours avant expiration)
+- [x] Frontend : afficher "Expire dans X jours" sur le dashboard vendeur
 
 ### 3.3 Upload d'images sur les annonces
 - [ ] Verifier que le composant `ImageUploadWrapper` fonctionne bien en creation ET en edition
 - [ ] Tester le flux complet : presign URL → upload vers MinIO → confirm image
-- [ ] Limiter la taille des images (max 5 Mo par image)
+- [x] Limiter la taille des images (max 5 Mo par image) — validation frontend + backend
 - [ ] Compression/redimensionnement des images cote serveur ou client
 
 ### 3.4 Search Service
-- [ ] Decider : supprimer le search-service (port 4006) vu que Meilisearch est appele directement depuis listing-service, OU y deplacer la logique de recherche
+- [x] Decider : search-service supprime (port 4006) — Meilisearch est appele directement depuis listing-service
 - [ ] Verifier la synchronisation Meilisearch : quand une annonce est creee/modifiee/supprimee, l'index est-il mis a jour ?
 
 ### 3.5 Gestion du profil utilisateur
-- [ ] Permettre le changement de mot de passe (depuis la page profil)
+- [x] Permettre le changement de mot de passe (depuis la page profil)
 - [ ] Permettre l'upload d'une photo de profil (avatar)
 - [ ] Afficher l'historique des ventes/achats
 

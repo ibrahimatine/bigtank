@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ListingActions } from './listing-actions';
 import type { ListingDetail } from '@/lib/api';
@@ -10,6 +11,8 @@ const STATUS_STYLES: Record<string, string> = {
   SOLD: 'bg-blue-100 text-blue-700',
   RESERVED: 'bg-yellow-100 text-yellow-700',
   DELETED: 'bg-red-100 text-red-700',
+  EXPIRED: 'bg-gray-100 text-gray-700',
+  DRAFT: 'bg-orange-100 text-orange-700',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -17,15 +20,30 @@ const STATUS_LABELS: Record<string, string> = {
   SOLD: 'Vendue',
   RESERVED: 'Reservee',
   DELETED: 'Supprimee',
+  EXPIRED: 'Expiree',
+  DRAFT: 'Brouillon',
 };
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('fr-SN').format(price) + ' FCFA';
 }
 
+function getExpirationInfo(expiresAt: string | null, status: string) {
+  if (!expiresAt || status !== 'ACTIVE') return null;
+  const now = new Date();
+  const expires = new Date(expiresAt);
+  const diffMs = expires.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays <= 0) return { text: 'Expire bientot', urgent: true };
+  if (diffDays <= 7) return { text: `Expire dans ${diffDays}j`, urgent: true };
+  if (diffDays <= 30) return { text: `Expire dans ${diffDays}j`, urgent: false };
+  return null;
+}
+
 export function MyListingCard({ listing }: { listing: ListingDetail }) {
   const conditionLabel =
     CONDITION_LABELS[listing.condition as ListingCondition] || listing.condition;
+  const expiration = getExpirationInfo(listing.expiresAt, listing.status);
 
   return (
     <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] overflow-hidden">
@@ -74,6 +92,12 @@ export function MyListingCard({ listing }: { listing: ListingDetail }) {
         <p className="text-[10px] text-[var(--color-muted-foreground)] mt-1">
           {listing.viewsCount} vue{listing.viewsCount !== 1 ? 's' : ''}
         </p>
+        {expiration && (
+          <p className={`text-[10px] mt-1 flex items-center gap-1 ${expiration.urgent ? 'text-red-500 font-medium' : 'text-[var(--color-muted-foreground)]'}`}>
+            <Clock className="h-3 w-3" />
+            {expiration.text}
+          </p>
+        )}
       </div>
     </div>
   );

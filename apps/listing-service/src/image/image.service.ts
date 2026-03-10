@@ -16,6 +16,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { nanoid } from 'nanoid';
 
 const MAX_IMAGES = 5;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 Mo
 
 @Injectable()
 export class ImageService {
@@ -84,8 +85,9 @@ export class ImageService {
     width: number,
     height: number,
   ) {
+    let headResult;
     try {
-      await this.s3Client.send(
+      headResult = await this.s3Client.send(
         new HeadObjectCommand({
           Bucket: this.bucket,
           Key: key,
@@ -95,6 +97,13 @@ export class ImageService {
       throw new BadRequestException(
         "Image non trouvee. Veuillez d'abord telecharger l'image.",
       );
+    }
+
+    if (headResult.ContentLength && headResult.ContentLength > MAX_FILE_SIZE) {
+      await this.s3Client.send(
+        new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+      ).catch(() => {});
+      throw new BadRequestException('Taille max : 5 Mo par image');
     }
 
     const existingCount = await this.prisma.listingImage.count({

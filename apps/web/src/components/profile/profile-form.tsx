@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 import { profileSchema } from '@/lib/validations';
 import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -239,6 +240,132 @@ export function ProfileForm({ profile }: Props) {
           </Button>
         </form>
       </div>
+
+      {/* Change password */}
+      <ChangePasswordSection />
+    </div>
+  );
+}
+
+function ChangePasswordSection() {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError('');
+
+    if (newPassword.length < 8) {
+      setPwError('Le nouveau mot de passe doit faire au moins 8 caracteres');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError('Les mots de passe ne correspondent pas');
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPwError(data.error || 'Erreur lors du changement');
+        return;
+      }
+
+      toast.success('Mot de passe modifie');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch {
+      setPwError('Erreur de connexion');
+    } finally {
+      setPwLoading(false);
+    }
+  }
+
+  return (
+    <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
+      <h2 className="font-semibold text-lg mb-4">Changer le mot de passe</h2>
+
+      {pwError && (
+        <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm mb-4">{pwError}</div>
+      )}
+
+      <form onSubmit={handleChangePassword} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+          <div className="relative">
+            <Input
+              id="currentPassword"
+              type={showCurrent ? 'text' : 'password'}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrent(!showCurrent)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted-foreground)]"
+            >
+              {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+          <div className="relative">
+            <Input
+              id="newPassword"
+              type={showNew ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNew(!showNew)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted-foreground)]"
+            >
+              {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirmer le nouveau mot de passe</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+        </div>
+
+        <Button
+          type="submit"
+          variant="outline"
+          className="w-full"
+          disabled={pwLoading}
+        >
+          {pwLoading ? 'Modification...' : 'Changer le mot de passe'}
+        </Button>
+      </form>
     </div>
   );
 }

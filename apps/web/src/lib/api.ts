@@ -93,6 +93,7 @@ export interface ListingDetail {
   viewsCount: number;
   createdAt: string;
   updatedAt: string;
+  expiresAt: string | null;
   images: {
     id: string;
     url: string;

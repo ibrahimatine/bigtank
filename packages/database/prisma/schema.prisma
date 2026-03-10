@@ -252,6 +252,8 @@ enum NotificationType {
   PAYMENT_SENT
   LISTING_DELETED_BY_ADMIN
   NEW_LISTING_PUBLISHED
+  LISTING_EXPIRING
+  LISTING_EXPIRED
 }
 
 enum NotificationChannel {

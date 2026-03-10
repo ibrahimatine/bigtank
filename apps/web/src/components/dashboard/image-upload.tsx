@@ -28,6 +28,10 @@ export function ImageUpload({ listingId, existingImages, onImagesChange }: Image
         setError('Format accepte : JPEG, PNG, WebP');
         continue;
       }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Taille max : 5 Mo par image');
+        continue;
+      }
 
       try {
         // 1. Get presigned URL via route handler
@@ -132,7 +136,7 @@ export function ImageUpload({ listingId, existingImages, onImagesChange }: Image
             {uploading ? 'Upload en cours...' : 'Cliquez pour ajouter des photos'}
           </p>
           <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
-            JPEG, PNG, WebP — Max 5 photos
+            JPEG, PNG, WebP — Max 5 photos, 5 Mo/photo
           </p>
           <input
             ref={fileInputRef}
