@@ -86,7 +86,7 @@ Le code est pret, il faut juste configurer.
 - [ ] Verifier que le composant `ImageUploadWrapper` fonctionne bien en creation ET en edition
 - [ ] Tester le flux complet : presign URL → upload vers MinIO → confirm image
 - [x] Limiter la taille des images (max 5 Mo par image) — validation frontend + backend
-- [ ] Compression/redimensionnement des images cote serveur ou client
+- [x] Compression/redimensionnement des images cote client (max 1200px, JPEG 85%)
 
 ### 3.4 Search Service
 - [x] Decider : search-service supprime (port 4006) — Meilisearch est appele directement depuis listing-service
@@ -107,8 +107,8 @@ Le code est pret, il faut juste configurer.
 - [ ] Verifier que le webhook Intech est accessible depuis l'exterieur (URL publique)
 
 ### 4.2 Robustesse
-- [ ] Ajouter un timeout sur les appels HTTP inter-services (5-10 secondes)
-- [ ] Gerer le cas ou le webhook arrive en double (idempotence)
+- [x] Ajouter un timeout sur les appels HTTP inter-services (10-15 secondes) — AbortSignal.timeout
+- [x] Gerer le cas ou le webhook arrive en double (idempotence) — deja implemente (check status !== PENDING)
 - [ ] Ajouter un log structure pour chaque transaction (suivi financier)
 
 ---
@@ -123,7 +123,7 @@ Le code est pret, il faut juste configurer.
 
 ### 5.2 Gestion de processus
 - [ ] Remplacer `nohup` par PM2 ou systemd pour gerer les services
-- [ ] Creer un fichier `ecosystem.config.js` (PM2) avec tous les services
+- [x] Creer un fichier `ecosystem.config.js` (PM2) avec tous les services — avec max_memory_restart et log rotation
 - [ ] Configurer le redemarrage automatique en cas de crash
 - [ ] Configurer la rotation des logs
 
@@ -159,7 +159,7 @@ Le code est pret, il faut juste configurer.
 
 ### 6.2 Monitoring
 - [ ] Installer un service d'erreurs (Sentry ou equivalent) — capture automatique des crashs
-- [ ] Ameliorer les health checks : verifier DB, Redis, Meilisearch dans chaque `/health`
+- [x] Ameliorer les health checks : verifier DB, Redis dans chaque `/health` — retourne status degraded si erreur
 - [ ] (Optionnel) Prometheus + Grafana pour les metriques
 
 ### 6.3 Tests

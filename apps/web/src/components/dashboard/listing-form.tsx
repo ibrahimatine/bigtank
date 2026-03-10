@@ -145,31 +145,31 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       const file = selectedFiles[i];
       setUploadProgress(`Upload photo ${i + 1}/${selectedFiles.length}...`);
 
+      // 0. Compress & resize
+      const { blob, width, height } = await compressImage(file);
+
       // 1. Get presigned URL
       const presignRes = await fetch(`/api/listings/${listingId}/images/presign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, contentType: file.type }),
+        body: JSON.stringify({ fileName: file.name, contentType: 'image/jpeg' }),
       });
       if (!presignRes.ok) throw new Error(`Erreur presign photo ${i + 1}`);
       const presignData = await presignRes.json();
       const { uploadUrl, key } = presignData.data || presignData;
 
-      // 2. Upload to S3
+      // 2. Upload compressed image to S3
       await fetch(uploadUrl, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: blob,
       });
 
-      // 3. Get image dimensions
-      const dimensions = await getImageDimensions(file);
-
-      // 4. Confirm upload
+      // 3. Confirm upload with real dimensions
       const confirmRes = await fetch(`/api/listings/${listingId}/images/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, order: i, ...dimensions }),
+        body: JSON.stringify({ key, order: i, width, height }),
       });
       if (!confirmRes.ok) throw new Error(`Erreur confirmation photo ${i + 1}`);
     }
@@ -441,16 +441,43 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
   );
 }
 
-function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
-  return new Promise((resolve) => {
+const MAX_DIMENSION = 1200;
+
+function compressImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      let { naturalWidth: width, naturalHeight: height } = img;
       URL.revokeObjectURL(img.src);
+
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round((height * MAX_DIMENSION) / width);
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round((width * MAX_DIMENSION) / height);
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error('Compression echouee'));
+          resolve({ blob, width, height });
+        },
+        'image/jpeg',
+        0.85,
+      );
     };
     img.onerror = () => {
-      resolve({ width: 0, height: 0 });
       URL.revokeObjectURL(img.src);
+      reject(new Error('Image invalide'));
     };
     img.src = URL.createObjectURL(file);
   });

@@ -3,6 +3,43 @@
 import { useState, useRef } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
 
+const MAX_DIMENSION = 1200;
+
+function compressImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round((height * MAX_DIMENSION) / width);
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round((width * MAX_DIMENSION) / height);
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error('Compression echouee'));
+          resolve({ blob, width, height });
+        },
+        'image/jpeg',
+        0.85,
+      );
+    };
+    img.onerror = () => reject(new Error('Image invalide'));
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 interface ImageUploadProps {
   listingId: string;
@@ -34,13 +71,16 @@ export function ImageUpload({ listingId, existingImages, onImagesChange }: Image
       }
 
       try {
+        // 0. Compress & resize image
+        const { blob, width, height } = await compressImage(file);
+
         // 1. Get presigned URL via route handler
         const presignRes = await fetch(`/api/listings/${listingId}/images/presign`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             fileName: file.name,
-            contentType: file.type,
+            contentType: 'image/jpeg',
           }),
         });
 
@@ -53,22 +93,22 @@ export function ImageUpload({ listingId, existingImages, onImagesChange }: Image
         const presignData = await presignRes.json();
         const { uploadUrl, key } = presignData.data || presignData;
 
-        // 2. Upload to S3 (direct to MinIO — no auth needed)
+        // 2. Upload compressed image to S3
         await fetch(uploadUrl, {
           method: 'PUT',
-          headers: { 'Content-Type': file.type },
-          body: file,
+          headers: { 'Content-Type': 'image/jpeg' },
+          body: blob,
         });
 
-        // 3. Confirm upload via route handler
+        // 3. Confirm upload with real dimensions
         await fetch(`/api/listings/${listingId}/images/confirm`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             key,
             order: existingImages.length + i,
-            width: 800,
-            height: 800,
+            width,
+            height,
           }),
         });
       } catch {

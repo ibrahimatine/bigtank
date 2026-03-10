@@ -168,6 +168,7 @@ export class PaymentsService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(intechPayload),
+        signal: AbortSignal.timeout(15000),
       });
 
       const data = await response.json() as {
@@ -379,6 +380,7 @@ export class PaymentsService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15000),
       });
     } catch (err) {
       // Ne pas bloquer le flux principal si le WhatsApp échoue
@@ -416,6 +418,7 @@ export class PaymentsService {
           'Content-Type': 'application/json',
           'X-Api-Key': this.apiKey,
         },
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!response.ok) {
@@ -439,7 +442,7 @@ export class PaymentsService {
 
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const res = await fetch(url, { method: 'PATCH', headers, body });
+        const res = await fetch(url, { method: 'PATCH', headers, body, signal: AbortSignal.timeout(10000) });
         if (res.ok) return;
       } catch {
         // retry

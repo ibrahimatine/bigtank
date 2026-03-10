@@ -31,6 +31,7 @@ export class ChatService {
           'X-Internal-Key': process.env.INTERNAL_API_KEY || '',
         },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(10000),
       });
     } catch (err) {
       console.error('[chat-service] Erreur envoi notification:', err);
