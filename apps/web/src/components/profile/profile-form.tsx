@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Camera, Loader2 } from 'lucide-react';
 import { profileSchema } from '@/lib/validations';
 import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -26,6 +26,7 @@ interface ProfileData {
   role: string;
   city: string | null;
   region: string | null;
+  avatarUrl: string | null;
   sellerStats?: {
     totalListings: number;
     activeListings: number;
@@ -124,6 +125,13 @@ export function ProfileForm({ profile }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* Avatar */}
+      <AvatarUpload
+        avatarUrl={profile.avatarUrl}
+        name={profile.name}
+        onUploaded={() => router.refresh()}
+      />
+
       {/* Seller Stats */}
       {isSeller && profile.sellerStats && (
         <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
@@ -243,6 +251,113 @@ export function ProfileForm({ profile }: Props) {
 
       {/* Change password */}
       <ChangePasswordSection />
+    </div>
+  );
+}
+
+function AvatarUpload({
+  avatarUrl,
+  name,
+  onUploaded,
+}: {
+  avatarUrl: string | null;
+  name: string;
+  onUploaded: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const initials = name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Format accepte : JPEG, PNG, WebP');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Taille max : 2 Mo');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // 1. Presign
+      const presignRes = await fetch('/api/auth/avatar/presign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType: file.type }),
+      });
+      if (!presignRes.ok) throw new Error('Erreur presign');
+      const { uploadUrl, key } = await presignRes.json();
+
+      // 2. Upload to S3
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+
+      // 3. Confirm
+      const confirmRes = await fetch('/api/auth/avatar/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key }),
+      });
+      if (!confirmRes.ok) throw new Error('Erreur confirm');
+
+      toast.success('Photo de profil mise a jour');
+      onUploaded();
+    } catch {
+      toast.error('Erreur lors de l\'upload');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      <div
+        className="relative w-20 h-20 rounded-full overflow-hidden bg-[var(--color-muted)] flex items-center justify-center cursor-pointer group"
+        onClick={() => fileRef.current?.click()}
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-xl font-bold text-[var(--color-muted-foreground)]">
+            {initials}
+          </span>
+        )}
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          {uploading ? (
+            <Loader2 className="h-5 w-5 text-white animate-spin" />
+          ) : (
+            <Camera className="h-5 w-5 text-white" />
+          )}
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={handleFile}
+          disabled={uploading}
+        />
+      </div>
+      <div>
+        <p className="font-medium">{name}</p>
+        <p className="text-xs text-[var(--color-muted-foreground)]">
+          Cliquez sur la photo pour la changer
+        </p>
+      </div>
     </div>
   );
 }

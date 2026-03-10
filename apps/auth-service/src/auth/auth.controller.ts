@@ -12,6 +12,7 @@ import {
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
+import { AvatarService } from '../user/avatar.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -26,6 +27,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private userService: UserService,
+    private avatarService: AvatarService,
   ) {}
 
   @Post('register')
@@ -98,5 +100,23 @@ export class AuthController {
     @Body() body: { currentPassword: string; newPassword: string },
   ) {
     return this.authService.changePassword(user.id, body.currentPassword, body.newPassword);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('avatar/presign')
+  async avatarPresign(
+    @CurrentUser() user: { id: string },
+    @Body() body: { contentType: string },
+  ) {
+    return this.avatarService.generatePresignedUrl(user.id, body.contentType);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('avatar/confirm')
+  async avatarConfirm(
+    @CurrentUser() user: { id: string },
+    @Body() body: { key: string },
+  ) {
+    return this.avatarService.confirmAvatar(user.id, body.key);
   }
 }

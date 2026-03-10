@@ -90,11 +90,11 @@ Le code est pret, il faut juste configurer.
 
 ### 3.4 Search Service
 - [x] Decider : search-service supprime (port 4006) — Meilisearch est appele directement depuis listing-service
-- [ ] Verifier la synchronisation Meilisearch : quand une annonce est creee/modifiee/supprimee, l'index est-il mis a jour ?
+- [x] Verifier la synchronisation Meilisearch — OK : create, update, status, delete, activate, expiration, reindex images
 
 ### 3.5 Gestion du profil utilisateur
 - [x] Permettre le changement de mot de passe (depuis la page profil)
-- [ ] Permettre l'upload d'une photo de profil (avatar)
+- [x] Permettre l'upload d'une photo de profil (avatar) — presign S3 + composant frontend
 - [ ] Afficher l'historique des ventes/achats
 
 ---
