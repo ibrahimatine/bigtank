@@ -12,7 +12,7 @@ export function Header() {
           href="/"
           className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight shrink-0"
         >
-          Big<span className="text-[var(--color-accent)]">Tank</span>
+          Sama<span className="text-[var(--color-accent)]">dal</span>
         </Link>
 
         <div className="hidden sm:block flex-1 max-w-md">

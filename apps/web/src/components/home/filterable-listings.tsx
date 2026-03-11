@@ -130,7 +130,7 @@ export function FilterableListings() {
         <div className="max-w-[1280px] mx-auto px-4 py-3">
 
           {/* Mobile : bouton pour ouvrir/fermer les filtres */}
-          <div className="flex items-center justify-between lg:hidden mb-2">
+          <div className="flex items-center justify-between mb-2">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm font-medium hover:bg-[var(--color-muted)] transition-colors"
@@ -152,7 +152,7 @@ export function FilterableListings() {
           </div>
 
           {/* Filtres — toujours visible sur lg+, toggle sur mobile */}
-          <div className={`${showFilters ? 'flex' : 'hidden'} lg:flex flex-col lg:flex-row flex-wrap items-stretch lg:items-end gap-3 lg:gap-2`}>
+          <div className={`${showFilters ? 'flex' : 'hidden'} flex-col sm:flex-row flex-wrap items-stretch sm:items-end gap-3 sm:gap-2`}>
             {/* Marque */}
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-medium text-[var(--color-muted-foreground)] uppercase tracking-wider">Marque</label>
@@ -177,14 +177,14 @@ export function FilterableListings() {
                   placeholder="Min"
                   value={filters.sizeEuMin}
                   onChange={(e) => updateFilter('sizeEuMin', e.target.value)}
-                  className="h-9 w-full lg:w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full sm:w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
                 <input
                   type="number"
                   placeholder="Max"
                   value={filters.sizeEuMax}
                   onChange={(e) => updateFilter('sizeEuMax', e.target.value)}
-                  className="h-9 w-full lg:w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full sm:w-16 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
               </div>
             </div>
@@ -198,14 +198,14 @@ export function FilterableListings() {
                   placeholder="Min"
                   value={filters.priceMin}
                   onChange={(e) => updateFilter('priceMin', e.target.value)}
-                  className="h-9 w-full lg:w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full sm:w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
                 <input
                   type="number"
                   placeholder="Max"
                   value={filters.priceMax}
                   onChange={(e) => updateFilter('priceMax', e.target.value)}
-                  className="h-9 w-full lg:w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
+                  className="h-9 w-full sm:w-20 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] text-sm"
                 />
               </div>
             </div>
@@ -291,10 +291,11 @@ const QUICK_FILTERS = [
   { label: 'Jordan', patch: { brand: 'Jordan' } },
   { label: 'Adidas', patch: { brand: 'Adidas' } },
   { label: 'New Balance', patch: { brand: 'New Balance' } },
-  { label: 'EU 46', patch: { sizeEuMin: '46', sizeEuMax: '46' } },
-  { label: 'EU 47', patch: { sizeEuMin: '47', sizeEuMax: '47' } },
-  { label: 'EU 48', patch: { sizeEuMin: '48', sizeEuMax: '48' } },
-  { label: 'EU 49+', patch: { sizeEuMin: '49' } },
+  { label: 'EU 38-39', patch: { sizeEuMin: '38', sizeEuMax: '39' } },
+  { label: 'EU 40-41', patch: { sizeEuMin: '40', sizeEuMax: '41' } },
+  { label: 'EU 42-43', patch: { sizeEuMin: '42', sizeEuMax: '43' } },
+  { label: 'EU 44-45', patch: { sizeEuMin: '44', sizeEuMax: '45' } },
+  { label: 'EU 46+', patch: { sizeEuMin: '46' } },
   { label: 'Comme neuf', patch: { condition: 'LIKE_NEW' } },
 ];
 

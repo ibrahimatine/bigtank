@@ -5,11 +5,14 @@ import {
   Patch,
   Body,
   Req,
+  Res,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { AvatarService } from '../user/avatar.service';
@@ -28,7 +31,32 @@ export class AuthController {
     private authService: AuthService,
     private userService: UserService,
     private avatarService: AvatarService,
+    private configService: ConfigService,
   ) {}
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleLogin() {}
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(@Req() req: any, @Res() res: Response) {
+    const tokens = await this.authService.validateOAuthUser(req.user);
+    const webUrl = this.configService.get('WEB_URL') || 'http://localhost:3000';
+    res.redirect(`${webUrl}/api/auth/oauth-callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+  }
+
+  @Get('facebook')
+  @UseGuards(AuthGuard('facebook'))
+  facebookLogin() {}
+
+  @Get('facebook/callback')
+  @UseGuards(AuthGuard('facebook'))
+  async facebookCallback(@Req() req: any, @Res() res: Response) {
+    const tokens = await this.authService.validateOAuthUser(req.user);
+    const webUrl = this.configService.get('WEB_URL') || 'http://localhost:3000';
+    res.redirect(`${webUrl}/api/auth/oauth-callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+  }
 
   @Post('register')
   async register(@Body() dto: RegisterDto) {

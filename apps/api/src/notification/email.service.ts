@@ -62,8 +62,8 @@ export class EmailService {
           Votre compte Samadal a ete cree avec succes.
         </p>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
-          Samadal est la marketplace de chaussures grandes tailles au Senegal.
-          Trouvez des paires en taille 46 et plus, ou vendez les votres !
+          Samadal est la marketplace de chaussures au Senegal.
+          Trouvez la paire ideale ou vendez les votres !
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.getWebUrl()}/search"
@@ -290,13 +290,13 @@ export class EmailService {
   <div class="email-wrapper" style="max-width: 560px; margin: 0 auto; padding: 24px 16px;">
     <div style="text-align: center; margin-bottom: 32px;">
       <h2 class="email-title" style="color: #2563eb; font-size: 28px; font-weight: 800; margin: 0;">Samadal</h2>
-      <p style="color: #888; font-size: 13px; margin: 4px 0 0;">Chaussures grandes tailles au Senegal</p>
+      <p style="color: #888; font-size: 13px; margin: 4px 0 0;">La marketplace de chaussures au Senegal</p>
     </div>
     <div class="email-card" style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
       ${content}
     </div>
     <div style="text-align: center; margin-top: 32px; color: #999; font-size: 13px;">
-      <p>Samadal — Marketplace chaussures grandes tailles</p>
+      <p>Samadal — La marketplace de chaussures au Senegal</p>
       <p>Cet email a ete envoye automatiquement, merci de ne pas repondre.</p>
     </div>
   </div>

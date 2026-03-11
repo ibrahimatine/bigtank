@@ -21,9 +21,9 @@ export function Footer() {
               Sama<span className="text-[var(--color-accent)]">dal</span>
             </h3>
             <p className="text-sm leading-relaxed">
-              La marketplace de reference pour les chaussures grandes tailles au Senegal.
+              La marketplace de reference pour acheter et vendre des chaussures au Senegal.
             </p>
-            <p className="text-xs mt-3 text-white/30 italic">Built for Bigger Steps</p>
+            <p className="text-xs mt-3 text-white/30 italic">Votre prochaine paire vous attend</p>
           </div>
 
           {/* Explorer */}

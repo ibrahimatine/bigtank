@@ -25,36 +25,36 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://samadal.net';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Samadal — Chaussures Grandes Tailles au Senegal',
+    default: 'Samadal — La Marketplace de Chaussures au Senegal',
     template: '%s | Samadal',
   },
   description:
-    'La marketplace N°1 pour acheter et vendre des chaussures grandes tailles (46+) au Senegal. Wave, Orange Money, Free Money acceptes.',
+    'La marketplace N°1 pour acheter et vendre des chaussures au Senegal. Toutes tailles, toutes marques. Wave, Orange Money, Free Money acceptes.',
   keywords: [
-    'chaussures grandes tailles',
+    'chaussures',
     'Senegal',
     'marketplace',
-    'taille 46',
-    'taille 47',
-    'taille 48',
+    'sneakers',
     'Nike',
     'Jordan',
     'Adidas',
+    'achat vente chaussures',
+    'toutes tailles',
   ],
   openGraph: {
     type: 'website',
     url: SITE_URL,
     locale: 'fr_SN',
     siteName: 'Samadal',
-    title: 'Samadal — Chaussures Grandes Tailles au Senegal',
+    title: 'Samadal — La Marketplace de Chaussures au Senegal',
     description:
-      'La marketplace N°1 pour acheter et vendre des chaussures grandes tailles (46+) au Senegal.',
+      'La marketplace N°1 pour acheter et vendre des chaussures au Senegal. Toutes tailles, toutes marques.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Samadal — Chaussures Grandes Tailles au Senegal',
+    title: 'Samadal — La Marketplace de Chaussures au Senegal',
     description:
-      'La marketplace N°1 pour acheter et vendre des chaussures grandes tailles (46+) au Senegal.',
+      'La marketplace N°1 pour acheter et vendre des chaussures au Senegal. Toutes tailles, toutes marques.',
   },
 };
 

@@ -204,11 +204,11 @@ function FilterForm({ onApply }: { onApply?: () => void }) {
         <label className="text-sm font-medium mb-1.5 block">Taille EU</label>
         <div className="flex gap-2">
           <Input
-            placeholder="Min (46)"
+            placeholder="Min (36)"
             {...numericInputProps(sizeEuMin, setSizeEuMin, 'sizeEuMin', 20, 60)}
           />
           <Input
-            placeholder="Max (52)"
+            placeholder="Max (50)"
             {...numericInputProps(sizeEuMax, setSizeEuMax, 'sizeEuMax', 20, 60)}
           />
         </div>

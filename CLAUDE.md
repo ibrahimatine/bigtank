@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Samadal is a marketplace for large-size shoes (EU 46+ / US 12+) based in Senegal. Currency is FCFA (XOF) only. Language is French only. Microservices architecture with NestJS backend, Next.js frontend, managed as a pnpm monorepo with Turborepo.
+Samadal is a marketplace for buying and selling shoes of all sizes, based in Senegal. Currency is FCFA (XOF) only. Language is French only. Microservices architecture with NestJS backend, Next.js frontend, managed as a pnpm monorepo with Turborepo.
 
 ## Common Commands
 

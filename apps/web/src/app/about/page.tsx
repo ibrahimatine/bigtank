@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'A propos de Samadal',
   description:
-    'Samadal est la marketplace de reference pour les chaussures grandes tailles (EU 46+) au Senegal.',
+    'Samadal est la marketplace de reference pour acheter et vendre des chaussures au Senegal.',
 };
 
 export default function AboutPage() {
@@ -14,7 +14,7 @@ export default function AboutPage() {
         <span className="text-[var(--color-accent)]">Samadal</span>
       </h1>
       <p className="text-[var(--color-muted-foreground)] text-lg mb-12">
-        La marketplace pensee pour ceux qui chaussent grand.
+        La marketplace de chaussures au Senegal.
       </p>
 
       <div className="space-y-10 text-[var(--color-muted-foreground)] leading-relaxed">
@@ -23,11 +23,10 @@ export default function AboutPage() {
             Notre histoire
           </h2>
           <p>
-            Samadal est nee d&apos;un constat simple : trouver des chaussures en grande
-            taille (EU 46, 47, 48, 49, 50...) au Senegal relevent du parcours du
-            combattant. Les boutiques classiques s&apos;arretent rarement au-dela du 45,
-            et les plateformes internationales impliquent des frais de port eleves et
-            des delais incertains.
+            Samadal est nee d&apos;un constat simple : acheter ou vendre des chaussures
+            au Senegal n&apos;est pas toujours facile. Les boutiques classiques offrent
+            un choix limite, et les plateformes internationales impliquent des frais
+            de port eleves et des delais incertains.
           </p>
           <p className="mt-3">
             Nous avons cree Samadal pour changer ca : un espace dedie, pensé pour la
@@ -42,7 +41,7 @@ export default function AboutPage() {
           </h2>
           <ul className="space-y-2">
             {[
-              'Annonces exclusivement pour les tailles EU 46 et au-dessus',
+              'Annonces pour toutes les tailles, du 36 au 50 et plus',
               'Mise en relation directe vendeur/acheteur via le chat integre',
               'Recherche par taille, marque, etat et localisation',
               'Paiement via Wave, Orange Money, Free Money ou carte bancaire',
@@ -72,7 +71,7 @@ export default function AboutPage() {
               },
               {
                 title: 'Communaute',
-                desc: 'Fait au Senegal, pour les Senegalais — et pour tous ceux qui chaussent grand en Afrique de l\'Ouest.',
+                desc: 'Fait au Senegal, pour les Senegalais — et pour tous les passionnes de chaussures en Afrique de l\'Ouest.',
               },
             ].map(({ title, desc }) => (
               <div

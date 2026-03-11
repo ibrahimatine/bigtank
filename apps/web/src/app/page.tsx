@@ -7,8 +7,8 @@ import { generateWebsiteJsonLd } from '@/lib/seo';
 const WHY_ITEMS = [
   {
     icon: Search,
-    title: 'Specialise grandes tailles',
-    desc: 'Uniquement des pointures EU 46 et plus. Fini de chercher parmi des milliers d\'articles pour trouver votre taille.',
+    title: 'Toutes les tailles disponibles',
+    desc: 'Du 36 au 50 et plus. Trouvez facilement la paire qui vous correspond, quelle que soit votre pointure.',
   },
   {
     icon: Tag,
@@ -44,7 +44,7 @@ export default function HomePage() {
             Pourquoi Samadal ?
           </h2>
           <p className="text-center text-sm text-[var(--color-muted-foreground)] mb-10 max-w-md mx-auto">
-            La premiere marketplace dediee aux grandes pointures en Afrique de l&apos;Ouest.
+            La marketplace de chaussures de reference en Afrique de l&apos;Ouest.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -41,7 +41,7 @@ export default function TermsPage() {
       <Section title="2. Description du service">
         <p>
           Samadal est une place de marche en ligne permettant aux particuliers d&apos;acheter et
-          de vendre des chaussures de grandes tailles (EU 46 et au-dessus) au Senegal.
+          de vendre des chaussures au Senegal.
           Samadal agit en qualite d&apos;intermediaire technique et n&apos;est pas partie aux
           transactions entre vendeurs et acheteurs.
         </p>
@@ -77,7 +77,7 @@ export default function TermsPage() {
           <li>Des articles illegaux ou soumis a restriction</li>
           <li>Des photos trompeuses ou volees</li>
           <li>Des informations de contact dans les descriptions d&apos;annonces</li>
-          <li>Des annonces pour des tailles inferieures a EU 46</li>
+          <li>Des annonces pour des articles autres que des chaussures</li>
         </ul>
       </Section>
 

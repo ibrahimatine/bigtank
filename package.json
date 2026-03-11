@@ -2,7 +2,7 @@
   "name": "samadal",
   "version": "0.1.0",
   "private": true,
-  "description": "Marketplace de chaussures grandes tailles — Sénégal",
+  "description": "Marketplace de chaussures — Sénégal",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",

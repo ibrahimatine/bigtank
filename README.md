@@ -1,6 +1,6 @@
 # Samadal
 
-Marketplace de chaussures grandes tailles au Senegal. Architecture microservices avec NestJS, PostgreSQL, Redis, Meilisearch et Socket.io.
+La marketplace de chaussures au Senegal. Architecture microservices avec NestJS, PostgreSQL, Redis, Meilisearch et Socket.io.
 
 ## Stack technique
 

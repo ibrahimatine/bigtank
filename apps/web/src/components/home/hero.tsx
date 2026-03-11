@@ -14,10 +14,10 @@ export function Hero() {
           Marketplace #1 au Senegal
         </p>
         <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-          Chaussures{' '}
-          <span className="text-[var(--color-accent)]">Grandes Tailles</span>
+          Achetez & Vendez{' '}
+          <span className="text-[var(--color-accent)]">des Chaussures</span>
           <br className="hidden sm:block" />
-          {' '}EU 46 et plus
+          {' '}Toutes Tailles
         </h1>
         <p className="mt-3 text-white/60 max-w-xs sm:max-w-sm mx-auto text-sm">
           Nike, Jordan, Adidas et bien d&apos;autres — livrables partout au Senegal.

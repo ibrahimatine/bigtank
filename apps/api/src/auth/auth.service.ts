@@ -377,6 +377,52 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async validateOAuthUser(profile: { email: string | null; name: string; avatarUrl: string | null; provider: string; providerId: string }) {
+    // Check if user already exists with this provider
+    let user = await this.prisma.user.findFirst({
+      where: { provider: profile.provider, providerId: profile.providerId },
+    });
+
+    if (!user && profile.email) {
+      // Check if email already exists (link accounts)
+      user = await this.prisma.user.findUnique({ where: { email: profile.email } });
+      if (user) {
+        // Link OAuth to existing account
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { provider: profile.provider, providerId: profile.providerId, avatarUrl: user.avatarUrl || profile.avatarUrl },
+        });
+      }
+    }
+
+    if (!user) {
+      // Create new user
+      user = await this.prisma.user.create({
+        data: {
+          email: profile.email,
+          name: profile.name,
+          avatarUrl: profile.avatarUrl,
+          provider: profile.provider,
+          providerId: profile.providerId,
+          emailVerified: !!profile.email,
+          phoneVerified: false,
+        },
+      });
+
+      // Send welcome notification
+      try {
+        await this.notificationService.createAndSend({
+          userId: user.id,
+          type: 'WELCOME',
+          title: 'Bienvenue sur Samadal !',
+          body: `Bienvenue ${user.name} ! Votre compte a ete cree avec succes.`,
+        });
+      } catch {}
+    }
+
+    return this.generateTokens(user);
+  }
+
   private normalizePhone(v: string): string {
     const n = v.replace(/[\s\-\.]/g, '');
     if (n.startsWith('+221')) return n;
