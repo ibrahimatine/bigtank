@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getAccessToken } from '@/lib/auth-cookies';
+import { getValidAccessToken } from '@/lib/auth-cookies';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 export async function PATCH(request: Request) {
   try {
-    const token = await getAccessToken();
+    const token = await getValidAccessToken();
     if (!token) {
       return NextResponse.json({ error: 'Non authentifie' }, { status: 401 });
     }

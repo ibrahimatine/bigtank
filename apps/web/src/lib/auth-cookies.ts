@@ -39,3 +39,34 @@ export async function getRefreshToken(): Promise<string | undefined> {
   const cookieStore = await cookies();
   return cookieStore.get(REFRESH_COOKIE)?.value;
 }
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
+/**
+ * Returns a valid access token, refreshing it automatically if expired.
+ * Returns undefined if no token and no refresh token available.
+ */
+export async function getValidAccessToken(): Promise<string | undefined> {
+  const accessToken = await getAccessToken();
+  if (accessToken) return accessToken;
+
+  // No access token — try to refresh
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return undefined;
+
+  const res = await fetch(`${API_BASE}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!res.ok) {
+    await clearAuthCookies();
+    return undefined;
+  }
+
+  const data = await res.json();
+  const tokens = data.data || data;
+  await setAuthCookies(tokens.accessToken, tokens.refreshToken);
+  return tokens.accessToken;
+}

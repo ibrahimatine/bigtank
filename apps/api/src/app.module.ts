@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './common/database/database.module';
 import { HealthModule } from './health/health.module';
@@ -14,6 +15,7 @@ import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env' }),
     ScheduleModule.forRoot(),
     DatabaseModule,
     HealthModule,

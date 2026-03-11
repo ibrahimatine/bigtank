@@ -13,7 +13,7 @@ import type { ChatMessage } from '@/lib/api';
 import { useAuth } from './auth-provider';
 
 const CHAT_SERVICE_URL =
-  process.env.NEXT_PUBLIC_CHAT_SERVICE_URL || 'http://localhost:4003';
+  process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
 
 interface SocketContextValue {
   socket: Socket | null;

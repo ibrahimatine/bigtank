@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAccessToken } from '@/lib/auth-cookies';
+import { getValidAccessToken } from '@/lib/auth-cookies';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
@@ -7,7 +7,7 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ listingId: string }> },
 ) {
-  const token = await getAccessToken();
+  const token = await getValidAccessToken();
   if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
 
   const { listingId } = await params;

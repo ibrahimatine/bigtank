@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getAccessToken } from '@/lib/auth-cookies';
+import { getValidAccessToken } from '@/lib/auth-cookies';
 
 const GATEWAY = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 export async function GET(request: Request) {
-  const token = await getAccessToken();
+  const token = await getValidAccessToken();
   if (!token) return NextResponse.json({ error: 'Non authentifie' }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const token = await getAccessToken();
+  const token = await getValidAccessToken();
   if (!token) return NextResponse.json({ error: 'Non authentifie' }, { status: 401 });
 
   const body = await request.json();
