@@ -275,7 +275,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
           {fieldErrors.description && <p className="text-xs text-red-500">{fieldErrors.description}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Marque *</Label>
             <BrandCombobox value={form.brand} onChange={(v) => updateField('brand', v)} />
@@ -308,7 +308,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       {/* Taille */}
       <fieldset className="space-y-4">
         <legend className="font-semibold text-lg">Taille</legend>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="sizeEu">EU *</Label>
             <Input
@@ -349,7 +349,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       {/* Etat et prix */}
       <fieldset className="space-y-4">
         <legend className="font-semibold text-lg">Etat et prix</legend>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Etat *</Label>
             <Select value={form.condition} onValueChange={(v) => updateField('condition', v)}>
@@ -384,7 +384,7 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       {/* Localisation */}
       <fieldset className="space-y-4">
         <legend className="font-semibold text-lg">Localisation</legend>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Region *</Label>
             <Select value={form.locationRegion} onValueChange={(v) => updateField('locationRegion', v)}>

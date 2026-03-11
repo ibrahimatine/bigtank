@@ -57,7 +57,7 @@ export class EmailService {
       to,
       subject: 'Bienvenue sur Samadal !',
       html: this.wrapTemplate(`
-        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Bienvenue ${this.escape(name)} !</h1>
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Bienvenue ${this.escape(name)} !</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
           Votre compte Samadal a ete cree avec succes.
         </p>
@@ -67,7 +67,7 @@ export class EmailService {
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.getWebUrl()}/search"
-             style="background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+             class="email-btn" style="display: inline-block; background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Decouvrir les annonces
           </a>
         </div>
@@ -86,7 +86,7 @@ export class EmailService {
       to,
       subject: `Nouveau message de ${senderName}`,
       html: this.wrapTemplate(`
-        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Nouveau message</h1>
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Nouveau message</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
           Bonjour ${this.escape(recipientName)},
         </p>
@@ -100,7 +100,7 @@ export class EmailService {
         </div>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.getWebUrl()}/chat/${conversationId}"
-             style="background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+             class="email-btn" style="display: inline-block; background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Repondre
           </a>
         </div>
@@ -118,7 +118,7 @@ export class EmailService {
       to,
       subject: `Votre annonce "${listingTitle}" est en ligne !`,
       html: this.wrapTemplate(`
-        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Annonce publiee !</h1>
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Annonce publiee !</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
           Bonjour ${this.escape(sellerName)},
         </p>
@@ -127,7 +127,7 @@ export class EmailService {
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.getWebUrl()}/shoes/${listingSlug}"
-             style="background: #16a34a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+             class="email-btn" style="display: inline-block; background: #16a34a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Voir mon annonce
           </a>
         </div>
@@ -147,7 +147,7 @@ export class EmailService {
       to,
       subject: `Felicitations ! "${listingTitle}" a ete vendue`,
       html: this.wrapTemplate(`
-        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Vente confirmee !</h1>
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Vente confirmee !</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
           Bonjour ${this.escape(sellerName)},
         </p>
@@ -156,7 +156,7 @@ export class EmailService {
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.getWebUrl()}/dashboard"
-             style="background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+             class="email-btn" style="display: inline-block; background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Mon tableau de bord
           </a>
         </div>
@@ -177,7 +177,7 @@ export class EmailService {
       to,
       subject: `Paiement confirme pour "${listingTitle}"`,
       html: this.wrapTemplate(`
-        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Paiement recu !</h1>
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Paiement recu !</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
           Bonjour ${this.escape(sellerName)},
         </p>
@@ -190,7 +190,7 @@ export class EmailService {
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.getWebUrl()}/dashboard"
-             style="background: #16a34a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+             class="email-btn" style="display: inline-block; background: #16a34a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Voir mon tableau de bord
           </a>
         </div>
@@ -209,7 +209,7 @@ export class EmailService {
       to,
       subject: `Votre annonce "${listingTitle}" expire dans ${daysLeft} jours`,
       html: this.wrapTemplate(`
-        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Annonce bientot expiree</h1>
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Annonce bientot expiree</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
           Bonjour ${this.escape(sellerName)},
         </p>
@@ -222,7 +222,7 @@ export class EmailService {
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.getWebUrl()}/shoes/${listingSlug}"
-             style="background: #f59e0b; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+             class="email-btn" style="display: inline-block; background: #f59e0b; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Voir mon annonce
           </a>
         </div>
@@ -239,7 +239,7 @@ export class EmailService {
       to,
       subject: 'Reinitialisation de votre mot de passe Samadal',
       html: this.wrapTemplate(`
-        <h1 style="color: #1a1a1a; margin: 0 0 16px;">Mot de passe oublie ?</h1>
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Mot de passe oublie ?</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
           Bonjour ${this.escape(userName)},
         </p>
@@ -248,7 +248,7 @@ export class EmailService {
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="${this.escape(resetLink)}"
-             style="background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+             class="email-btn" style="display: inline-block; background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
             Reinitialiser mon mot de passe
           </a>
         </div>
@@ -275,17 +275,27 @@ export class EmailService {
     return `
 <!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @media only screen and (max-width: 600px) {
+    .email-wrapper { padding: 16px 12px !important; }
+    .email-card { padding: 24px 16px !important; }
+    .email-title { font-size: 22px !important; }
+    .email-heading { font-size: 20px !important; }
+    .email-btn { display: block !important; width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
+  }
+</style>
+</head>
 <body style="margin: 0; padding: 0; background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+  <div class="email-wrapper" style="max-width: 560px; margin: 0 auto; padding: 24px 16px;">
     <div style="text-align: center; margin-bottom: 32px;">
-      <h2 style="color: #2563eb; font-size: 28px; font-weight: 800; margin: 0;">Samadal</h2>
+      <h2 class="email-title" style="color: #2563eb; font-size: 28px; font-weight: 800; margin: 0;">Samadal</h2>
       <p style="color: #888; font-size: 13px; margin: 4px 0 0;">Chaussures grandes tailles au Senegal</p>
     </div>
-    <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div class="email-card" style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
       ${content}
     </div>
-    <div style="text-align: center; margin-top: 32px; color: #999; font-size: 12px;">
+    <div style="text-align: center; margin-top: 32px; color: #999; font-size: 13px;">
       <p>Samadal — Marketplace chaussures grandes tailles</p>
       <p>Cet email a ete envoye automatiquement, merci de ne pas repondre.</p>
     </div>

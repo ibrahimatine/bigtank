@@ -58,7 +58,7 @@ export default async function SearchPage({ searchParams }: Props) {
         {query ? `Resultats pour "${query}"` : 'Explorer les annonces'}
       </h1>
 
-      <div className="flex gap-8">
+      <div className="flex gap-4 lg:gap-8">
         <Suspense>
           <SearchFilters />
         </Suspense>

@@ -44,7 +44,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
           name="search"
           defaultValue={search}
           placeholder="Nom, email, téléphone..."
-          className="flex-1 min-w-[200px] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
+          className="flex-1 min-w-0 border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
         />
         <select
           name="role"

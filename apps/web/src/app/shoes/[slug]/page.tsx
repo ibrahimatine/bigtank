@@ -107,7 +107,7 @@ export default async function ListingPage({ params }: Props) {
           <span className="text-[var(--color-foreground)] font-medium truncate max-w-[200px]">{listing.title}</span>
         </nav>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
           {/* Gallery */}
           <ListingGallery images={listing.images} />
 

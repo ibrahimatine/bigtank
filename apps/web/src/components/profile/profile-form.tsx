@@ -136,7 +136,7 @@ export function ProfileForm({ profile }: Props) {
       {isSeller && profile.sellerStats && (
         <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
           <h2 className="font-semibold text-lg mb-4">Statistiques vendeur</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold">{profile.sellerStats.totalListings}</p>
               <p className="text-sm text-[var(--color-muted-foreground)]">Annonces</p>
@@ -189,7 +189,7 @@ export function ProfileForm({ profile }: Props) {
             {fieldErrors.name && <p className="text-xs text-red-500">{fieldErrors.name}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -212,7 +212,7 @@ export function ProfileForm({ profile }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Region</Label>
               <Select value={form.region} onValueChange={(v) => updateField('region', v)}>
