@@ -38,7 +38,7 @@ return json as T;
 |---|---|
 | `src/components/search/load-more.tsx` | Client Component : bouton "Charger plus" avec fetch client, skeletons pendant chargement |
 | `src/components/listing/share-button.tsx` | Client Component : dropdown Partager (WhatsApp + Copier le lien) |
-| `src/app/about/page.tsx` | Page statique A propos (histoire, valeurs, mission BigTank) |
+| `src/app/about/page.tsx` | Page statique A propos (histoire, valeurs, mission Samadal) |
 | `src/app/contact/page.tsx` | Page statique Contact (3 canaux + formulaire mailto) |
 | `src/app/terms/page.tsx` | Page statique CGU (9 articles) |
 | `src/app/privacy/page.tsx` | Page statique Confidentialite (RGPD-compatible) |
@@ -146,7 +146,7 @@ Le lien de la marque redirige vers `/search?brand=Nike`.
 
 | Route | Contenu |
 |---|---|
-| `/about` | Histoire BigTank, valeurs (Simplicité, Confiance, Communauté) |
+| `/about` | Histoire Samadal, valeurs (Simplicité, Confiance, Communauté) |
 | `/contact` | Email, support, délai réponse + formulaire mailto |
 | `/terms` | 9 articles CGU (obligations vendeur/acheteur, responsabilité, IP) |
 | `/privacy` | Données collectées, droits utilisateur, cookies httpOnly, conservation |
@@ -177,7 +177,7 @@ Le lien de la marque redirige vers `/search?brand=Nike`.
 ### 🔵 Restant — Priorité moyenne
 - [ ] `sitemap.xml` dynamique (routes `/shoes/[slug]`)
 - [ ] `robots.txt`
-- [ ] OG image par défaut (logo BigTank pour partages sans annonce)
+- [ ] OG image par défaut (logo Samadal pour partages sans annonce)
 - [ ] Compteur total annonces dans la section RecentListings
 
 ### ⚪ Restant — Priorité basse

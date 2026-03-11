@@ -3,7 +3,7 @@ import { Mail, MessageCircle, Clock } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: 'Contactez l\'equipe BigTank pour toute question ou signalement.',
+  description: 'Contactez l\'equipe Samadal pour toute question ou signalement.',
 };
 
 export default function ContactPage() {
@@ -22,15 +22,15 @@ export default function ContactPage() {
             icon: Mail,
             title: 'Email',
             desc: 'Pour toute question generale',
-            value: 'hello@bigtank.sn',
-            href: 'mailto:hello@bigtank.sn',
+            value: 'hello@samadal.net',
+            href: 'mailto:hello@samadal.net',
           },
           {
             icon: MessageCircle,
             title: 'Signalement',
             desc: 'Annonce suspecte ou litige',
-            value: 'support@bigtank.sn',
-            href: 'mailto:support@bigtank.sn',
+            value: 'support@samadal.net',
+            href: 'mailto:support@samadal.net',
           },
           {
             icon: Clock,
@@ -65,7 +65,7 @@ export default function ContactPage() {
           Envoyer un message
         </h2>
         <form
-          action="mailto:hello@bigtank.sn"
+          action="mailto:hello@samadal.net"
           method="get"
           encType="text/plain"
           className="space-y-4"

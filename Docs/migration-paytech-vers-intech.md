@@ -8,7 +8,7 @@
 
 ## Pourquoi ce changement ?
 
-PayTech fonctionnait avec une **redirection** : le vendeur était envoyé sur une page PayTech pour payer, puis renvoyé sur BigTank. C'était pas terrible côté UX.
+PayTech fonctionnait avec une **redirection** : le vendeur était envoyé sur une page PayTech pour payer, puis renvoyé sur Samadal. C'était pas terrible côté UX.
 
 **Intech API V2** offre une approche plus directe :
 - **Push USSD** : on envoie le numéro du vendeur, et il reçoit la demande de paiement directement sur son téléphone (pas de page externe)
@@ -81,7 +81,7 @@ PayTech fonctionnait avec une **redirection** : le vendeur était envoyé sur un
 Refonte complète de l'UI :
 
 **Avant (PayTech)** :
-- Bouton "Payer" → redirection vers la page PayTech → retour sur BigTank
+- Bouton "Payer" → redirection vers la page PayTech → retour sur Samadal
 
 **Après (Intech)** :
 1. Le vendeur choisit sa méthode : **Orange Money**, **Wave** ou **Free Money**

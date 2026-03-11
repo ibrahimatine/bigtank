@@ -270,7 +270,7 @@ export default function PayListingPage() {
                   <span className="font-medium">{preview.rate}</span>
                 </div>
                 <div className="flex justify-between items-center px-4 py-3 text-sm font-semibold bg-gray-50">
-                  <span>Commission BigTank</span>
+                  <span>Commission Samadal</span>
                   <span className="text-[var(--color-primary)] text-base">
                     {formatXof(preview.commission)}
                   </span>

@@ -16,7 +16,7 @@ Finaliser les items prioritaires du backlog UX : empty states illustrés, sitema
 |---|---|
 | `src/app/sitemap.ts` | Sitemap dynamique — routes statiques + toutes les annonces actives (`/shoes/[slug]`) |
 | `src/app/robots.ts` | robots.txt — permet l'indexation publique, bloque `/dashboard`, `/profile`, `/chat`, `/api` |
-| `src/app/opengraph-image.tsx` | OG image générée côté edge (Satori/ImageResponse) — fond `#1a1a2e`, texte BigTank + tagline |
+| `src/app/opengraph-image.tsx` | OG image générée côté edge (Satori/ImageResponse) — fond `#1a1a2e`, texte Samadal + tagline |
 
 ---
 
@@ -82,7 +82,7 @@ Disallow: /profile/
 Disallow: /chat/
 Disallow: /api/
 
-Sitemap: https://bigtank.sn/sitemap.xml
+Sitemap: https://samadal.sn/sitemap.xml
 ```
 
 ### 5. OG image par défaut
@@ -91,7 +91,7 @@ Sitemap: https://bigtank.sn/sitemap.xml
 
 - Runtime `edge` (Satori/ImageResponse)
 - Dimensions : 1200×630px (standard OG)
-- Design : fond `#1a1a2e` (primary), titre "BigTank" en blanc, ligne accent `#e94560`, sous-titre et badge URL
+- Design : fond `#1a1a2e` (primary), titre "Samadal" en blanc, ligne accent `#e94560`, sous-titre et badge URL
 
 Automatiquement hérité par toutes les pages sauf celles qui définissent leur propre `og:image` (ex: fiche détail avec photo de la chaussure).
 

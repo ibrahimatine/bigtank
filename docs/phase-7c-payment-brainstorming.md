@@ -1,4 +1,4 @@
-# Phase 7c — Système de paiement BigTank
+# Phase 7c — Système de paiement Samadal
 
 **Date :** 23 Février 2026
 **Statut :** Implémenté ✅
@@ -7,7 +7,7 @@
 
 ## 1. Modèle économique retenu
 
-BigTank **monétise la publication d'annonces**. Le vendeur paie une commission à BigTank pour rendre son annonce visible. La transaction acheteur/vendeur se fait hors-plateforme (cash, Wave direct, etc.).
+Samadal **monétise la publication d'annonces**. Le vendeur paie une commission à Samadal pour rendre son annonce visible. La transaction acheteur/vendeur se fait hors-plateforme (cash, Wave direct, etc.).
 
 ### Paramètres retenus
 

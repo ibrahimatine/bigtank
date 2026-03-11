@@ -61,8 +61,8 @@ git --version   # n'importe quelle version récente
 ## 1. Cloner le projet
 
 ```bash
-git clone https://github.com/TON_USERNAME/bigtank.git
-cd bigtank
+git clone https://github.com/TON_USERNAME/samadal.git
+cd samadal
 ```
 
 ---
@@ -99,7 +99,7 @@ Vérifie les valeurs critiques dans `.env` :
 
 ```env
 # Base de données (PostgreSQL sur port 5433 — pas 5432 !)
-DATABASE_URL=postgresql://bigtank:bigtank_dev_2024@localhost:5433/bigtank?schema=public
+DATABASE_URL=postgresql://samadal:samadal_dev_2024@localhost:5433/samadal?schema=public
 
 # Redis
 REDIS_URL=redis://localhost:6379
@@ -112,13 +112,13 @@ REFRESH_TOKEN_EXPIRY=7d
 
 # Meilisearch
 MEILISEARCH_URL=http://localhost:7700
-MEILISEARCH_API_KEY=bigtank_meili_dev_key
+MEILISEARCH_API_KEY=samadal_meili_dev_key
 
 # MinIO (stockage images)
 S3_ENDPOINT=http://localhost:9000
-S3_ACCESS_KEY=bigtank_minio
-S3_SECRET_KEY=bigtank_minio_secret
-S3_BUCKET=bigtank-images
+S3_ACCESS_KEY=samadal_minio
+S3_SECRET_KEY=samadal_minio_secret
+S3_BUCKET=samadal-images
 S3_REGION=us-east-1
 
 # Ports
@@ -156,11 +156,11 @@ Cette commande lance 4 conteneurs (+ 1 setup qui s'arrête tout seul) :
 
 | Conteneur | Port | Rôle |
 |-----------|------|------|
-| `bigtank-postgres` | `5433` | Base de données PostgreSQL 16 |
-| `bigtank-redis` | `6379` | Cache et sessions |
-| `bigtank-meilisearch` | `7700` | Moteur de recherche full-text |
-| `bigtank-minio` | `9000` / `9001` | Stockage images (S3-compatible) |
-| `bigtank-minio-setup` | — | Crée le bucket, s'arrête ensuite (normal) |
+| `samadal-postgres` | `5433` | Base de données PostgreSQL 16 |
+| `samadal-redis` | `6379` | Cache et sessions |
+| `samadal-meilisearch` | `7700` | Moteur de recherche full-text |
+| `samadal-minio` | `9000` / `9001` | Stockage images (S3-compatible) |
+| `samadal-minio-setup` | — | Crée le bucket, s'arrête ensuite (normal) |
 
 ### Vérifier que tout est healthy
 
@@ -172,10 +172,10 @@ Tous les conteneurs (sauf `minio-setup`) doivent afficher `healthy` dans la colo
 
 ```bash
 # Si un conteneur n'est pas healthy, voir ses logs :
-docker logs bigtank-postgres
-docker logs bigtank-redis
-docker logs bigtank-meilisearch
-docker logs bigtank-minio
+docker logs samadal-postgres
+docker logs samadal-redis
+docker logs samadal-meilisearch
+docker logs samadal-minio
 ```
 
 ### Erreur fréquente : port déjà utilisé
@@ -216,7 +216,7 @@ pnpm db:seed
 
 | Rôle | Email | Mot de passe |
 |------|-------|-------------|
-| ADMIN | admin@bigtank.com | ⚠️ hash placeholder — compte non fonctionnel via API |
+| ADMIN | admin@samadal.com | ⚠️ hash placeholder — compte non fonctionnel via API |
 | SELLER | vendeur@test.com | ⚠️ hash placeholder — compte non fonctionnel via API |
 | USER | acheteur@test.com | ⚠️ hash placeholder — compte non fonctionnel via API |
 
@@ -231,9 +231,9 @@ pnpm db:seed
 Avant de démarrer les services, les packages partagés doivent être compilés (TypeScript → JavaScript) :
 
 ```bash
-pnpm build --filter=@bigtank/shared-types
-pnpm build --filter=@bigtank/shared-utils
-pnpm build --filter=@bigtank/database
+pnpm build --filter=@samadal/shared-types
+pnpm build --filter=@samadal/shared-utils
+pnpm build --filter=@samadal/database
 ```
 
 > Turborepo gère normalement cela automatiquement avec `pnpm dev`, mais en cas d'erreur de module introuvable, lance ces builds manuellement en premier.
@@ -260,11 +260,11 @@ Turborepo lance tous les services en parallèle. Attends que tous soient prêts 
 
 ```bash
 # Un seul service
-pnpm --filter @bigtank/api-gateway dev
-pnpm --filter @bigtank/auth-service dev
-pnpm --filter @bigtank/listing-service dev
-pnpm --filter @bigtank/chat-service dev
-pnpm --filter @bigtank/web dev
+pnpm --filter @samadal/api-gateway dev
+pnpm --filter @samadal/auth-service dev
+pnpm --filter @samadal/listing-service dev
+pnpm --filter @samadal/chat-service dev
+pnpm --filter @samadal/web dev
 ```
 
 ---
@@ -322,15 +322,15 @@ pnpm db:studio
 
 ```
 http://localhost:7700
-Clé : bigtank_meili_dev_key
+Clé : samadal_meili_dev_key
 ```
 
 ### MinIO Console (gestion des images)
 
 ```
 http://localhost:9001
-User : bigtank_minio
-Password : bigtank_minio_secret
+User : samadal_minio
+Password : samadal_minio_secret
 ```
 
 ---
@@ -377,14 +377,14 @@ curl -s -X POST http://localhost:4000/api/listings \
 
 ## 11. Résolution des problèmes fréquents
 
-### ❌ `Cannot find module '@bigtank/shared-types'`
+### ❌ `Cannot find module '@samadal/shared-types'`
 
 Les packages partagés ne sont pas compilés. Solution :
 
 ```bash
-pnpm build --filter=@bigtank/shared-types
-pnpm build --filter=@bigtank/shared-utils
-pnpm build --filter=@bigtank/database
+pnpm build --filter=@samadal/shared-types
+pnpm build --filter=@samadal/shared-utils
+pnpm build --filter=@samadal/database
 ```
 
 ### ❌ `ECONNREFUSED localhost:5433`
@@ -393,7 +393,7 @@ PostgreSQL n'est pas démarré ou pas encore healthy.
 
 ```bash
 pnpm docker:up
-docker ps   # vérifier que bigtank-postgres est healthy
+docker ps   # vérifier que samadal-postgres est healthy
 ```
 
 ### ❌ `ECONNREFUSED localhost:6379`
@@ -401,7 +401,7 @@ docker ps   # vérifier que bigtank-postgres est healthy
 Redis n'est pas démarré.
 
 ```bash
-docker start bigtank-redis
+docker start samadal-redis
 ```
 
 ### ❌ Le frontend affiche des erreurs de fetch
@@ -421,7 +421,7 @@ La `DATABASE_URL` dans `.env` utilise le port 5433 (pas 5432). Vérifie :
 
 ```bash
 grep DATABASE_URL .env
-# doit contenir : postgresql://...@localhost:5433/bigtank...
+# doit contenir : postgresql://...@localhost:5433/samadal...
 ```
 
 ### ❌ `pnpm: command not found`
@@ -436,7 +436,7 @@ Le listing-service indexe les annonces automatiquement au démarrage. Attends qu
 
 ```bash
 curl -s -X DELETE 'http://localhost:7700/indexes/listings' \
-  -H 'Authorization: Bearer bigtank_meili_dev_key'
+  -H 'Authorization: Bearer samadal_meili_dev_key'
 # puis redémarre le listing-service
 ```
 
@@ -446,8 +446,8 @@ MinIO n'est pas configuré ou le bucket n'a pas été créé.
 
 ```bash
 # Vérifier que le bucket existe
-docker logs bigtank-minio-setup
-# Doit afficher : "Bucket bigtank-images created and configured"
+docker logs samadal-minio-setup
+# Doit afficher : "Bucket samadal-images created and configured"
 
 # Si le conteneur setup n'a pas tourné, le relancer manuellement :
 docker compose -f docker/docker-compose.dev.yml run minio-setup
@@ -462,7 +462,7 @@ NestJS CLI est une devDependency de chaque app. Il faut utiliser pnpm (pas npm g
 # Faire à la place depuis la racine :
 pnpm dev
 # ou
-pnpm --filter @bigtank/auth-service dev
+pnpm --filter @samadal/auth-service dev
 ```
 
 ### ❌ Le chat (Socket.io) ne se connecte pas
@@ -496,7 +496,7 @@ docker compose -f docker/docker-compose.dev.yml down -v
 # 1. Prérequis : Node 20+, pnpm 10.29.3, Docker
 
 # 2. Setup
-git clone https://github.com/TON_USERNAME/bigtank.git && cd bigtank
+git clone https://github.com/TON_USERNAME/samadal.git && cd samadal
 pnpm install
 cp .env.example .env
 echo "NEXT_PUBLIC_API_URL=http://localhost:4000/api

@@ -1,4 +1,4 @@
-# BigTank — Rapport UI/UX
+# Samadal — Rapport UI/UX
 > Date : 19/02/2026 | Version : 1.0
 
 ---
@@ -9,7 +9,7 @@
 |---|---|
 | `hero.tsx` | Suppression des mentions Wave / Orange Money / Free Money |
 | `footer.tsx` | Section paiements avec badges colorés + liens secondaires (CGU, Confidentialité, Contact) |
-| `page.tsx` | Barre de filtres rapides scrollable + section "Pourquoi BigTank?" + CTA vendeur amélioré |
+| `page.tsx` | Barre de filtres rapides scrollable + section "Pourquoi Samadal?" + CTA vendeur amélioré |
 
 ---
 
@@ -72,7 +72,7 @@
 - Barre de recherche centrale et omniprésente
 - Badge "Favoris" sur chaque card (cœur) sans quitter la liste
 
-**Adapté BigTank :**
+**Adapté Samadal :**
 - Ajouter un bouton favori (cœur) sur les ListingCard sans navigation
 - Considérer filtres inline en sidebar fixe desktop (déjà fait) ✅
 
@@ -83,7 +83,7 @@
 - Authentification des paires mise en avant visuellement
 - Grid avec ratio 1:1 strict, fond blanc uniforme pour les images
 
-**Adapté BigTank :**
+**Adapté Samadal :**
 - Mettre le prix en taille plus grande sur les cards ✅ (partiellement fait)
 - Fond blanc uniforme sur les images quand pas de photo (déjà fait ✅)
 - Envisager dark mode pour donner un feel premium à terme
@@ -95,8 +95,8 @@
 - Section "How It Works" très simple (3 étapes)
 - Filtres par "New" / "Used" très clairs
 
-**Adapté BigTank :**
-- Section "Pourquoi BigTank ?" ajoutée ✅ (3 bénéfices)
+**Adapté Samadal :**
+- Section "Pourquoi Samadal ?" ajoutée ✅ (3 bénéfices)
 - Ajouter à terme un badge "Vérifié" pour les vendeurs actifs (Phase 8)
 - Section "Comment ça marche" en 3 étapes sur la landing
 
@@ -107,7 +107,7 @@
 - Filtres très accessibles, pas cachés derrière un bouton
 - "Il y a X heures" sur chaque card → fraîcheur perçue
 
-**Adapté BigTank :**
+**Adapté Samadal :**
 - Afficher "Il y a X jours" sur les ListingCard → ajouter `createdAt` dans `ListingSearchResult`
 - Filtre région/ville plus proéminent dans les filtres (déjà dans FilterForm mais pas mis en avant)
 
@@ -117,7 +117,7 @@
 - Catégories visuelles en grid 2x2 avec image de fond
 - Barre de filtres rapides horizontale sous le hero ✅ (ajouté)
 
-**Adapté BigTank :**
+**Adapté Samadal :**
 - Catégories visuelles à envisager en Phase 2 UI (quand on aura des images réelles)
 
 ---
@@ -129,7 +129,7 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │  HEADER sticky                                   │
-│  BigTank   [SearchBar          ]   Explorer  👤  │
+│  Samadal   [SearchBar          ]   Explorer  👤  │
 └─────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────┐
@@ -156,7 +156,7 @@
 └─────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────┐
-│  POURQUOI BIGTANK ?                              │
+│  POURQUOI SAMADAL ?                              │
 │                                                  │
 │  [🔍 Spécialisé]  [🏷 Prix local]  [🛡 Sécurisé] │
 └─────────────────────────────────────────────────┘
@@ -169,9 +169,9 @@
 
 ┌─────────────────────────────────────────────────┐
 │  FOOTER  bg-secondary                            │
-│  BigTank | Explorer | Informations | Paiements  │
+│  Samadal | Explorer | Informations | Paiements  │
 │  ─────────────────────────────────────────────  │
-│  © 2026 BigTank   CGU  Confidentialité  🇸🇳     │
+│  © 2026 Samadal   CGU  Confidentialité  🇸🇳     │
 └─────────────────────────────────────────────────┘
 ```
 

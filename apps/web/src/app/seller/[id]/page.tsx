@@ -23,11 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const seller = await getSellerProfile(id);
     return {
-      title: `${seller.name} — Profil vendeur | BigTank`,
-      description: `Découvrez les annonces de ${seller.name} sur BigTank. ${seller.totalListings} annonce${seller.totalListings !== 1 ? 's' : ''} en ligne.`,
+      title: `${seller.name} — Profil vendeur | Samadal`,
+      description: `Découvrez les annonces de ${seller.name} sur Samadal. ${seller.totalListings} annonce${seller.totalListings !== 1 ? 's' : ''} en ligne.`,
     };
   } catch {
-    return { title: 'Vendeur non trouvé | BigTank' };
+    return { title: 'Vendeur non trouvé | Samadal' };
   }
 }
 

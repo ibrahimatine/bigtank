@@ -76,7 +76,7 @@ Construire les pages publiques SEO-first du frontend Next.js : landing page, rec
 | Fichier | Modification |
 |---|---|
 | `src/app/layout.tsx` | Reecrit : Google Fonts, Header/Footer, metadata template, CSS vars |
-| `src/app/globals.css` | Reecrit : Tailwind v4 @import + @theme BigTank |
+| `src/app/globals.css` | Reecrit : Tailwind v4 @import + @theme Samadal |
 | `packages/shared-types/src/listing.ts` | Ajout `slug: string` a l'interface Listing |
 | `packages/shared-config/tsconfig.nextjs.json` | Ajout `"DOM"` + `"DOM.Iterable"` dans lib |
 | `packages/database/src/seed.ts` | Ajout `slug` aux 3 listings de seed |
@@ -89,7 +89,7 @@ Construire les pages publiques SEO-first du frontend Next.js : landing page, rec
 | Element | Valeur |
 |---|---|
 | Primary | #1a1a2e (navy fonce) |
-| Accent | #e94560 (rouge BigTank) |
+| Accent | #e94560 (rouge Samadal) |
 | Background | #f5f5f5 |
 | Font body | Inter |
 | Font display | Space Grotesk (titres, prix) |
@@ -103,7 +103,7 @@ Construire les pages publiques SEO-first du frontend Next.js : landing page, rec
 - **JSON-LD WebSite** sur la landing page (avec SearchAction)
 - **JSON-LD Product** sur chaque page detail (brand, offers XOF, condition, seller)
 - **OpenGraph** dynamique avec images pour les annonces
-- **Metadata template** : `%s | BigTank` pour toutes les pages
+- **Metadata template** : `%s | Samadal` pour toutes les pages
 - **SSR** pour les pages detail (force-dynamic) — Google indexe le contenu complet
 - **ISR 60s** pour la recherche — contenu frais avec cache performant
 

@@ -7,7 +7,7 @@
 
 ## Objectif
 
-Mettre en place l'architecture complete du monorepo BigTank avec tous les packages partages, les squelettes de services NestJS, le frontend Next.js, le schema de base de donnees, et l'infrastructure Docker de developpement.
+Mettre en place l'architecture complete du monorepo Samadal avec tous les packages partages, les squelettes de services NestJS, le frontend Next.js, le schema de base de donnees, et l'infrastructure Docker de developpement.
 
 ---
 
@@ -69,7 +69,7 @@ Tous les services sont healthy et operationnels.
 |---|---|---|
 | `@nestjs/config@^10.0.0` introuvable | NestJS v11 utilise un nouveau versioning | Mise a jour vers `@nestjs/config@^4.0.0` dans les 7 services |
 | pnpm bloque les scripts postinstall | Securite pnpm v10 | Ajout `pnpm.onlyBuiltDependencies` dans root package.json |
-| `npx prisma` installe Prisma v7 | npx prend la derniere version | Utilisation de `pnpm --filter @bigtank/database generate` |
+| `npx prisma` installe Prisma v7 | npx prend la derniere version | Utilisation de `pnpm --filter @samadal/database generate` |
 | Port 5432 deja occupe | PostgreSQL local actif | Mapping Docker change en `5433:5432` |
 | Prisma ne trouve pas DATABASE_URL | .env a la racine, Prisma dans packages/database | Ajout `dotenv-cli` avec prefix `dotenv -e ../../.env --` |
 | Auth PostgreSQL echoue | Volume recreer sans reinit mot de passe | `docker restart` + `ALTER USER` |
@@ -79,7 +79,7 @@ Tous les services sont healthy et operationnels.
 ## Fichiers cles
 
 ```
-bigtank/
+samadal/
 ├── .env                              # Variables d'environnement (port 5433)
 ├── package.json                      # Monorepo root
 ├── turbo.json                        # Config Turborepo

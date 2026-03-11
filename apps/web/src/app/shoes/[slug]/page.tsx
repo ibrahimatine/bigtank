@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch {
-    return { title: 'Annonce non trouvee | BigTank' };
+    return { title: 'Annonce non trouvee | Samadal' };
   }
 }
 
@@ -215,7 +215,7 @@ export default async function ListingPage({ params }: Props) {
               )}
               <ShareButton
                 title={listing.title}
-                url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://bigtank.sn'}/shoes/${listing.slug}`}
+                url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://samadal.net'}/shoes/${listing.slug}`}
               />
             </div>
           </div>

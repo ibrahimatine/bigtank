@@ -135,8 +135,8 @@ apps/auth-service/src/
 ```bash
 # 1. Demarrer Docker + services
 pnpm docker:up
-pnpm --filter @bigtank/auth-service dev
-pnpm --filter @bigtank/api-gateway dev   # (optionnel, pour tester le proxy)
+pnpm --filter @samadal/auth-service dev
+pnpm --filter @samadal/api-gateway dev   # (optionnel, pour tester le proxy)
 
 # 2. Inscription
 curl -X POST http://localhost:4001/auth/register \

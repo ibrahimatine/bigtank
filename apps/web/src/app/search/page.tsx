@@ -21,8 +21,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (query) parts.push(`"${query}"`);
 
   return {
-    title: parts.join(' ') + ' | BigTank',
-    description: `Trouvez des ${parts.join(' ').toLowerCase()} au Senegal sur BigTank.`,
+    title: parts.join(' ') + ' | Samadal',
+    description: `Trouvez des ${parts.join(' ').toLowerCase()} au Senegal sur Samadal.`,
   };
 }
 
