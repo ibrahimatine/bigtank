@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CONDITION_LABELS } from '@/types';
 import { StartConversationButton } from '@/components/chat/start-conversation-button';
-import type { ListingCondition } from '@bigtank/shared-types';
+import type { ListingCondition } from '@samadal/shared-types';
 
 const STATUS_CONFIG: Record<string, { label: string; style: string; bg: string }> = {
   ACTIVE: { label: 'Disponible', style: 'bg-green-100 text-green-700', bg: '' },

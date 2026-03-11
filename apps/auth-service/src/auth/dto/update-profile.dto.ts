@@ -7,7 +7,7 @@ import {
   IsIn,
 } from 'class-validator';
 import { IsSenegalPhone } from '../../common/validators/senegal-phone.validator';
-import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
+import { SENEGAL_REGIONS } from '@samadal/shared-utils';
 
 export class UpdateProfileDto {
   @IsOptional()

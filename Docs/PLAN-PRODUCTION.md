@@ -1,4 +1,4 @@
-# BigTank — Plan de mise en production
+# Samadal — Plan de mise en production
 
 > Derniere mise a jour : 2026-03-10
 > Ce fichier liste TOUT ce qu'il reste a faire avant de passer en production.
@@ -49,9 +49,9 @@ Le code est pret, il faut juste configurer.
 
 ### 2.1 Configurer Resend (a faire par Tine)
 - [ ] Creer un compte sur resend.com
-- [ ] Configurer et verifier ton domaine (ex: bigtank.sn) dans Resend
+- [ ] Configurer et verifier ton domaine (ex: samadal.net) dans Resend
 - [ ] Mettre la cle API dans `.env` : `RESEND_API_KEY=re_xxxxxxxxx`
-- [ ] Mettre l'adresse d'envoi : `EMAIL_FROM=BigTank <noreply@bigtank.sn>`
+- [ ] Mettre l'adresse d'envoi : `EMAIL_FROM=Samadal <noreply@samadal.net>`
 - [ ] Tester en dev : s'inscrire → verifier qu'un email de bienvenue arrive
 
 ### 2.2 Templates email deja prets
@@ -143,8 +143,8 @@ Le code est pret, il faut juste configurer.
 - [ ] Mettre des headers de cache sur les images
 
 ### 5.6 DNS & Domaine
-- [ ] Acheter/configurer le domaine (ex: bigtank.sn)
-- [ ] Configurer les enregistrements DNS (A, CNAME pour api.bigtank.sn, etc.)
+- [ ] Acheter/configurer le domaine (ex: samadal.net)
+- [ ] Configurer les enregistrements DNS (A, CNAME pour api.samadal.net, etc.)
 - [ ] Configurer les variables d'environnement avec les URLs de production
 
 ---

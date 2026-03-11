@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bigtank.sn';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://samadal.net';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 async function fetchAllSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {

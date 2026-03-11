@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@bigtank/shared-types', '@bigtank/shared-utils'],
+  transpilePackages: ['@samadal/shared-types', '@samadal/shared-utils'],
   images: {
     remotePatterns: [
       {

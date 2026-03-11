@@ -1,1 +1,1 @@
-export { default } from "@bigtank/shared-config/eslint.config.mjs";
+export { default } from "@samadal/shared-config/eslint.config.mjs";

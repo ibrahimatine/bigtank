@@ -37,11 +37,11 @@ export default function HomePage() {
       {/* Filtres + annonces */}
       <FilterableListings />
 
-      {/* Pourquoi BigTank ? */}
+      {/* Pourquoi Samadal ? */}
       <section className="bg-[var(--color-card)] border-t border-[var(--color-border)] py-16">
         <div className="max-w-[1280px] mx-auto px-4">
           <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold text-center mb-2">
-            Pourquoi BigTank ?
+            Pourquoi Samadal ?
           </h2>
           <p className="text-center text-sm text-[var(--color-muted-foreground)] mb-10 max-w-md mx-auto">
             La premiere marketplace dediee aux grandes pointures en Afrique de l&apos;Ouest.

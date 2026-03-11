@@ -18,17 +18,17 @@ export class AvatarService {
     this.endpoint =
       this.configService.get<string>('S3_ENDPOINT') || 'http://localhost:9000';
     this.bucket =
-      this.configService.get<string>('S3_BUCKET') || 'bigtank-images';
+      this.configService.get<string>('S3_BUCKET') || 'samadal-images';
 
     this.s3Client = new S3Client({
       endpoint: this.endpoint,
       region: this.configService.get<string>('S3_REGION') || 'us-east-1',
       credentials: {
         accessKeyId:
-          this.configService.get<string>('S3_ACCESS_KEY') || 'bigtank_minio',
+          this.configService.get<string>('S3_ACCESS_KEY') || 'samadal_minio',
         secretAccessKey:
           this.configService.get<string>('S3_SECRET_KEY') ||
-          'bigtank_minio_secret',
+          'samadal_minio_secret',
       },
       forcePathStyle: true,
     });

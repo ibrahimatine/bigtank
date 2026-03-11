@@ -1,5 +1,5 @@
 {
-  "name": "@bigtank/listing-service",
+  "name": "@samadal/listing-service",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,9 +13,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.991.0",
     "@aws-sdk/s3-request-presigner": "^3.991.0",
-    "@bigtank/database": "workspace:*",
-    "@bigtank/shared-types": "workspace:*",
-    "@bigtank/shared-utils": "workspace:*",
+    "@samadal/database": "workspace:*",
+    "@samadal/shared-types": "workspace:*",
+    "@samadal/shared-utils": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -34,7 +34,7 @@
     "slugify": "^1.6.6"
   },
   "devDependencies": {
-    "@bigtank/shared-config": "workspace:*",
+    "@samadal/shared-config": "workspace:*",
     "@eslint/js": "^10.0.1",
     "@nestjs/cli": "^11.0.0",
     "@types/express": "^5.0.6",

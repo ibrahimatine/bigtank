@@ -132,7 +132,7 @@ export class PaymentsService {
       if (listing.seller.phone) {
         await this.sendWhatsAppNotification(
           listing.seller.phone,
-          `Votre annonce "${listing.title}" a été publiée gratuitement sur BigTank ! 🎉`,
+          `Votre annonce "${listing.title}" a été publiée gratuitement sur Samadal ! 🎉`,
         );
       }
 
@@ -290,7 +290,7 @@ export class PaymentsService {
       if (listing.seller.phone) {
         await this.sendWhatsAppNotification(
           listing.seller.phone,
-          `Votre annonce "${listing.title}" a été publiée sur BigTank ! 🎉`,
+          `Votre annonce "${listing.title}" a été publiée sur Samadal ! 🎉`,
         );
       }
     }

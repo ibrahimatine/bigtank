@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import sanitize from 'sanitize-html';
-import { DEFAULT_PAGE_SIZE } from '@bigtank/shared-utils';
+import { DEFAULT_PAGE_SIZE } from '@samadal/shared-utils';
 
 @Injectable()
 export class ChatService {

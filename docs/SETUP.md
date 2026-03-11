@@ -1,4 +1,4 @@
-# BigTank — Guide de setup complet
+# Samadal — Guide de setup complet
 > Pour les développeurs qui forkent le projet et qui veulent tout faire tourner en local.
 
 ---

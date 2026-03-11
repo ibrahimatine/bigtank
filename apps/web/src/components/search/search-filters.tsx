@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { POPULAR_BRANDS, SORT_OPTIONS, CONDITION_LABELS } from '@/types';
-import type { ListingCondition } from '@bigtank/shared-types';
+import type { ListingCondition } from '@samadal/shared-types';
 
 // Combobox libre : suggestions populaires + saisie libre acceptee
 function BrandCombobox({

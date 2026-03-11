@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
+import { SENEGAL_REGIONS } from '@samadal/shared-utils';
 
 const regionValues = SENEGAL_REGIONS as unknown as [string, ...string[]];
 

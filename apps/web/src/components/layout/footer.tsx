@@ -18,7 +18,7 @@ export function Footer() {
           {/* Branding */}
           <div>
             <h3 className="font-[family-name:var(--font-display)] text-xl font-bold text-white mb-3">
-              Big<span className="text-[var(--color-accent)]">Tank</span>
+              Sama<span className="text-[var(--color-accent)]">dal</span>
             </h3>
             <p className="text-sm leading-relaxed">
               La marketplace de reference pour les chaussures grandes tailles au Senegal.
@@ -110,7 +110,7 @@ export function Footer() {
 
         {/* Bas de footer */}
         <div className="pt-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-white/30">
-          <p>&copy; {new Date().getFullYear()} BigTank. Tous droits reserves.</p>
+          <p>&copy; {new Date().getFullYear()} Samadal. Tous droits reserves.</p>
           <div className="flex items-center gap-4">
             <Link href="/terms" className="hover:text-white/60 transition-colors">CGU</Link>
             <Link href="/privacy" className="hover:text-white/60 transition-colors">Confidentialite</Link>

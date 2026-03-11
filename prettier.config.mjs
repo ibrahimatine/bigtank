@@ -1,1 +1,1 @@
-export { default } from "@bigtank/shared-config/prettier.config.mjs";
+export { default } from "@samadal/shared-config/prettier.config.mjs";

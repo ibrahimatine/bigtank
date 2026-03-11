@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ListingActions } from './listing-actions';
 import type { ListingDetail } from '@/lib/api';
 import { CONDITION_LABELS } from '@/types';
-import type { ListingCondition } from '@bigtank/shared-types';
+import type { ListingCondition } from '@samadal/shared-types';
 
 const STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',

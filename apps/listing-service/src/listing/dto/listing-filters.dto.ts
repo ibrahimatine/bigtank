@@ -8,8 +8,8 @@ import {
   Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ListingCondition } from '@bigtank/shared-types';
-import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
+import { ListingCondition } from '@samadal/shared-types';
+import { SENEGAL_REGIONS } from '@samadal/shared-utils';
 
 export class ListingFiltersDto {
   @IsOptional()

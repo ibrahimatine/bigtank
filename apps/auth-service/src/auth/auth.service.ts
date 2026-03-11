@@ -15,7 +15,7 @@ import * as crypto from 'crypto';
 import {
   ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_EXPIRY,
-} from '@bigtank/shared-utils';
+} from '@samadal/shared-utils';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -115,7 +115,7 @@ export class AuthService {
     this.sendNotification({
       userId: user.id,
       type: 'WELCOME',
-      title: 'Bienvenue sur BigTank !',
+      title: 'Bienvenue sur Samadal !',
       body: `Bienvenue ${user.name} ! Votre compte a ete cree avec succes.`,
     }).catch(() => {});
 

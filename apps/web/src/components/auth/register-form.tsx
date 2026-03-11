@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/providers/auth-provider';
 import { registerSchema } from '@/lib/validations';
-import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
+import { SENEGAL_REGIONS } from '@samadal/shared-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

@@ -1,4 +1,4 @@
-# BigTank
+# Samadal
 
 Marketplace de chaussures grandes tailles au Senegal. Architecture microservices avec NestJS, PostgreSQL, Redis, Meilisearch et Socket.io.
 
@@ -42,8 +42,8 @@ API Gateway (:4000)  ──  JWT validation, rate limiting, routing
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/<votre-username>/bigtank.git
-cd bigtank
+git clone https://github.com/<votre-username>/samadal.git
+cd samadal
 ```
 
 ### 2. Installer les dependances
@@ -99,11 +99,11 @@ pnpm db:seed
 ### 6. Creer un compte administrateur
 
 ```bash
-PGPASSWORD=bigtank_dev_2024 psql -h localhost -p 5433 -U bigtank bigtank -c "
+PGPASSWORD=samadal_dev_2024 psql -h localhost -p 5433 -U samadal samadal -c "
 INSERT INTO users (id, name, phone, password_hash, role, status, phone_verified, created_at, updated_at)
 VALUES (
-  'admin_bigtank_001',
-  'Admin BigTank',
+  'admin_samadal_001',
+  'Admin Samadal',
   '+221770000000',
   '\$2b\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
   'ADMIN',
@@ -516,18 +516,18 @@ Ouvre une interface web sur http://localhost:5555.
 
 ### Meilisearch Dashboard
 
-http://localhost:7700 — cle : `bigtank_meili_dev_key`
+http://localhost:7700 — cle : `samadal_meili_dev_key`
 
 ### MinIO Console
 
-http://localhost:9001 — `bigtank_minio` / `bigtank_minio_secret`
+http://localhost:9001 — `samadal_minio` / `samadal_minio_secret`
 
 ### Logs Docker
 
 ```bash
 pnpm docker:logs
-docker logs bigtank-postgres -f
-docker logs bigtank-redis -f
+docker logs samadal-postgres -f
+docker logs samadal-redis -f
 ```
 
 ---
@@ -551,7 +551,7 @@ docker logs bigtank-redis -f
 ## Structure du projet
 
 ```
-bigtank/
+samadal/
 ├── apps/
 │   ├── api-gateway/          # Point d'entree API (:4000)
 │   ├── auth-service/         # Authentification (:4001)

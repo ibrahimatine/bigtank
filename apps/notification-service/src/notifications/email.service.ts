@@ -15,7 +15,7 @@ export class EmailService {
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
-    this.from = this.configService.get<string>('EMAIL_FROM') || 'BigTank <noreply@resend.dev>';
+    this.from = this.configService.get<string>('EMAIL_FROM') || 'Samadal <noreply@resend.dev>';
 
     if (apiKey) {
       this.resend = new Resend(apiKey);
@@ -59,14 +59,14 @@ export class EmailService {
   async sendWelcome(to: string, name: string): Promise<boolean> {
     return this.send({
       to,
-      subject: 'Bienvenue sur BigTank !',
+      subject: 'Bienvenue sur Samadal !',
       html: this.wrapTemplate(`
         <h1 style="color: #1a1a1a; margin: 0 0 16px;">Bienvenue ${this.escape(name)} !</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
-          Votre compte BigTank a ete cree avec succes.
+          Votre compte Samadal a ete cree avec succes.
         </p>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
-          BigTank est la marketplace de chaussures grandes tailles au Senegal.
+          Samadal est la marketplace de chaussures grandes tailles au Senegal.
           Trouvez des paires en taille 46 et plus, ou vendez les votres !
         </p>
         <div style="text-align: center; margin: 32px 0;">
@@ -241,7 +241,7 @@ export class EmailService {
   ): Promise<boolean> {
     return this.send({
       to,
-      subject: 'Reinitialisation de votre mot de passe BigTank',
+      subject: 'Reinitialisation de votre mot de passe Samadal',
       html: this.wrapTemplate(`
         <h1 style="color: #1a1a1a; margin: 0 0 16px;">Mot de passe oublie ?</h1>
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
@@ -288,7 +288,7 @@ export class EmailService {
   <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
     <!-- Logo -->
     <div style="text-align: center; margin-bottom: 32px;">
-      <h2 style="color: #2563eb; font-size: 28px; font-weight: 800; margin: 0;">BigTank</h2>
+      <h2 style="color: #2563eb; font-size: 28px; font-weight: 800; margin: 0;">Samadal</h2>
       <p style="color: #888; font-size: 13px; margin: 4px 0 0;">Chaussures grandes tailles au Senegal</p>
     </div>
     <!-- Card -->
@@ -297,7 +297,7 @@ export class EmailService {
     </div>
     <!-- Footer -->
     <div style="text-align: center; margin-top: 32px; color: #999; font-size: 12px;">
-      <p>BigTank — Marketplace chaussures grandes tailles</p>
+      <p>Samadal — Marketplace chaussures grandes tailles</p>
       <p>Cet email a ete envoye automatiquement, merci de ne pas repondre.</p>
     </div>
   </div>

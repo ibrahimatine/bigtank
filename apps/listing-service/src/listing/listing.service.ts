@@ -13,7 +13,7 @@ import { SearchService } from '../search/search.service';
 import { ListingRateLimitService } from '../common/services/rate-limit.service';
 import { generateListingSlug } from '../common/utils/slug.util';
 import { sanitizeDescription } from '../common/utils/sanitize.util';
-import { DEFAULT_PAGE_SIZE } from '@bigtank/shared-utils';
+import { DEFAULT_PAGE_SIZE } from '@samadal/shared-utils';
 
 const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
   DRAFT: ['ACTIVE'],

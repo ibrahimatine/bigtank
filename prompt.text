@@ -14,7 +14,7 @@ CONTEXTE BUSINESS :
 * Localisation : Sénégal (Afrique de l'Ouest)
 * Devise : Franc CFA (XOF)
 * Langue : Français uniquement
-* Domaine : bigtank.com
+* Domaine : samadal.net
 * Cible : des milliers d'utilisateurs au Sénégal et en Afrique de l'Ouest
 * Frais de port : gérés directement entre vendeur et acheteur (pas par la plateforme)
 * Vérification vendeur (KYC) : non requise pour le moment
@@ -66,7 +66,7 @@ STACK TECHNIQUE :
 
 STRUCTURE MONOREPO :
 
-bigtank/
+samadal/
 ├── apps/
 │   ├── web/                  # Next.js frontend (français uniquement)
 │   ├── api-gateway/          # NestJS — point d'entrée API unique

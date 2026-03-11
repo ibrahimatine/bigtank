@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Camera, Loader2 } from 'lucide-react';
 import { profileSchema } from '@/lib/validations';
-import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
+import { SENEGAL_REGIONS } from '@samadal/shared-utils';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

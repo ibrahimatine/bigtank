@@ -4,7 +4,7 @@ import { MapPin } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ListingSearchResult } from '@/lib/api';
 import { CONDITION_LABELS } from '@/types';
-import type { ListingCondition } from '@bigtank/shared-types';
+import type { ListingCondition } from '@samadal/shared-types';
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('fr-SN').format(price) + ' FCFA';

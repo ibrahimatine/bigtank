@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BigTank is a marketplace for large-size shoes (EU 46+ / US 12+) based in Senegal. Currency is FCFA (XOF) only. Language is French only. Microservices architecture with NestJS backend, Next.js frontend, managed as a pnpm monorepo with Turborepo.
+Samadal is a marketplace for large-size shoes (EU 46+ / US 12+) based in Senegal. Currency is FCFA (XOF) only. Language is French only. Microservices architecture with NestJS backend, Next.js frontend, managed as a pnpm monorepo with Turborepo.
 
 ## Common Commands
 
@@ -34,7 +34,7 @@ pnpm format:check
 
 # Run a single service in dev
 pnpm --filter auth-service dev
-pnpm --filter @bigtank/web dev
+pnpm --filter @samadal/web dev
 
 # Production: build then start services
 pnpm build
@@ -76,9 +76,9 @@ The **API Gateway** proxies all requests under `/api/` to downstream services. I
 
 **packages/**:
 - `database/` - Single Prisma schema (`prisma/schema.prisma`) shared by all services. All DB models here.
-- `shared-types/` - TypeScript interfaces (User, Listing, Offer, Transaction, Chat, Notification). Import as `@bigtank/shared-types`.
-- `shared-utils/` - Commission calculation, FCFA formatting, Senegal regions. Import as `@bigtank/shared-utils`.
-- `shared-config/` - Base tsconfig, ESLint config, Prettier config. Import as `@bigtank/shared-config`.
+- `shared-types/` - TypeScript interfaces (User, Listing, Offer, Transaction, Chat, Notification). Import as `@samadal/shared-types`.
+- `shared-utils/` - Commission calculation, FCFA formatting, Senegal regions. Import as `@samadal/shared-utils`.
+- `shared-config/` - Base tsconfig, ESLint config, Prettier config. Import as `@samadal/shared-config`.
 
 ## Key Technical Details
 
@@ -129,6 +129,6 @@ src/
 
 ## Frontend (apps/web)
 
-Next.js 14 with App Router. Tailwind CSS 4 + Radix UI components. The web app transpiles `@bigtank/shared-types` and `@bigtank/shared-utils`. All API calls go through the gateway at `localhost:4000/api/`.
+Next.js 14 with App Router. Tailwind CSS 4 + Radix UI components. The web app transpiles `@samadal/shared-types` and `@samadal/shared-utils`. All API calls go through the gateway at `localhost:4000/api/`.
 
 Key routes: `/` (landing), `/search` (with filters), `/shoes/[slug]` (SSR detail), `/dashboard` (seller), `/chat` (real-time), `/admin` (admin panel).

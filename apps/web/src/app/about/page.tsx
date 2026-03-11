@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'A propos de BigTank',
+  title: 'A propos de Samadal',
   description:
-    'BigTank est la marketplace de reference pour les chaussures grandes tailles (EU 46+) au Senegal.',
+    'Samadal est la marketplace de reference pour les chaussures grandes tailles (EU 46+) au Senegal.',
 };
 
 export default function AboutPage() {
@@ -11,7 +11,7 @@ export default function AboutPage() {
     <div className="max-w-3xl mx-auto px-4 py-16">
       <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold mb-2">
         A propos de{' '}
-        <span className="text-[var(--color-accent)]">BigTank</span>
+        <span className="text-[var(--color-accent)]">Samadal</span>
       </h1>
       <p className="text-[var(--color-muted-foreground)] text-lg mb-12">
         La marketplace pensee pour ceux qui chaussent grand.
@@ -23,14 +23,14 @@ export default function AboutPage() {
             Notre histoire
           </h2>
           <p>
-            BigTank est nee d&apos;un constat simple : trouver des chaussures en grande
+            Samadal est nee d&apos;un constat simple : trouver des chaussures en grande
             taille (EU 46, 47, 48, 49, 50...) au Senegal relevent du parcours du
             combattant. Les boutiques classiques s&apos;arretent rarement au-dela du 45,
             et les plateformes internationales impliquent des frais de port eleves et
             des delais incertains.
           </p>
           <p className="mt-3">
-            Nous avons cree BigTank pour changer ca : un espace dedie, pensé pour la
+            Nous avons cree Samadal pour changer ca : un espace dedie, pensé pour la
             communaute senegalaise, ou vendeurs et acheteurs se retrouvent directement
             sans intermediaire.
           </p>
@@ -93,10 +93,10 @@ export default function AboutPage() {
           <p>
             Une question, un partenariat ou un retour ? Ecrivez-nous a{' '}
             <a
-              href="mailto:hello@bigtank.sn"
+              href="mailto:hello@samadal.net"
               className="text-[var(--color-accent)] hover:underline"
             >
-              hello@bigtank.sn
+              hello@samadal.net
             </a>
             . Nous repondons dans les 48h.
           </p>

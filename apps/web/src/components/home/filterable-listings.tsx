@@ -6,7 +6,7 @@ import { ListingGrid } from '@/components/listing/listing-grid';
 import { ListingCardSkeleton } from '@/components/listing/listing-card';
 import type { ListingSearchResult } from '@/lib/api';
 import { POPULAR_BRANDS, CONDITION_LABELS } from '@/types';
-import type { ListingCondition } from '@bigtank/shared-types';
+import type { ListingCondition } from '@samadal/shared-types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 

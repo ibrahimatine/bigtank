@@ -4,18 +4,18 @@ services:
   # ============================================================
   postgres:
     image: postgres:16-alpine
-    container_name: bigtank-postgres
+    container_name: samadal-postgres
     restart: unless-stopped
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: bigtank
-      POSTGRES_USER: bigtank
-      POSTGRES_PASSWORD: bigtank_dev_2024
+      POSTGRES_DB: samadal
+      POSTGRES_USER: samadal
+      POSTGRES_PASSWORD: samadal_dev_2024
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bigtank"]
+      test: ["CMD-SHELL", "pg_isready -U samadal"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,7 +25,7 @@ services:
   # ============================================================
   redis:
     image: redis:7-alpine
-    container_name: bigtank-redis
+    container_name: samadal-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -43,13 +43,13 @@ services:
   # ============================================================
   meilisearch:
     image: getmeili/meilisearch:v1.6
-    container_name: bigtank-meilisearch
+    container_name: samadal-meilisearch
     restart: unless-stopped
     ports:
       - "7700:7700"
     environment:
       MEILI_ENV: development
-      MEILI_MASTER_KEY: bigtank_meili_dev_key
+      MEILI_MASTER_KEY: samadal_meili_dev_key
       MEILI_NO_ANALYTICS: "true"
     volumes:
       - meilisearch_data:/meili_data
@@ -64,14 +64,14 @@ services:
   # ============================================================
   minio:
     image: minio/minio:latest
-    container_name: bigtank-minio
+    container_name: samadal-minio
     restart: unless-stopped
     ports:
       - "9000:9000"    # API S3
       - "9001:9001"    # Console web
     environment:
-      MINIO_ROOT_USER: bigtank_minio
-      MINIO_ROOT_PASSWORD: bigtank_minio_secret
+      MINIO_ROOT_USER: samadal_minio
+      MINIO_ROOT_PASSWORD: samadal_minio_secret
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -84,16 +84,16 @@ services:
   # Créer le bucket automatiquement au démarrage
   minio-setup:
     image: minio/mc:latest
-    container_name: bigtank-minio-setup
+    container_name: samadal-minio-setup
     depends_on:
       minio:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      mc alias set local http://minio:9000 bigtank_minio bigtank_minio_secret;
-      mc mb local/bigtank-images --ignore-existing;
-      mc anonymous set download local/bigtank-images;
-      echo 'Bucket bigtank-images created and configured';
+      mc alias set local http://minio:9000 samadal_minio samadal_minio_secret;
+      mc mb local/samadal-images --ignore-existing;
+      mc anonymous set download local/samadal-images;
+      echo 'Bucket samadal-images created and configured';
       "
 
 volumes:

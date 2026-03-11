@@ -1,6 +1,6 @@
 import type { ListingDetail } from './api';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bigtank.sn';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://samadal.net';
 
 export function generateListingJsonLd(listing: ListingDetail) {
   return {
@@ -40,7 +40,7 @@ export function generateWebsiteJsonLd() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'BigTank',
+    name: 'Samadal',
     url: SITE_URL,
     description: 'Marketplace de chaussures grandes tailles au Senegal',
     potentialAction: {

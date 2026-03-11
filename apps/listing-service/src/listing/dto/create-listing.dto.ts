@@ -11,12 +11,12 @@ import {
   IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ListingCondition } from '@bigtank/shared-types';
+import { ListingCondition } from '@samadal/shared-types';
 import {
   SENEGAL_REGIONS,
   LISTING_TITLE_MAX_LENGTH,
   LISTING_DESCRIPTION_MAX_LENGTH,
-} from '@bigtank/shared-utils';
+} from '@samadal/shared-utils';
 
 export class CreateListingDto {
   @IsString()

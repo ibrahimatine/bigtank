@@ -1,5 +1,5 @@
 {
-  "name": "bigtank",
+  "name": "samadal",
   "version": "0.1.0",
   "private": true,
   "description": "Marketplace de chaussures grandes tailles — Sénégal",
@@ -10,11 +10,11 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo clean && rm -rf node_modules",
-    "db:generate": "pnpm --filter @bigtank/database generate",
-    "db:migrate": "pnpm --filter @bigtank/database migrate:dev",
-    "db:push": "pnpm --filter @bigtank/database push",
-    "db:seed": "pnpm --filter @bigtank/database seed",
-    "db:studio": "pnpm --filter @bigtank/database studio",
+    "db:generate": "pnpm --filter @samadal/database generate",
+    "db:migrate": "pnpm --filter @samadal/database migrate:dev",
+    "db:push": "pnpm --filter @samadal/database push",
+    "db:seed": "pnpm --filter @samadal/database seed",
+    "db:studio": "pnpm --filter @samadal/database studio",
     "docker:up": "docker compose -f docker/docker-compose.dev.yml up -d",
     "docker:down": "docker compose -f docker/docker-compose.dev.yml down",
     "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f"

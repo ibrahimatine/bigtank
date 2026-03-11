@@ -1,4 +1,4 @@
-# BigTank — Contexte Projet
+# Samadal — Contexte Projet
 
 > Derniere mise a jour : Phase 5c terminee (19/02/2026)
 
@@ -6,7 +6,7 @@
 
 ## Vision
 
-**BigTank** est une marketplace specialisee dans la revente de chaussures grandes tailles (EU 46+ / US 12+), basee au Senegal.
+**Samadal** est une marketplace specialisee dans la revente de chaussures grandes tailles (EU 46+ / US 12+), basee au Senegal.
 
 Objectif : devenir la plateforme de reference en Afrique de l'Ouest pour les grandes pointures.
 
@@ -19,7 +19,7 @@ Objectif : devenir la plateforme de reference en Afrique de l'Ouest pour les gra
 | Localisation | Senegal (Afrique de l'Ouest) |
 | Devise | FCFA (XOF) uniquement |
 | Langue | Francais uniquement |
-| Domaine | bigtank.com |
+| Domaine | samadal.net |
 | Cible | Milliers d'utilisateurs au Senegal et Afrique de l'Ouest |
 | Frais de port | Geres entre vendeur et acheteur (pas par la plateforme) |
 | KYC vendeur | Non requis pour le moment |
@@ -68,7 +68,7 @@ Objectif : devenir la plateforme de reference en Afrique de l'Ouest pour les gra
 ## Architecture Monorepo
 
 ```
-bigtank/
+samadal/
 ├── apps/
 │   ├── web/                  # Next.js frontend (port 3000)
 │   ├── api-gateway/          # NestJS — point d'entree API (port 4000)
@@ -151,7 +151,7 @@ bigtank/
 ## SEO (SEO-First)
 
 - SSR avec Next.js App Router (force-dynamic pour detail, ISR 60s pour recherche)
-- Metadata dynamique par page (template `%s | BigTank`)
+- Metadata dynamique par page (template `%s | Samadal`)
 - URLs semantiques par slug (`/shoes/:slug`)
 - JSON-LD Product (detail) + WebSite avec SearchAction (landing)
 - OpenGraph dynamique avec images
@@ -200,4 +200,4 @@ bigtank/
 
 ---
 
-> BigTank — Built for Bigger Steps
+> Samadal — Built for Bigger Steps

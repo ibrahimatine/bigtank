@@ -1,5 +1,5 @@
 {
-  "name": "@bigtank/payment-service",
+  "name": "@samadal/payment-service",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,9 +11,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@bigtank/database": "workspace:*",
-    "@bigtank/shared-types": "workspace:*",
-    "@bigtank/shared-utils": "workspace:*",
+    "@samadal/database": "workspace:*",
+    "@samadal/shared-types": "workspace:*",
+    "@samadal/shared-utils": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -24,7 +24,7 @@
     "rxjs": "^7.8.0"
   },
   "devDependencies": {
-    "@bigtank/shared-config": "workspace:*",
+    "@samadal/shared-config": "workspace:*",
     "@eslint/js": "^10.0.1",
     "@nestjs/cli": "^11.0.0",
     "@types/express": "^5.0.6",

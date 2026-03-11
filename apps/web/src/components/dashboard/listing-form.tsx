@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { listingSchema } from '@/lib/validations';
 import { POPULAR_BRANDS, CONDITION_LABELS } from '@/types';
-import { SENEGAL_REGIONS } from '@bigtank/shared-utils';
+import { SENEGAL_REGIONS } from '@samadal/shared-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { ChevronDown, X } from 'lucide-react';
 import { ImagePicker } from '@/components/dashboard/image-picker';
-import type { ListingCondition } from '@bigtank/shared-types';
+import type { ListingCondition } from '@samadal/shared-types';
 import type { ListingDetail } from '@/lib/api';
 
 function BrandCombobox({

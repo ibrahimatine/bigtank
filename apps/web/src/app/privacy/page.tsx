@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialite',
-  description: 'Politique de confidentialite et de protection des donnees personnelles de BigTank.',
+  description: 'Politique de confidentialite et de protection des donnees personnelles de Samadal.',
 };
 
 const LAST_UPDATED = '1er janvier 2025';
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
       </p>
 
       <Section title="1. Données collectées">
-        <p>Lors de votre inscription et utilisation de BigTank, nous collectons :</p>
+        <p>Lors de votre inscription et utilisation de Samadal, nous collectons :</p>
         <ul className="list-disc pl-5 space-y-1 mt-2">
           <li>Informations d&apos;identification : nom, adresse email, numero de telephone</li>
           <li>Informations de localisation : ville et region (Senegal)</li>
@@ -92,8 +92,8 @@ export default function PrivacyPage() {
         </ul>
         <p className="mt-2">
           Pour exercer ces droits, contactez{' '}
-          <a href="mailto:privacy@bigtank.sn" className="text-[var(--color-accent)] hover:underline">
-            privacy@bigtank.sn
+          <a href="mailto:privacy@samadal.net" className="text-[var(--color-accent)] hover:underline">
+            privacy@samadal.net
           </a>
           .
         </p>
@@ -101,7 +101,7 @@ export default function PrivacyPage() {
 
       <Section title="7. Cookies">
         <p>
-          BigTank utilise uniquement des cookies fonctionnels (authentification, session).
+          Samadal utilise uniquement des cookies fonctionnels (authentification, session).
           Aucun cookie publicitaire ou de tracking tiers n&apos;est utilise. Vous pouvez
           desactiver les cookies dans votre navigateur mais cela vous deconnectera de la
           plateforme.
@@ -111,8 +111,8 @@ export default function PrivacyPage() {
       <Section title="8. Contact">
         <p>
           Pour toute question relative a vos donnees personnelles :{' '}
-          <a href="mailto:privacy@bigtank.sn" className="text-[var(--color-accent)] hover:underline">
-            privacy@bigtank.sn
+          <a href="mailto:privacy@samadal.net" className="text-[var(--color-accent)] hover:underline">
+            privacy@samadal.net
           </a>
         </p>
       </Section>

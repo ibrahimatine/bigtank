@@ -1,4 +1,4 @@
-import type { ListingCondition } from '@bigtank/shared-types';
+import type { ListingCondition } from '@samadal/shared-types';
 
 export interface SearchFilterState {
   query: string;

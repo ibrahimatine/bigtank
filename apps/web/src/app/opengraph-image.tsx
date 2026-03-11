@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'BigTank — Chaussures Grandes Tailles au Senegal';
+export const alt = 'Samadal — Chaussures Grandes Tailles au Senegal';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -31,7 +31,7 @@ export default function Image() {
             lineHeight: 1,
           }}
         >
-          BigTank
+          Samadal
         </div>
 
         {/* Accent line */}
@@ -79,7 +79,7 @@ export default function Image() {
             color: 'rgba(255,255,255,0.45)',
           }}
         >
-          bigtank.sn
+          samadal.net
         </div>
       </div>
     ),
