@@ -191,6 +191,22 @@ export async function getMyListingById(id: string): Promise<ListingDetail> {
   return authApiFetch<ListingDetail>(`/listings/my/${id}`);
 }
 
+export async function getSalesHistory(
+  cursor?: string,
+): Promise<PaginatedResult<ListingDetail>> {
+  return authApiFetch<PaginatedResult<ListingDetail>>('/listings/sales-history', {
+    params: { cursor: cursor || undefined },
+  });
+}
+
+export async function getPurchaseHistory(
+  cursor?: string,
+): Promise<PaginatedResult<ListingDetail & { conversationId?: string; lastMessageAt?: string }>> {
+  return authApiFetch<PaginatedResult<ListingDetail & { conversationId?: string; lastMessageAt?: string }>>('/listings/purchase-history', {
+    params: { cursor: cursor || undefined },
+  });
+}
+
 // CRUD listings
 export async function createListing(
   data: Record<string, unknown>,
@@ -405,4 +421,28 @@ export async function getAdminListings(params: {
   status?: string;
 }): Promise<AdminPaginated<AdminListing>> {
   return authApiFetch<AdminPaginated<AdminListing>>('/admin/listings', { params });
+}
+
+export interface TransactionLog {
+  id: string;
+  action: string;
+  targetId: string | null;
+  metadata: {
+    amount?: number;
+    listingPrice?: number;
+    paymentMethod?: string;
+    refCommand?: string;
+    listingTitle?: string;
+    intechTransactionId?: string;
+    error?: string;
+  } | null;
+  createdAt: string;
+  user: { id: string; name: string; email: string | null; phone: string | null } | null;
+}
+
+export async function getAdminTransactions(params: {
+  page?: number;
+  limit?: number;
+}): Promise<AdminPaginated<TransactionLog>> {
+  return authApiFetch<AdminPaginated<TransactionLog>>('/admin/transactions', { params });
 }

@@ -35,6 +35,34 @@ export class ListingController {
     return this.listingService.search(filters);
   }
 
+  @Get('sales-history')
+  @UseGuards(JwtAuthGuard)
+  async salesHistory(
+    @CurrentUser() user: { id: string },
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.listingService.findSalesHistory(
+      user.id,
+      cursor,
+      limit ? parseInt(limit, 10) : undefined,
+    );
+  }
+
+  @Get('purchase-history')
+  @UseGuards(JwtAuthGuard)
+  async purchaseHistory(
+    @CurrentUser() user: { id: string },
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.listingService.findPurchaseHistory(
+      user.id,
+      cursor,
+      limit ? parseInt(limit, 10) : undefined,
+    );
+  }
+
   @Get('my')
   @UseGuards(JwtAuthGuard)
   async myListings(

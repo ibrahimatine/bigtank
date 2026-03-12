@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BarChart3, Users, ShoppingBag, Shield } from 'lucide-react';
+import { BarChart3, Users, ShoppingBag, Shield, Receipt } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: {
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: BarChart3, exact: true },
   { href: '/admin/users', label: 'Utilisateurs', icon: Users, exact: false },
   { href: '/admin/listings', label: 'Annonces', icon: ShoppingBag, exact: false },
+  { href: '/admin/transactions', label: 'Transactions', icon: Receipt, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

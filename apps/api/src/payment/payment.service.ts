@@ -1,6 +1,7 @@
 import {
   Injectable,
   Inject,
+  Logger,
   NotFoundException,
   ForbiddenException,
   BadRequestException,
@@ -32,6 +33,7 @@ function calculateCommission(priceXof: number): number {
 
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(PaymentService.name);
   private readonly apiKey = process.env.INTECH_API_KEY || '';
   private readonly baseUrl = process.env.INTECH_BASE_URL || 'https://api.intech.sn';
   private readonly webUrl = process.env.WEB_URL || 'http://localhost:3000';
@@ -40,6 +42,27 @@ export class PaymentService {
     @Inject('PRISMA') private prisma: PrismaClient,
     private listingService: ListingService,
   ) {}
+
+  private async logTransaction(
+    action: string,
+    sellerId: string,
+    listingId: string,
+    metadata: Record<string, unknown>,
+  ) {
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: sellerId,
+          action,
+          targetId: listingId,
+          targetType: 'LISTING_PAYMENT',
+          metadata: JSON.parse(JSON.stringify(metadata)),
+        },
+      });
+    } catch (err) {
+      this.logger.error(`Erreur log transaction: ${err}`);
+    }
+  }
 
   async initiate(
     sellerId: string,
@@ -109,9 +132,16 @@ export class PaymentService {
         }),
       ]);
 
-      // Appel direct au lieu de fetch HTTP
       await this.listingService.activateAfterPayment(listingId, expiresAt);
       await this.notifyAdminsNewListing(listing.title, listing.seller.name, listingId);
+
+      this.logger.log(`PUBLICATION GRATUITE | listing=${listingId} | vendeur=${sellerId} | prix=${listing.priceXof} FCFA`);
+      await this.logTransaction('PAYMENT_FREE', sellerId, listingId, {
+        amount: 0,
+        listingPrice: listing.priceXof,
+        refCommand,
+        listingTitle: listing.title,
+      });
 
       if (listing.seller.phone) {
         await this.sendWhatsAppNotification(
@@ -164,6 +194,13 @@ export class PaymentService {
           where: { id: payment.id },
           data: { status: 'FAILED' },
         });
+        this.logger.warn(`PAIEMENT ECHOUE (Intech) | ref=${refCommand} | erreur=${data.msg}`);
+        await this.logTransaction('PAYMENT_FAILED', sellerId, listingId, {
+          amount: commission,
+          refCommand,
+          paymentMethod,
+          error: data.msg || 'Erreur Intech',
+        });
         throw new BadRequestException(
           data.msg || 'Erreur lors de l\'initiation du paiement Intech',
         );
@@ -175,6 +212,16 @@ export class PaymentService {
           data: { intechTransactionId: data.transaction.transactionId },
         });
       }
+
+      this.logger.log(`PAIEMENT INITIE | ref=${refCommand} | montant=${commission} FCFA | methode=${paymentMethod} | listing=${listingId}`);
+      await this.logTransaction('PAYMENT_INITIATED', sellerId, listingId, {
+        amount: commission,
+        listingPrice: listing.priceXof,
+        paymentMethod,
+        refCommand,
+        paymentId: payment.id,
+        listingTitle: listing.title,
+      });
 
       return {
         isFree: false,
@@ -216,6 +263,7 @@ export class PaymentService {
       .digest('hex');
 
     if (expectedHash !== body.sha256Hash) {
+      this.logger.warn(`WEBHOOK SIGNATURE INVALIDE | ref=${transaction.externalTransactionId} | intechId=${transaction.transactionId}`);
       throw new ForbiddenException('Signature invalide');
     }
 
@@ -246,8 +294,16 @@ export class PaymentService {
       }),
     ]);
 
-    // Appel direct au lieu de fetch HTTP
     await this.listingService.activateAfterPayment(payment.listingId, expiresAt);
+
+    this.logger.log(`PAIEMENT REUSSI | ref=${refCommand} | montant=${payment.amount} FCFA | intech=${transaction.transactionId} | listing=${payment.listingId}`);
+    await this.logTransaction('PAYMENT_COMPLETED', payment.sellerId, payment.listingId, {
+      amount: payment.amount,
+      listingPrice: payment.listingPrice,
+      paymentMethod: payment.paymentMethod,
+      refCommand,
+      intechTransactionId: transaction.transactionId,
+    });
 
     const listing = await this.prisma.listing.findUnique({
       where: { id: payment.listingId },
@@ -317,6 +373,14 @@ export class PaymentService {
     await this.prisma.listingPayment.update({
       where: { id: paymentId },
       data: { status: 'REFUNDED' },
+    });
+
+    this.logger.log(`REMBOURSEMENT | paymentId=${paymentId} | montant=${payment.amount} FCFA | vendeur=${payment.sellerId}`);
+    await this.logTransaction('PAYMENT_REFUNDED', payment.sellerId, payment.listingId, {
+      amount: payment.amount,
+      paymentId,
+      paymentMethod: payment.paymentMethod,
+      refCommand,
     });
 
     return { refunded: true, amount: payment.amount };

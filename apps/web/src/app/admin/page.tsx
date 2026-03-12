@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getAdminStats } from '@/lib/api';
-import { Users, ShoppingBag, TrendingUp, AlertCircle } from 'lucide-react';
+import { Users, ShoppingBag, TrendingUp, AlertCircle, Receipt } from 'lucide-react';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 export const dynamic = 'force-dynamic';
@@ -56,6 +56,10 @@ export default async function AdminDashboardPage() {
             <a href="/admin/listings" className="flex items-center gap-2 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
               <ShoppingBag className="h-4 w-4 text-[var(--color-muted-foreground)]" />
               Modérer les annonces
+            </a>
+            <a href="/admin/transactions" className="flex items-center gap-2 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
+              <Receipt className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+              Suivi des transactions
             </a>
           </div>
         </div>

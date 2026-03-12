@@ -304,4 +304,25 @@ export class AdminService {
 
     return { logs, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
+
+  async getTransactionLogs(params: { page: number; limit: number }) {
+    const { page, limit } = params;
+    const skip = (page - 1) * limit;
+    const where = { targetType: 'LISTING_PAYMENT' };
+
+    const [logs, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, name: true, email: true, phone: true } },
+        },
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
+
+    return { logs, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
 }

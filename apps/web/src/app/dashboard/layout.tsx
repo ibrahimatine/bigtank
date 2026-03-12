@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { LayoutDashboard, PlusCircle, UserCircle } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, UserCircle, ShoppingBag, Package } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -9,6 +9,8 @@ export const metadata: Metadata = {
 const navItems = [
   { href: '/dashboard', label: 'Mes annonces', icon: LayoutDashboard },
   { href: '/dashboard/new', label: 'Nouvelle annonce', icon: PlusCircle },
+  { href: '/dashboard/sales', label: 'Mes ventes', icon: ShoppingBag },
+  { href: '/dashboard/purchases', label: 'Mes achats', icon: Package },
   { href: '/profile', label: 'Mon profil', icon: UserCircle },
 ];
 

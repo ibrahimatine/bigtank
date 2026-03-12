@@ -286,6 +286,59 @@ export class ListingService {
     return this.searchService.search(filters);
   }
 
+  async findSalesHistory(userId: string, cursor?: string, limit = 20) {
+    const listings = await this.prisma.listing.findMany({
+      where: { sellerId: userId, status: 'SOLD' },
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        images: { orderBy: { order: 'asc' }, take: 1 },
+        listingPayments: { where: { status: 'COMPLETED' }, take: 1 },
+      },
+    });
+
+    const hasMore = listings.length > limit;
+    if (hasMore) listings.pop();
+
+    return {
+      data: listings,
+      cursor: listings.length > 0 ? listings[listings.length - 1].id : null,
+      hasMore,
+    };
+  }
+
+  async findPurchaseHistory(userId: string, cursor?: string, limit = 20) {
+    // Find listings where user has a conversation and listing is SOLD
+    const conversations = await this.prisma.conversation.findMany({
+      where: { buyerId: userId, listing: { status: 'SOLD' } },
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: { lastMessageAt: 'desc' },
+      include: {
+        listing: {
+          include: {
+            images: { orderBy: { order: 'asc' }, take: 1 },
+            seller: { select: { id: true, name: true, avatarUrl: true } },
+          },
+        },
+      },
+    });
+
+    const hasMore = conversations.length > limit;
+    if (hasMore) conversations.pop();
+
+    return {
+      data: conversations.map(c => ({
+        ...c.listing,
+        conversationId: c.id,
+        lastMessageAt: c.lastMessageAt,
+      })),
+      cursor: conversations.length > 0 ? conversations[conversations.length - 1].id : null,
+      hasMore,
+    };
+  }
+
   private checkOwnership(
     listing: { sellerId: string },
     userId: string,

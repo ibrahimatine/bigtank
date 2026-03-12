@@ -112,4 +112,12 @@ export class AdminController {
   ) {
     return this.adminService.getAuditLogs({ page, limit: Math.min(limit, 100) });
   }
+
+  @Get('transactions')
+  getTransactionLogs(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+  ) {
+    return this.adminService.getTransactionLogs({ page, limit: Math.min(limit, 100) });
+  }
 }

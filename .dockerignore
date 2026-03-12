@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+**/dist
+.env
+.env.*
+*.md
+_archive
+docker
+apps/web
+.git
