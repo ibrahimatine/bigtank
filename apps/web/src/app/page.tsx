@@ -1,4 +1,4 @@
-import { ShieldCheck, Search, Tag } from 'lucide-react';
+import { ShieldCheck, Search, Tag, Truck } from 'lucide-react';
 import { Hero } from '@/components/home/hero';
 import { FilterableListings } from '@/components/home/filterable-listings';
 import { SellerCta } from '@/components/home/seller-cta';
@@ -7,18 +7,23 @@ import { generateWebsiteJsonLd } from '@/lib/seo';
 const WHY_ITEMS = [
   {
     icon: Search,
-    title: 'Toutes les tailles disponibles',
+    title: 'TOUTES LES TAILLES',
     desc: 'Du 36 au 50 et plus. Trouvez facilement la paire qui vous correspond, quelle que soit votre pointure.',
   },
   {
     icon: Tag,
-    title: 'Prix du marche local',
-    desc: 'Achetez et vendez entre particuliers au Senegal. Des prix justes, negociables, en FCFA.',
+    title: 'PRIX JUSTES EN FCFA',
+    desc: 'Achetez et vendez entre particuliers au Senegal. Des prix du marche local, negociables.',
   },
   {
     icon: ShieldCheck,
-    title: 'Transactions securisees',
-    desc: 'Paiement via Wave, Orange Money ou Free Money. Fonds securises jusqu\'a confirmation de reception.',
+    title: 'PAIEMENT SECURISE',
+    desc: 'Wave, Orange Money ou Free Money. Fonds securises jusqu\'a confirmation de reception.',
+  },
+  {
+    icon: Truck,
+    title: 'LIVRAISON LOCALE',
+    desc: 'Remise en main propre ou livraison dans toutes les regions du Senegal.',
   },
 ];
 
@@ -34,34 +39,38 @@ export default function HomePage() {
 
       <Hero />
 
-      {/* Filtres + annonces */}
       <FilterableListings />
 
-      {/* Pourquoi Samadal ? */}
-      <section className="bg-[var(--color-card)] border-t border-[var(--color-border)] py-16">
+      {/* Pourquoi Samadal */}
+      <section className="bg-[var(--color-card)] border-t border-[var(--color-border)] py-16 sm:py-20">
         <div className="max-w-[1280px] mx-auto px-4">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl sm:text-3xl font-bold text-center mb-2">
-            Pourquoi Samadal ?
+          <h2 className="font-[family-name:var(--font-display)] text-3xl sm:text-5xl tracking-wider text-center mb-3">
+            POURQUOI SAMADAL ?
           </h2>
-          <p className="text-center text-sm text-[var(--color-muted-foreground)] mb-10 max-w-md mx-auto">
+          <p className="text-center text-sm text-[var(--color-muted-foreground)] mb-12 max-w-md mx-auto">
             La marketplace de chaussures de reference en Afrique de l&apos;Ouest.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {WHY_ITEMS.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex flex-col items-start gap-3 p-6 rounded-xl border border-[var(--color-border)] hover:shadow-sm transition-shadow">
-                <div className="w-10 h-10 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center">
-                  <Icon className="h-5 w-5 text-[var(--color-accent)]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {WHY_ITEMS.map(({ icon: Icon, title, desc }, i) => (
+              <div
+                key={title}
+                className="group relative p-6 rounded-2xl bg-[var(--color-background)] hover:bg-[var(--color-primary)] hover:text-white transition-all duration-300 cursor-default"
+              >
+                <div className="w-12 h-12 rounded-xl bg-[var(--color-accent)]/10 group-hover:bg-[var(--color-accent)]/20 flex items-center justify-center mb-4 transition-colors">
+                  <Icon className="h-6 w-6 text-[var(--color-accent)]" />
                 </div>
-                <h3 className="font-semibold text-base">{title}</h3>
-                <p className="text-sm text-[var(--color-muted-foreground)] leading-relaxed">{desc}</p>
+                <h3 className="font-[family-name:var(--font-display)] text-lg tracking-wider mb-2">{title}</h3>
+                <p className="text-sm text-[var(--color-muted-foreground)] group-hover:text-white/60 leading-relaxed transition-colors">{desc}</p>
+                <span className="absolute top-4 right-4 font-[family-name:var(--font-display)] text-4xl text-[var(--color-border)] group-hover:text-white/10 transition-colors">
+                  0{i + 1}
+                </span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA vendeur — contextuel selon le role */}
       <SellerCta />
     </>
   );

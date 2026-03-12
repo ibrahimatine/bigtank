@@ -41,9 +41,9 @@
 ### 3.2 Expiration des annonces — ✅ FAIT
 - [x] CRON job + rappel 3 jours + affichage dashboard
 
-### 3.3 Upload d'images
-- [ ] Verifier le composant `ImageUploadWrapper` en creation ET edition
-- [ ] Tester le flux complet : presign URL → upload MinIO → confirm
+### 3.3 Upload d'images — ✅ FAIT
+- [x] Verifier le composant `ImageUploadWrapper` en creation ET edition (bug fix: refresh images)
+- [x] Flux complet : presign URL → upload S3/R2 → confirm (fonctionne en prod)
 - [x] Limite 5 Mo + compression client
 
 ### 3.4 Search — ✅ FAIT
@@ -52,7 +52,8 @@
 ### 3.5 Profil utilisateur — ✅ FAIT
 - [x] Changement mot de passe
 - [x] Upload avatar
-- [x] Historique ventes/achats
+- [x] Historique ventes/achats (cursor pagination)
+- [x] Suivi transactions admin (AuditLog)
 
 ### 3.6 OAuth Google/Facebook — ✅ CODE PRET
 - [x] Strategies Passport Google + Facebook
@@ -96,44 +97,45 @@
 
 ---
 
-## PHASE 5 — DEPLOIEMENT (Railway)
+## PHASE 5 — DEPLOIEMENT ✅ QUASI TERMINEE
 
-> Le plan original prevoyait nginx/PM2/Docker sur un VPS.
-> Avec Railway, tout est simplifie : pas de nginx, pas de PM2, SSL automatique.
+> API sur Railway, Frontend sur Vercel, Images sur Cloudflare R2, Search sur Meilisearch Cloud.
+> DNS en cours de propagation (samadal.net → Vercel, api.samadal.net → Railway).
 
-### 5.1 Railway
-- [ ] Creer le projet Railway
-- [ ] Deployer l'API monolithe (apps/api)
-- [ ] Deployer le frontend (apps/web) — ou utiliser Vercel
-- [ ] Configurer PostgreSQL (Railway addon)
-- [ ] Configurer Redis (Railway addon)
+### 5.1 Railway ✅
+- [x] Creer le projet Railway
+- [x] Deployer l'API monolithe (apps/api) — Dockerfile single-stage
+- [x] Deployer le frontend sur Vercel (apps/web)
+- [x] Configurer PostgreSQL (Railway addon)
+- [x] Configurer Redis (Railway addon)
 
-### 5.2 Services externes
-- [ ] Configurer Meilisearch (Meilisearch Cloud ou Railway)
-- [ ] Configurer S3 (AWS S3 ou Cloudflare R2) pour les images
-- [ ] CDN images (Cloudflare)
+### 5.2 Services externes ✅
+- [x] Configurer Meilisearch (Meilisearch Cloud)
+- [x] Configurer S3 (Cloudflare R2) pour les images
+- [x] R2 public URL + CORS configure
 
-### 5.3 DNS & Domaine
+### 5.3 DNS & Domaine ⏳
 - [x] Domaine samadal.net achete (LWS)
-- [ ] Configurer DNS vers Railway (A/CNAME)
-- [ ] SSL automatique via Railway
+- [x] api.samadal.net CNAME → Railway (propage)
+- [x] samadal.net A record → 76.76.21.21 (Vercel) — propagation en cours
+- [ ] SSL automatique (en attente propagation DNS)
 
 ### 5.4 Base de donnees
 - [x] Passer de `db:push` a de vraies migrations (`pnpm db:migrate`)
 - [ ] Backup automatique PostgreSQL
 - [ ] Connection pooling si necessaire
 
-### 5.5 Variables d'environnement production
-- [ ] JWT_SECRET (generer un vrai secret)
-- [ ] DATABASE_URL (Railway PostgreSQL)
-- [ ] REDIS_URL (Railway Redis)
-- [ ] RESEND_API_KEY
-- [ ] INTECH_API_KEY (production)
-- [ ] S3 credentials (production)
-- [ ] MEILISEARCH_URL + API_KEY
-- [ ] CORS_ORIGIN = https://samadal.net
-- [ ] WEB_URL = https://samadal.net
-- [ ] Google/Facebook OAuth keys
+### 5.5 Variables d'environnement production ✅
+- [x] JWT_SECRET (genere)
+- [x] DATABASE_URL (Railway PostgreSQL)
+- [x] REDIS_URL (Railway Redis)
+- [x] RESEND_API_KEY
+- [x] INTECH_API_KEY
+- [x] S3 credentials (Cloudflare R2 : S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_PUBLIC_URL)
+- [x] MEILISEARCH_URL + MEILISEARCH_API_KEY
+- [x] CORS_ORIGIN configure
+- [x] WEB_URL configure
+- [ ] Google/Facebook OAuth keys (apps a creer)
 
 ---
 
@@ -176,15 +178,15 @@
 - [ ] Paiements fonctionnels
 - [ ] Chat temps reel OK
 - [ ] Admin moderation OK
-- [ ] Images upload OK
-- [ ] Recherche Meilisearch OK
+- [x] Images upload OK (Cloudflare R2)
+- [x] Recherche Meilisearch OK (Meilisearch Cloud)
 - [ ] Rapide sur mobile (< 3s)
 - [ ] Test multi-navigateurs + appareils
 
 ### 8.2 Donnees initiales
 - [x] Compte ADMIN cree
 - [ ] Annonces de test (ou les supprimer)
-- [ ] Meilisearch cle de production
+- [x] Meilisearch cle de production
 
 ---
 
@@ -194,9 +196,9 @@
 |----------|-------|-------------|--------|
 | CRITIQUE | Phase 1 | Securite | ✅ FAIT |
 | HAUTE | Phase 2 | Emails Resend | ✅ FAIT |
-| HAUTE | Phase 3 | Fonctionnalites | ✅ 90% (reste images, historique, OAuth keys) |
-| HAUTE | Phase 4 | Paiements Intech | ⏳ A tester |
-| HAUTE | Phase 5 | Deploiement Railway | ⏳ A FAIRE |
+| HAUTE | Phase 3 | Fonctionnalites | ✅ 95% (reste OAuth keys Google/Facebook) |
+| HAUTE | Phase 4 | Paiements Intech | ⏳ A tester en prod |
+| HAUTE | Phase 5 | Deploiement Railway+Vercel | ✅ FAIT (DNS en propagation) |
 | MOYENNE | Phase 6 | Monitoring (Sentry) | ⏳ A FAIRE |
 | BASSE | Phase 7 | Polish frontend | Apres lancement |
 | FINALE | Phase 8 | Checklist | Avant lancement |

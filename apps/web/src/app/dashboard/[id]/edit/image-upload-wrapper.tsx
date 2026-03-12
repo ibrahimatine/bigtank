@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImageUpload } from '@/components/dashboard/image-upload';
 
@@ -10,7 +9,6 @@ interface Props {
 }
 
 export function ImageUploadWrapper({ listingId, images }: Props) {
-  const [currentImages] = useState(images);
   const router = useRouter();
 
   function handleImagesChange() {
@@ -20,7 +18,7 @@ export function ImageUploadWrapper({ listingId, images }: Props) {
   return (
     <ImageUpload
       listingId={listingId}
-      existingImages={currentImages}
+      existingImages={images}
       onImagesChange={handleImagesChange}
     />
   );

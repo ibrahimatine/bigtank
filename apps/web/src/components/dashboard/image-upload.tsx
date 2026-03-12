@@ -9,6 +9,7 @@ function compressImage(file: File): Promise<{ blob: Blob; width: number; height:
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
+      URL.revokeObjectURL(img.src);
       let { width, height } = img;
 
       if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
@@ -36,7 +37,10 @@ function compressImage(file: File): Promise<{ blob: Blob; width: number; height:
         0.85,
       );
     };
-    img.onerror = () => reject(new Error('Image invalide'));
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Image invalide'));
+    };
     img.src = URL.createObjectURL(file);
   });
 }

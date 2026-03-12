@@ -10,19 +10,19 @@ export function Header() {
       <div className="max-w-[1280px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight shrink-0"
+          className="font-[family-name:var(--font-display)] text-2xl tracking-[0.15em] shrink-0"
         >
-          Sama<span className="text-[var(--color-accent)]">dal</span>
+          SAMA<span className="text-[var(--color-accent)]">DAL</span>
         </Link>
 
         <div className="hidden sm:block flex-1 max-w-md">
           <NavSearchBar />
         </div>
 
-        <nav className="flex items-center gap-4 text-sm">
+        <nav className="flex items-center gap-3 sm:gap-4 text-sm">
           <Link
             href="/search"
-            className="hover:text-[var(--color-accent)] transition-colors hidden sm:inline"
+            className="hidden sm:inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors font-medium"
           >
             Explorer
           </Link>

@@ -16,7 +16,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const query = typeof params.query === 'string' ? params.query : '';
   const brand = typeof params.brand === 'string' ? params.brand : '';
 
-  const parts = ['Chaussures grandes tailles'];
+  const parts = ['Chaussures'];
   if (brand) parts.push(brand);
   if (query) parts.push(`"${query}"`);
 
@@ -40,7 +40,8 @@ async function Results({ searchParams }: { searchParams: Record<string, string |
     return <SearchResults result={result} filters={filters} />;
   } catch {
     return (
-      <div className="text-center py-12 text-[var(--color-muted-foreground)]">
+      <div className="text-center py-16 text-[var(--color-muted-foreground)]">
+        <span className="text-5xl block mb-4">😵</span>
         <p className="text-lg font-medium">Erreur de chargement</p>
         <p className="text-sm mt-1">Impossible de charger les annonces. Reessayez plus tard.</p>
       </div>
@@ -53,15 +54,24 @@ export default async function SearchPage({ searchParams }: Props) {
   const query = typeof params.query === 'string' ? params.query : '';
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 py-8">
-      <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold mb-6">
-        {query ? `Resultats pour "${query}"` : 'Explorer les annonces'}
-      </h1>
+    <div className="max-w-[1280px] mx-auto px-4 py-6 sm:py-8">
+      <div className="flex items-start justify-between gap-4 mb-6 sm:mb-8">
+        <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl tracking-wider">
+          {query ? `RESULTATS POUR "${query.toUpperCase()}"` : 'EXPLORER'}
+        </h1>
+        <div className="lg:hidden shrink-0">
+          <Suspense>
+            <SearchFilters />
+          </Suspense>
+        </div>
+      </div>
 
-      <div className="flex gap-4 lg:gap-8">
-        <Suspense>
-          <SearchFilters />
-        </Suspense>
+      <div className="flex gap-6 lg:gap-10">
+        <div className="hidden lg:block">
+          <Suspense>
+            <SearchFilters />
+          </Suspense>
+        </div>
 
         <div className="flex-1 min-w-0">
           <Suspense fallback={<ListingGridSkeleton />}>
