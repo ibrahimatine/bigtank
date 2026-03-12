@@ -1,0 +1,7 @@
+{
+  "framework": "nextjs",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm db:generate && pnpm --filter @samadal/web build",
+  "outputDirectory": "apps/web/.next",
+  "rootDirectory": "."
+}
