@@ -61,7 +61,8 @@ export class ListingService {
         priceXof: dto.priceXof,
         locationCity,
         locationRegion: dto.locationRegion,
-        status: 'DRAFT',
+        status: 'ACTIVE',
+        expiresAt: new Date(Date.now() + 60 * 86400000),
       },
       include: { images: true },
     });

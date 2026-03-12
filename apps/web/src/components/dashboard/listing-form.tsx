@@ -228,7 +228,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
           }
         }
         setUploadProgress('');
-        router.push(`/dashboard/pay/${listing.id}`);
+        toast.success('Annonce publiee !');
+        router.push('/dashboard');
       } else {
         toast.success('Annonce mise a jour');
         router.push('/dashboard');

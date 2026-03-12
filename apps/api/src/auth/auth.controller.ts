@@ -130,6 +130,19 @@ export class AuthController {
     return this.authService.changePassword(user.id, body.currentPassword, body.newPassword);
   }
 
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body() body: { token: string }) {
+    return this.authService.verifyEmail(body.token);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  async resendVerification(@CurrentUser() user: { id: string }) {
+    return this.authService.resendVerification(user.id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post('avatar/presign')
   async avatarPresign(

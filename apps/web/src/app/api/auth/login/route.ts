@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: data.error || data.message || 'Identifiants incorrects' },
+        { error: Array.isArray(data.message) ? data.message[0] : (data.message || data.error || 'Identifiants incorrects') },
         { status: res.status },
       );
     }

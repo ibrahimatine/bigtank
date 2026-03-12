@@ -164,6 +164,14 @@ export class NotificationService {
         );
         break;
 
+      case 'EMAIL_VERIFICATION':
+        await this.emailService.sendEmailVerification(
+          email,
+          userName,
+          (data.verifyLink as string) || '',
+        );
+        break;
+
       case 'LISTING_EXPIRING':
         await this.emailService.sendListingExpiringSoon(
           email,

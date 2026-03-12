@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: data.error || data.message || 'Erreur inscription' },
+        { error: Array.isArray(data.message) ? data.message[0] : (data.message || data.error || 'Erreur inscription') },
         { status: res.status },
       );
     }

@@ -58,6 +58,11 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
 
+    // Token de verification email
+    const emailVerificationToken = dto.email
+      ? crypto.randomBytes(32).toString('hex')
+      : null;
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email || null,
@@ -66,6 +71,7 @@ export class AuthService {
         name: dto.name,
         city: dto.city || null,
         region: dto.region || null,
+        emailVerificationToken,
       },
       select: {
         id: true,
@@ -87,12 +93,26 @@ export class AuthService {
       },
     });
 
-    this.notificationService.createAndSend({
-      userId: user.id,
-      type: 'WELCOME',
-      title: 'Bienvenue sur Samadal !',
-      body: `Bienvenue ${user.name} ! Votre compte a ete cree avec succes.`,
-    }).catch(() => {});
+    // Envoyer email de verification si email fourni
+    if (dto.email && emailVerificationToken) {
+      const webUrl = process.env.WEB_URL || 'http://localhost:3000';
+      const verifyLink = `${webUrl}/verify-email?token=${emailVerificationToken}`;
+
+      this.notificationService.createAndSend({
+        userId: user.id,
+        type: 'EMAIL_VERIFICATION',
+        title: 'Verifiez votre adresse email',
+        body: `Cliquez sur le lien pour verifier votre email`,
+        data: { verifyLink },
+      }).catch(() => {});
+    } else {
+      this.notificationService.createAndSend({
+        userId: user.id,
+        type: 'WELCOME',
+        title: 'Bienvenue sur Samadal !',
+        body: `Bienvenue ${user.name} ! Votre compte a ete cree avec succes.`,
+      }).catch(() => {});
+    }
 
     return { message: 'Inscription réussie', user };
   }
@@ -342,6 +362,80 @@ export class AuthService {
     });
 
     return { message: 'Mot de passe modifie avec succes' };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { emailVerificationToken: token },
+    });
+
+    if (!user) {
+      throw new HttpException(
+        'Lien de verification invalide ou deja utilise',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'EMAIL_VERIFIED',
+        details: `Email ${user.email} verifie`,
+      },
+    });
+
+    // Envoyer le welcome apres verification
+    this.notificationService.createAndSend({
+      userId: user.id,
+      type: 'WELCOME',
+      title: 'Bienvenue sur Samadal !',
+      body: `Bienvenue ${user.name} ! Votre email est verifie.`,
+    }).catch(() => {});
+
+    return { message: 'Email verifie avec succes' };
+  }
+
+  async resendVerification(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, emailVerified: true },
+    });
+
+    if (!user || !user.email) {
+      throw new HttpException('Aucun email associe a ce compte', HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.emailVerified) {
+      return { message: 'Email deja verifie' };
+    }
+
+    const newToken = crypto.randomBytes(32).toString('hex');
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerificationToken: newToken },
+    });
+
+    const webUrl = process.env.WEB_URL || 'http://localhost:3000';
+    const verifyLink = `${webUrl}/verify-email?token=${newToken}`;
+
+    await this.notificationService.createAndSend({
+      userId: user.id,
+      type: 'EMAIL_VERIFICATION',
+      title: 'Verifiez votre adresse email',
+      body: `Cliquez sur le lien pour verifier votre email`,
+      data: { verifyLink },
+    });
+
+    return { message: 'Email de verification renvoye' };
   }
 
   private async generateTokens(user: { id: string; email: string | null; phone: string | null; role: string }) {

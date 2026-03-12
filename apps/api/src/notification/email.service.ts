@@ -259,6 +259,35 @@ export class EmailService {
     });
   }
 
+  async sendEmailVerification(
+    to: string,
+    userName: string,
+    verifyLink: string,
+  ): Promise<boolean> {
+    return this.send({
+      to,
+      subject: 'Verifiez votre adresse email - Samadal',
+      html: this.wrapTemplate(`
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Verifiez votre email</h1>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Bonjour ${this.escape(userName)},
+        </p>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Merci de vous etre inscrit sur Samadal ! Pour activer votre compte, veuillez confirmer votre adresse email en cliquant sur le bouton ci-dessous :
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${this.escape(verifyLink)}"
+             class="email-btn" style="display: inline-block; background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Verifier mon email
+          </a>
+        </div>
+        <p style="color: #888; font-size: 14px;">
+          Ce lien est valable 48h. Si vous n'avez pas cree de compte sur Samadal, ignorez simplement cet email.
+        </p>
+      `),
+    });
+  }
+
   private getWebUrl(): string {
     return this.configService.get<string>('WEB_URL') || 'http://localhost:3000';
   }
