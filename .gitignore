@@ -7,8 +7,7 @@ dist/
 .next/
 out/
 
-# Prisma
-packages/database/prisma/migrations/
+# Prisma (migrations doivent etre commitees pour le deploiement)
 
 # Environment
 .env
@@ -45,3 +44,4 @@ minio_data/
 
 # Misc
 *.tsbuildinfo
+.vercel

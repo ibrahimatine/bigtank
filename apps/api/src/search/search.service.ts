@@ -1,12 +1,14 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MeiliSearch } from 'meilisearch';
 import { ListingFiltersDto } from '../listing/dto/listing-filters.dto';
 
 @Injectable()
 export class SearchService implements OnModuleInit {
+  private readonly logger = new Logger(SearchService.name);
   private client: MeiliSearch;
   private readonly INDEX = 'listings';
+  private available = false;
 
   constructor(private configService: ConfigService) {
     this.client = new MeiliSearch({
@@ -18,6 +20,16 @@ export class SearchService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    try {
+      await this.setupIndex();
+      this.available = true;
+      this.logger.log('Meilisearch connecte');
+    } catch (err) {
+      this.logger.warn(`Meilisearch indisponible — recherche desactivee: ${err}`);
+    }
+  }
+
+  private async setupIndex() {
     const index = this.client.index(this.INDEX);
 
     await index.updateFilterableAttributes([
@@ -70,6 +82,7 @@ export class SearchService implements OnModuleInit {
       ? listing.images.sort((a, b) => a.order - b.order)[0].url
       : null;
 
+    if (!this.available) return;
     const { images, ...rest } = listing;
     await this.client.index(this.INDEX).addDocuments(
       [
@@ -84,10 +97,14 @@ export class SearchService implements OnModuleInit {
   }
 
   async removeListing(id: string): Promise<void> {
+    if (!this.available) return;
     await this.client.index(this.INDEX).deleteDocument(id);
   }
 
   async search(filters: ListingFiltersDto) {
+    if (!this.available) {
+      return { data: [], total: 0, cursor: null, hasMore: false };
+    }
     const filterArray: string[] = ['status = ACTIVE'];
 
     if (filters.brand) filterArray.push(`brand = "${filters.brand}"`);
