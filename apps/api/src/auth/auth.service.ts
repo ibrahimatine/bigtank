@@ -197,7 +197,7 @@ export class AuthService {
     }
 
     if (validToken.expiresAt < new Date()) {
-      await this.prisma.refreshToken.delete({
+      await this.prisma.refreshToken.deleteMany({
         where: { id: validToken.id },
       });
       throw new UnauthorizedException('Token expiré');
@@ -211,7 +211,7 @@ export class AuthService {
       throw new UnauthorizedException('Utilisateur non trouvé');
     }
 
-    await this.prisma.refreshToken.delete({
+    await this.prisma.refreshToken.deleteMany({
       where: { id: validToken.id },
     });
 
@@ -226,7 +226,7 @@ export class AuthService {
     for (const token of storedTokens) {
       const isMatch = await bcrypt.compare(refreshToken, token.token);
       if (isMatch) {
-        await this.prisma.refreshToken.delete({
+        await this.prisma.refreshToken.deleteMany({
           where: { id: token.id },
         });
 
