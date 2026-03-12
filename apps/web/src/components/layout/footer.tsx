@@ -16,13 +16,18 @@ export function Footer() {
 
           {/* Branding */}
           <div>
-            <h3 className="font-[family-name:var(--font-display)] text-3xl tracking-[0.15em] text-white mb-3">
-              SAMA<span className="text-[var(--color-accent)]">DAL</span>
-            </h3>
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="h-8 w-8 text-[var(--color-accent)]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.5 17.5c0-1.5 1-2.5 3-3s4-.5 5.5-1.5 2-3 2.5-4.5S14.5 5.5 16 4.5s3.5-1 5-.5 2 2 2.5 3.5.5 3 .5 4.5v5.5c0 1.5-1 2.5-2.5 2.5H5c-1.5 0-2.5-1-2.5-2.5z" />
+              </svg>
+              <h3 className="font-[family-name:var(--font-display)] text-3xl tracking-[0.15em] text-white">
+                SAMA<span className="text-[var(--color-accent)]">DAL</span>
+              </h3>
+            </div>
             <p className="text-sm leading-relaxed">
-              La marketplace de reference pour acheter et vendre des chaussures au Senegal.
+              La marketplace de sneakers de reference au Senegal. Toutes tailles du 36 au 50+.
             </p>
-            <p className="text-xs mt-3 text-white/30">Votre prochaine paire vous attend 👟</p>
+            <p className="text-xs mt-3 text-white/30">Votre prochaine paire vous attend</p>
           </div>
 
           {/* Explorer */}

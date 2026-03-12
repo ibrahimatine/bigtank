@@ -10,9 +10,14 @@ export function Header() {
       <div className="max-w-[1280px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-2xl tracking-[0.15em] shrink-0"
+          className="flex items-center gap-2 shrink-0"
         >
-          SAMA<span className="text-[var(--color-accent)]">DAL</span>
+          <svg className="h-7 w-7 text-[var(--color-accent)]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.5 17.5c0-1.5 1-2.5 3-3s4-.5 5.5-1.5 2-3 2.5-4.5S14.5 5.5 16 4.5s3.5-1 5-.5 2 2 2.5 3.5.5 3 .5 4.5v5.5c0 1.5-1 2.5-2.5 2.5H5c-1.5 0-2.5-1-2.5-2.5z" />
+          </svg>
+          <span className="font-[family-name:var(--font-display)] text-2xl tracking-[0.15em]">
+            SAMA<span className="text-[var(--color-accent)]">DAL</span>
+          </span>
         </Link>
 
         <div className="hidden sm:block flex-1 max-w-md">

@@ -1,4 +1,4 @@
-import { ShieldCheck, Search, Tag, Truck } from 'lucide-react';
+import { ShieldCheck, Search, Tag, Ruler } from 'lucide-react';
 import { Hero } from '@/components/home/hero';
 import { FilterableListings } from '@/components/home/filterable-listings';
 import { SellerCta } from '@/components/home/seller-cta';
@@ -6,14 +6,14 @@ import { generateWebsiteJsonLd } from '@/lib/seo';
 
 const WHY_ITEMS = [
   {
-    icon: Search,
-    title: 'TOUTES LES TAILLES',
-    desc: 'Du 36 au 50 et plus. Trouvez facilement la paire qui vous correspond, quelle que soit votre pointure.',
+    icon: Ruler,
+    title: 'DU 36 AU 50+',
+    desc: 'Petites ou grandes pointures, trouvez enfin la paire a votre taille. Fini les ruptures de stock.',
   },
   {
     icon: Tag,
     title: 'PRIX JUSTES EN FCFA',
-    desc: 'Achetez et vendez entre particuliers au Senegal. Des prix du marche local, negociables.',
+    desc: 'Achetez Nike, Jordan, Adidas entre particuliers au Senegal. Prix du marche local, negociables.',
   },
   {
     icon: ShieldCheck,
@@ -21,9 +21,9 @@ const WHY_ITEMS = [
     desc: 'Wave, Orange Money ou Free Money. Fonds securises jusqu\'a confirmation de reception.',
   },
   {
-    icon: Truck,
-    title: 'LIVRAISON LOCALE',
-    desc: 'Remise en main propre ou livraison dans toutes les regions du Senegal.',
+    icon: Search,
+    title: 'TROUVEZ EN 30 SEC',
+    desc: 'Filtrez par marque, taille et budget. Recherche instantanee parmi toutes les annonces.',
   },
 ];
 

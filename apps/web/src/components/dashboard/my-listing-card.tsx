@@ -47,18 +47,21 @@ export function MyListingCard({ listing }: { listing: ListingDetail }) {
 
   return (
     <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] overflow-hidden">
-      <div className="relative aspect-video bg-[var(--color-muted)]">
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-[var(--color-muted)] via-[var(--color-muted)]/80 to-[var(--color-muted)]/40">
         {listing.images?.[0] ? (
           <Image
             src={listing.images[0].url}
             alt={listing.title}
             fill
-            className="object-cover"
+            className="object-contain p-2"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-[var(--color-muted-foreground)] text-sm">
-            Pas de photo
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[var(--color-muted-foreground)]">
+            <svg className="w-10 h-10 opacity-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M2 18c0-1 1-2 3-2.5S8 15 9 14s1.5-2.5 2-3.5S12.5 8 14 7s3-1 4.5-.5S21 8 21.5 9s.5 2.5.5 3.5V18c0 1-1 2-2 2H4c-1 0-2-1-2-2z" />
+            </svg>
+            <span className="text-xs opacity-50">Pas de photo</span>
           </div>
         )}
         <div className="absolute top-2 right-2">
