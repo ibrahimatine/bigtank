@@ -23,6 +23,7 @@ export class ImageService {
   private s3Client: S3Client;
   private bucket: string;
   private endpoint: string;
+  private publicUrl: string;
 
   constructor(
     @Inject('PRISMA') private prisma: PrismaClient,
@@ -32,6 +33,9 @@ export class ImageService {
       this.configService.get<string>('S3_ENDPOINT') || 'http://localhost:9000';
     this.bucket =
       this.configService.get<string>('S3_BUCKET') || 'samadal-images';
+    this.publicUrl =
+      this.configService.get<string>('S3_PUBLIC_URL') ||
+      `${this.endpoint}/${this.bucket}`;
 
     this.s3Client = new S3Client({
       endpoint: this.endpoint,
@@ -113,7 +117,7 @@ export class ImageService {
       throw new BadRequestException('Maximum 5 images par annonce');
     }
 
-    const url = `${this.endpoint}/${this.bucket}/${key}`;
+    const url = `${this.publicUrl}/${key}`;
 
     return this.prisma.listingImage.create({
       data: { listingId, url, key, order, width, height },
