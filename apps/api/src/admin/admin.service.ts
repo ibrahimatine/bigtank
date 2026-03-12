@@ -1,9 +1,15 @@
-import { Injectable, Inject, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaClient, UserStatus, ListingStatus } from '@prisma/client';
+import { SearchService } from '../search/search.service';
 
 @Injectable()
 export class AdminService {
-  constructor(@Inject('PRISMA') private readonly prisma: PrismaClient) {}
+  private readonly logger = new Logger(AdminService.name);
+
+  constructor(
+    @Inject('PRISMA') private readonly prisma: PrismaClient,
+    private readonly searchService: SearchService,
+  ) {}
 
   async getStats() {
     const [
@@ -238,9 +244,18 @@ export class AdminService {
     });
     if (!listing) throw new NotFoundException('Annonce introuvable');
 
+    const updateData: Record<string, unknown> = { status: newStatus as ListingStatus };
+
+    // Quand on remet une annonce en ACTIVE, on lui donne 60 jours d'expiration
+    if (newStatus === 'ACTIVE') {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 60);
+      updateData.expiresAt = expiresAt;
+    }
+
     const updated = await this.prisma.listing.update({
       where: { id: listingId },
-      data: { status: newStatus as ListingStatus },
+      data: updateData,
       select: { id: true, status: true, title: true },
     });
 
@@ -253,6 +268,24 @@ export class AdminService {
         details: `${listing.title}: ${listing.status} → ${newStatus}`,
       },
     });
+
+    // Synchronisation avec l'index Meilisearch
+    try {
+      if (newStatus === 'ACTIVE') {
+        const fullListing = await this.prisma.listing.findUnique({
+          where: { id: listingId },
+          include: { images: { select: { url: true, order: true } } },
+        });
+        if (fullListing) {
+          await this.searchService.indexListing(fullListing);
+        }
+      } else {
+        // SOLD, EXPIRED, DRAFT, RESERVED → retirer de la recherche
+        await this.searchService.removeListing(listingId);
+      }
+    } catch (err) {
+      this.logger.warn(`Echec sync Meilisearch pour listing ${listingId}: ${err}`);
+    }
 
     return updated;
   }
@@ -282,6 +315,13 @@ export class AdminService {
         details: listing.title,
       },
     });
+
+    // Retirer de l'index Meilisearch
+    try {
+      await this.searchService.removeListing(listingId);
+    } catch (err) {
+      this.logger.warn(`Echec sync Meilisearch pour suppression listing ${listingId}: ${err}`);
+    }
 
     return updated;
   }

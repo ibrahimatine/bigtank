@@ -49,7 +49,7 @@ export default async function TransactionsPage({
     .reduce((sum, l) => sum + (l.metadata?.amount || 0), 0);
 
   return (
-    <div>
+    <div className="pb-20 lg:pb-0">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Transactions</h1>
         <div className="text-sm text-[var(--color-muted-foreground)]">
@@ -69,9 +69,51 @@ export default async function TransactionsPage({
         </div>
       </div>
 
-      {/* Tableau */}
+      {/* Mobile cards */}
       {logs.length > 0 ? (
-        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <>
+        <div className="space-y-3 lg:hidden">
+          {logs.map((log) => {
+            const actionInfo = ACTION_LABELS[log.action] || {
+              label: log.action,
+              style: 'bg-gray-100 text-gray-700',
+            };
+            return (
+              <div
+                key={log.id}
+                className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-3"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-[var(--color-muted-foreground)]">
+                    {formatDate(log.createdAt)}
+                  </span>
+                  <Badge className={actionInfo.style}>{actionInfo.label}</Badge>
+                </div>
+                {log.user && (
+                  <p className="text-sm font-medium">{log.user.name}</p>
+                )}
+                <p className="text-xs text-[var(--color-muted-foreground)] truncate">
+                  {log.metadata?.listingTitle || log.targetId || '-'}
+                </p>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--color-border)]">
+                  <span className="text-sm font-medium">
+                    {log.metadata?.amount !== undefined
+                      ? formatPrice(log.metadata.amount)
+                      : '-'}
+                  </span>
+                  {log.metadata?.listingPrice && (
+                    <span className="text-xs text-[var(--color-muted-foreground)]">
+                      Annonce: {formatPrice(log.metadata.listingPrice)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -172,6 +214,34 @@ export default async function TransactionsPage({
             </div>
           )}
         </div>
+
+        {/* Pagination (mobile) */}
+        {result.totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 lg:hidden">
+            <p className="text-xs text-[var(--color-muted-foreground)]">
+              Page {result.page} / {result.totalPages}
+            </p>
+            <div className="flex gap-2">
+              {page > 1 && (
+                <a
+                  href={`/admin/transactions?page=${page - 1}`}
+                  className="px-3 py-1 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-muted)]"
+                >
+                  Precedent
+                </a>
+              )}
+              {page < result.totalPages && (
+                <a
+                  href={`/admin/transactions?page=${page + 1}`}
+                  className="px-3 py-1 text-sm rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-muted)]"
+                >
+                  Suivant
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+        </>
       ) : (
         <div className="text-center py-16 text-[var(--color-muted-foreground)]">
           <p className="text-lg font-medium">Aucune transaction</p>

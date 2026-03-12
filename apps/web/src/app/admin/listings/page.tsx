@@ -44,7 +44,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
   const listings = result.listings ?? [];
 
   return (
-    <div>
+    <div className="pb-20 lg:pb-0">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Annonces</h1>
         <span className="text-sm text-[var(--color-muted-foreground)]">
@@ -87,8 +87,73 @@ export default async function AdminListingsPage({ searchParams }: Props) {
         </a>
       </form>
 
-      {/* Table */}
-      <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+      {/* Mobile cards */}
+      <div className="space-y-3 lg:hidden">
+        {listings.length === 0 ? (
+          <p className="text-center py-12 text-[var(--color-muted-foreground)]">
+            Aucune annonce trouvée
+          </p>
+        ) : (
+          listings.map((listing) => (
+            <div
+              key={listing.id}
+              className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-3"
+            >
+              <div className="flex gap-3">
+                <div className="w-14 h-14 rounded-lg overflow-hidden bg-[var(--color-muted)] shrink-0 flex items-center justify-center">
+                  {listing.images[0] ? (
+                    <Image
+                      src={listing.images[0].url}
+                      alt={listing.title}
+                      width={56}
+                      height={56}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <ShoppingBag className="h-5 w-5 text-[var(--color-muted-foreground)]" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Link
+                    href={`/shoes/${listing.slug}`}
+                    target="_blank"
+                    className="font-medium hover:underline truncate block text-sm"
+                  >
+                    {listing.title}
+                  </Link>
+                  <p className="text-xs text-[var(--color-muted-foreground)]">{listing.brand}</p>
+                  <p className="text-xs text-[var(--color-muted-foreground)]">
+                    {listing.seller.name} &middot; {new Date(listing.createdAt).toLocaleDateString('fr-SN')}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm font-medium">{formatPrice(listing.priceXof)}</span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[listing.status] || 'bg-gray-100 text-gray-600'}`}
+                    >
+                      {STATUS_LABELS[listing.status] || listing.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {listing.status !== 'DELETED' && (
+                <div className="flex items-center gap-2 mt-3 pt-2 border-t border-[var(--color-border)]">
+                  <ListingStatusAction
+                    listingId={listing.id}
+                    currentStatus={listing.status}
+                  />
+                  <ListingDeleteAction
+                    listingId={listing.id}
+                    listingTitle={listing.title}
+                  />
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden lg:block bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

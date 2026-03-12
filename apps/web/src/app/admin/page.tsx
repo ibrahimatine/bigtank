@@ -33,7 +33,7 @@ export default async function AdminDashboardPage() {
   const stats = await getAdminStats();
 
   return (
-    <div>
+    <div className="pb-20 lg:pb-0">
       <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
