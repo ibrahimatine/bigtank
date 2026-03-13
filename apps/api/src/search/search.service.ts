@@ -82,7 +82,10 @@ export class SearchService implements OnModuleInit {
       ? listing.images.sort((a, b) => a.order - b.order)[0].url
       : null;
 
-    if (!this.available) return;
+    if (!this.available) {
+      this.logger.warn(`Meilisearch indisponible — listing ${listing.id} non indexe`);
+      return;
+    }
     const imageUrls = listing.images?.length
       ? listing.images.sort((a, b) => a.order - b.order).map((img) => img.url)
       : [];
@@ -102,7 +105,10 @@ export class SearchService implements OnModuleInit {
   }
 
   async removeListing(id: string): Promise<void> {
-    if (!this.available) return;
+    if (!this.available) {
+      this.logger.warn(`Meilisearch indisponible — listing ${id} non retire`);
+      return;
+    }
     await this.client.index(this.INDEX).deleteDocument(id);
   }
 

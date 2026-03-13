@@ -253,10 +253,12 @@ export class AdminService {
       updateData.expiresAt = expiresAt;
     }
 
+    // On recupere le listing complet avec images en une seule requete
+    // pour eviter un findUnique supplementaire et garantir la coherence
     const updated = await this.prisma.listing.update({
       where: { id: listingId },
       data: updateData,
-      select: { id: true, status: true, title: true },
+      include: { images: { orderBy: { order: 'asc' } } },
     });
 
     await this.prisma.auditLog.create({
@@ -272,22 +274,18 @@ export class AdminService {
     // Synchronisation avec l'index Meilisearch
     try {
       if (newStatus === 'ACTIVE') {
-        const fullListing = await this.prisma.listing.findUnique({
-          where: { id: listingId },
-          include: { images: { select: { url: true, order: true } } },
-        });
-        if (fullListing) {
-          await this.searchService.indexListing(fullListing);
-        }
+        await this.searchService.indexListing(updated);
+        this.logger.log(`Listing ${listingId} indexe dans Meilisearch (ACTIVE)`);
       } else {
         // SOLD, EXPIRED, DRAFT, RESERVED → retirer de la recherche
         await this.searchService.removeListing(listingId);
+        this.logger.log(`Listing ${listingId} retire de Meilisearch (${newStatus})`);
       }
     } catch (err) {
-      this.logger.warn(`Echec sync Meilisearch pour listing ${listingId}: ${err}`);
+      this.logger.error(`Echec sync Meilisearch pour listing ${listingId}: ${err}`);
     }
 
-    return updated;
+    return { id: updated.id, status: updated.status, title: updated.title };
   }
 
   async deleteListing(adminId: string, listingId: string) {
