@@ -6,7 +6,7 @@ import { SearchFilters } from '@/components/search/search-filters';
 import { SearchResults } from '@/components/search/search-results';
 import { ListingGridSkeleton } from '@/components/listing/listing-grid';
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 interface Props {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

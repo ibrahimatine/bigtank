@@ -141,7 +141,7 @@ export async function searchListings(
 ): Promise<PaginatedResult<ListingSearchResult>> {
   return apiFetch<PaginatedResult<ListingSearchResult>>('/listings/search', {
     params: filters,
-    next: { revalidate: 60 },
+    cache: 'no-store',
   });
 }
 
@@ -156,7 +156,7 @@ export async function getRecentListings(
 ): Promise<PaginatedResult<ListingSearchResult>> {
   return apiFetch<PaginatedResult<ListingSearchResult>>('/listings/search', {
     params: { sortBy: 'date', limit },
-    next: { revalidate: 60 },
+    cache: 'no-store',
   });
 }
 

@@ -28,9 +28,11 @@ export enum ListingCondition {
 }
 
 export enum ListingStatus {
+  DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
   SOLD = 'SOLD',
   RESERVED = 'RESERVED',
+  EXPIRED = 'EXPIRED',
   DELETED = 'DELETED',
 }
 

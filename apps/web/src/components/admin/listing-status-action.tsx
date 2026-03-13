@@ -35,13 +35,16 @@ export function ListingStatusAction({ listingId, currentStatus }: ListingStatusA
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.message || err?.error || 'Erreur inconnue');
+      }
       const label = STATUS_OPTIONS.find((o) => o.value === newStatus)?.label || newStatus;
       toast.success(`Statut change : ${label}`);
       setOpen(false);
       router.refresh();
-    } catch {
-      toast.error('Erreur lors du changement de statut');
+    } catch (err) {
+      toast.error(err instanceof Error && err.message !== 'Erreur inconnue' ? err.message : 'Erreur lors du changement de statut');
     } finally {
       setLoading(false);
     }
