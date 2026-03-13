@@ -115,6 +115,11 @@ export class AdminController {
     return this.searchService.reindexAll();
   }
 
+  @Post('reindex/:listingId')
+  async reindexOneListing(@Param('listingId') listingId: string) {
+    return this.searchService.reindexOne(listingId);
+  }
+
   @Get('audit-logs')
   getAuditLogs(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

@@ -10,6 +10,7 @@ export class SearchService implements OnModuleInit {
   private client: MeiliSearch;
   private readonly INDEX = 'listings';
   private available = false;
+  private indexConfigured = false;
 
   constructor(
     private configService: ConfigService,
@@ -24,27 +25,58 @@ export class SearchService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.checkAvailability();
+    await this.ensureMeiliAvailable();
   }
 
-  /** Verifie et retente la connexion a Meilisearch */
-  private async checkAvailability(): Promise<boolean> {
+  // ─── Disponibilite ────────────────────────────────────────────────
+
+  /**
+   * Contacte Meilisearch via health() pour verifier la connexion.
+   * Si c'est la premiere connexion reussie, configure l'index.
+   */
+  async ensureMeiliAvailable(): Promise<boolean> {
     if (this.available) return true;
+
     try {
-      await this.setupIndex();
+      this.logger.log('Meilisearch unavailable, retrying...');
+      await this.client.health();
+
+      // Premiere connexion reussie → configurer l'index
+      if (!this.indexConfigured) {
+        await this.setupIndex();
+        this.indexConfigured = true;
+      }
+
       this.available = true;
-      this.logger.log('Meilisearch connecte');
+      this.logger.log('Meilisearch connection restored');
       return true;
-    } catch (err) {
-      this.logger.warn(`Meilisearch indisponible: ${err}`);
+    } catch {
+      this.available = false;
       return false;
     }
   }
 
-  /** Garantit la disponibilite — retente si pas encore connecte */
-  private async ensureAvailable(): Promise<boolean> {
-    if (this.available) return true;
-    return this.checkAvailability();
+  /**
+   * Health check public — retourne le statut de Meilisearch.
+   * Force un ping reel a chaque appel (pas de cache du flag available).
+   */
+  async healthCheck(): Promise<{ status: 'ok' | 'unavailable' }> {
+    try {
+      await this.client.health();
+      if (!this.available) {
+        // Meilisearch est revenu — mettre a jour le flag
+        if (!this.indexConfigured) {
+          await this.setupIndex();
+          this.indexConfigured = true;
+        }
+        this.available = true;
+        this.logger.log('Meilisearch connection restored');
+      }
+      return { status: 'ok' };
+    } catch {
+      this.available = false;
+      return { status: 'unavailable' };
+    }
   }
 
   private async setupIndex() {
@@ -77,6 +109,8 @@ export class SearchService implements OnModuleInit {
     ]);
   }
 
+  // ─── Indexation ───────────────────────────────────────────────────
+
   async indexListing(listing: {
     id: string;
     sellerId: string;
@@ -96,108 +130,107 @@ export class SearchService implements OnModuleInit {
     createdAt: Date;
     images?: { url: string; order: number }[];
   }): Promise<void> {
-    if (!(await this.ensureAvailable())) {
-      this.logger.warn(`Meilisearch indisponible — listing ${listing.id} non indexe`);
+    if (!(await this.ensureMeiliAvailable())) {
+      this.logger.warn(`Meilisearch unavailable — listing ${listing.id} non indexe`);
       return;
     }
 
-    const thumbnailUrl = listing.images?.length
-      ? listing.images.sort((a, b) => a.order - b.order)[0].url
-      : null;
-
-    const imageUrls = listing.images?.length
-      ? listing.images.sort((a, b) => a.order - b.order).map((img) => img.url)
-      : [];
-
-    const { images, ...rest } = listing;
-    await this.client.index(this.INDEX).addDocuments(
-      [
-        {
-          ...rest,
-          thumbnailUrl,
-          imageUrls,
-          createdAt: listing.createdAt.getTime(),
-        },
-      ],
-      { primaryKey: 'id' },
-    );
+    try {
+      const doc = this.buildDocument(listing);
+      await this.client.index(this.INDEX).addDocuments([doc], { primaryKey: 'id' });
+    } catch (err) {
+      this.logger.error(`Echec indexation listing ${listing.id}: ${err}`);
+      this.available = false;
+    }
   }
 
   async removeListing(id: string): Promise<void> {
-    if (!(await this.ensureAvailable())) {
-      this.logger.warn(`Meilisearch indisponible — listing ${id} non retire`);
+    if (!(await this.ensureMeiliAvailable())) {
+      this.logger.warn(`Meilisearch unavailable — listing ${id} non retire`);
       return;
     }
-    await this.client.index(this.INDEX).deleteDocument(id);
+
+    try {
+      await this.client.index(this.INDEX).deleteDocument(id);
+    } catch (err) {
+      this.logger.error(`Echec suppression listing ${id}: ${err}`);
+      this.available = false;
+    }
   }
+
+  // ─── Recherche ────────────────────────────────────────────────────
 
   async search(filters: ListingFiltersDto) {
-    if (!(await this.ensureAvailable())) {
+    if (!(await this.ensureMeiliAvailable())) {
       return { data: [], total: 0, cursor: null, hasMore: false };
     }
-    const filterArray: string[] = ['status = ACTIVE'];
 
-    if (filters.brand) filterArray.push(`brand = "${filters.brand}"`);
-    if (filters.sizeEuMin !== undefined)
-      filterArray.push(`sizeEu >= ${filters.sizeEuMin}`);
-    if (filters.sizeEuMax !== undefined)
-      filterArray.push(`sizeEu <= ${filters.sizeEuMax}`);
-    if (filters.priceMin !== undefined)
-      filterArray.push(`priceXof >= ${filters.priceMin}`);
-    if (filters.priceMax !== undefined)
-      filterArray.push(`priceXof <= ${filters.priceMax}`);
-    if (filters.condition)
-      filterArray.push(`condition = "${filters.condition}"`);
-    if (filters.color) filterArray.push(`color = "${filters.color}"`);
-    if (filters.region)
-      filterArray.push(`locationRegion = "${filters.region}"`);
-    if (filters.city) filterArray.push(`locationCity = "${filters.city}"`);
-    if (filters.sellerId) filterArray.push(`sellerId = "${filters.sellerId}"`);
+    try {
+      const filterArray: string[] = ['status = ACTIVE'];
 
-    let sort: string[] = [];
-    switch (filters.sortBy) {
-      case 'price_asc':
-        sort = ['priceXof:asc'];
-        break;
-      case 'price_desc':
-        sort = ['priceXof:desc'];
-        break;
-      case 'popularity':
-        sort = ['viewsCount:desc'];
-        break;
-      default:
-        sort = ['createdAt:desc'];
-        break;
+      if (filters.brand) filterArray.push(`brand = "${filters.brand}"`);
+      if (filters.sizeEuMin !== undefined)
+        filterArray.push(`sizeEu >= ${filters.sizeEuMin}`);
+      if (filters.sizeEuMax !== undefined)
+        filterArray.push(`sizeEu <= ${filters.sizeEuMax}`);
+      if (filters.priceMin !== undefined)
+        filterArray.push(`priceXof >= ${filters.priceMin}`);
+      if (filters.priceMax !== undefined)
+        filterArray.push(`priceXof <= ${filters.priceMax}`);
+      if (filters.condition)
+        filterArray.push(`condition = "${filters.condition}"`);
+      if (filters.color) filterArray.push(`color = "${filters.color}"`);
+      if (filters.region)
+        filterArray.push(`locationRegion = "${filters.region}"`);
+      if (filters.city) filterArray.push(`locationCity = "${filters.city}"`);
+      if (filters.sellerId) filterArray.push(`sellerId = "${filters.sellerId}"`);
+
+      let sort: string[] = [];
+      switch (filters.sortBy) {
+        case 'price_asc':
+          sort = ['priceXof:asc'];
+          break;
+        case 'price_desc':
+          sort = ['priceXof:desc'];
+          break;
+        case 'popularity':
+          sort = ['viewsCount:desc'];
+          break;
+        default:
+          sort = ['createdAt:desc'];
+          break;
+      }
+
+      const limit = Math.min(filters.limit || 20, 100);
+      const offset = filters.cursor ? parseInt(filters.cursor, 10) : 0;
+
+      const result = await this.client.index(this.INDEX).search(
+        filters.query || '',
+        { filter: filterArray.join(' AND '), sort, limit, offset },
+      );
+
+      const nextOffset = offset + result.hits.length;
+      const hasMore = nextOffset < (result.estimatedTotalHits || 0);
+
+      return {
+        data: result.hits,
+        total: result.estimatedTotalHits || 0,
+        cursor: hasMore ? String(nextOffset) : null,
+        hasMore,
+      };
+    } catch (err) {
+      this.logger.error(`Echec recherche Meilisearch: ${err}`);
+      this.available = false;
+      return { data: [], total: 0, cursor: null, hasMore: false };
     }
-
-    const limit = Math.min(filters.limit || 20, 100);
-    const offset = filters.cursor ? parseInt(filters.cursor, 10) : 0;
-
-    const result = await this.client.index(this.INDEX).search(
-      filters.query || '',
-      {
-        filter: filterArray.join(' AND '),
-        sort,
-        limit,
-        offset,
-      },
-    );
-
-    const nextOffset = offset + result.hits.length;
-    const hasMore = nextOffset < (result.estimatedTotalHits || 0);
-
-    return {
-      data: result.hits,
-      total: result.estimatedTotalHits || 0,
-      cursor: hasMore ? String(nextOffset) : null,
-      hasMore,
-    };
   }
 
+  // ─── Reindexation ─────────────────────────────────────────────────
+
   /** Re-indexe toutes les annonces ACTIVE depuis la base de donnees */
-  async reindexAll(): Promise<{ indexed: number }> {
-    if (!(await this.ensureAvailable())) {
-      throw new Error('Meilisearch indisponible');
+  async reindexAll(): Promise<{ reindexed: number }> {
+    if (!(await this.ensureMeiliAvailable())) {
+      throw new Error('Meilisearch unavailable — impossible de reindexer');
     }
 
     // Vider l'index
@@ -212,40 +245,97 @@ export class SearchService implements OnModuleInit {
 
     if (listings.length === 0) {
       this.logger.log('Aucune annonce ACTIVE a indexer');
-      return { indexed: 0 };
+      return { reindexed: 0 };
     }
 
     // Indexer par batch de 50
     const batchSize = 50;
     for (let i = 0; i < listings.length; i += batchSize) {
       const batch = listings.slice(i, i + batchSize);
-      const docs = batch.map((listing) => {
-        const sorted = listing.images.sort((a, b) => a.order - b.order);
-        return {
-          id: listing.id,
-          sellerId: listing.sellerId,
-          slug: listing.slug,
-          title: listing.title,
-          description: listing.description,
-          brand: listing.brand,
-          model: listing.model,
-          sizeEu: listing.sizeEu,
-          priceXof: listing.priceXof,
-          condition: listing.condition,
-          color: listing.color,
-          locationCity: listing.locationCity,
-          locationRegion: listing.locationRegion,
-          status: listing.status,
-          viewsCount: listing.viewsCount,
-          createdAt: listing.createdAt.getTime(),
-          thumbnailUrl: sorted[0]?.url || null,
-          imageUrls: sorted.map((img) => img.url),
-        };
-      });
+      const docs = batch.map((listing) => this.buildDocument(listing));
       await this.client.index(this.INDEX).addDocuments(docs, { primaryKey: 'id' });
     }
 
-    this.logger.log(`${listings.length} annonces re-indexees dans Meilisearch`);
-    return { indexed: listings.length };
+    this.logger.log(`Reindex completed: ${listings.length} listings`);
+    return { reindexed: listings.length };
+  }
+
+  /** Re-indexe une seule annonce par son ID */
+  async reindexOne(listingId: string): Promise<{ reindexed: number }> {
+    if (!(await this.ensureMeiliAvailable())) {
+      throw new Error('Meilisearch unavailable — impossible de reindexer');
+    }
+
+    const listing = await this.prisma.listing.findUnique({
+      where: { id: listingId },
+      include: { images: { orderBy: { order: 'asc' } } },
+    });
+
+    if (!listing) {
+      throw new Error('Annonce introuvable');
+    }
+
+    // Si l'annonce est ACTIVE, l'indexer ; sinon la retirer
+    if (listing.status === 'ACTIVE') {
+      const doc = this.buildDocument(listing);
+      await this.client.index(this.INDEX).addDocuments([doc], { primaryKey: 'id' });
+      this.logger.log(`Reindex completed: 1 listing (${listingId})`);
+    } else {
+      try {
+        await this.client.index(this.INDEX).deleteDocument(listingId);
+      } catch {
+        // Pas grave si le document n'existait pas
+      }
+      this.logger.log(`Listing ${listingId} retire de l'index (status: ${listing.status})`);
+    }
+
+    return { reindexed: 1 };
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────
+
+  private buildDocument(listing: {
+    id: string;
+    sellerId: string;
+    slug: string;
+    title: string;
+    description: string;
+    brand: string;
+    model: string | null;
+    sizeEu: number;
+    priceXof: number;
+    condition: string;
+    color: string;
+    locationCity: string;
+    locationRegion: string;
+    status: string;
+    viewsCount: number;
+    createdAt: Date;
+    images?: { url: string; order: number }[];
+  }) {
+    const sorted = listing.images?.length
+      ? [...listing.images].sort((a, b) => a.order - b.order)
+      : [];
+
+    return {
+      id: listing.id,
+      sellerId: listing.sellerId,
+      slug: listing.slug,
+      title: listing.title,
+      description: listing.description,
+      brand: listing.brand,
+      model: listing.model,
+      sizeEu: listing.sizeEu,
+      priceXof: listing.priceXof,
+      condition: listing.condition,
+      color: listing.color,
+      locationCity: listing.locationCity,
+      locationRegion: listing.locationRegion,
+      status: listing.status,
+      viewsCount: listing.viewsCount,
+      createdAt: listing.createdAt.getTime(),
+      thumbnailUrl: sorted[0]?.url || null,
+      imageUrls: sorted.map((img) => img.url),
+    };
   }
 }
