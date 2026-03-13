@@ -14,6 +14,7 @@ import { ListingService } from './listing.service';
 import { ImageService } from '../image/image.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { EmailVerifiedGuard } from '../common/guards/email-verified.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CreateListingDto } from './dto/create-listing.dto';
@@ -91,7 +92,7 @@ export class ListingController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
   @Roles('SELLER', 'ADMIN')
   async create(
     @CurrentUser() user: { id: string },
@@ -101,7 +102,7 @@ export class ListingController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async update(
     @Param('id') id: string,
     @CurrentUser() user: { id: string },

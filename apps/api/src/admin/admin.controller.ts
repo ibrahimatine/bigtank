@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Delete,
   Param,
@@ -11,6 +12,7 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
+import { SearchService } from '../search/search.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -27,7 +29,10 @@ class SuspendUserDto {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly searchService: SearchService,
+  ) {}
 
   @Get('stats')
   getStats() {
@@ -103,6 +108,11 @@ export class AdminController {
     @Param('id') listingId: string,
   ) {
     return this.adminService.deleteListing(user.id, listingId);
+  }
+
+  @Post('reindex')
+  async reindexSearch() {
+    return this.searchService.reindexAll();
   }
 
   @Get('audit-logs')

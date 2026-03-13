@@ -15,6 +15,9 @@ export function LoginForm() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,6 +27,8 @@ export function LoginForm() {
     e.preventDefault();
     setError('');
     setFieldErrors({});
+    setNeedsVerification(false);
+    setResendMessage('');
 
     const parsed = loginSchema.safeParse({ emailOrPhone, password });
     if (!parsed.success) {
@@ -40,12 +45,42 @@ export function LoginForm() {
     setLoading(false);
 
     if (result.error) {
+      // Detecter si c'est une erreur de verification email
+      if (result.error.toLowerCase().includes('verifier votre email') || result.error.toLowerCase().includes('verifiez votre email')) {
+        setNeedsVerification(true);
+      }
       setError(result.error);
     } else {
       const role = result.user?.role;
       const destination = rawRedirect || (role === 'ADMIN' ? '/admin' : '/');
       router.push(destination);
       router.refresh();
+    }
+  }
+
+  async function handleResend() {
+    if (!emailOrPhone.includes('@')) {
+      setResendMessage('Entrez votre adresse email pour renvoyer le lien.');
+      return;
+    }
+    setResendLoading(true);
+    setResendMessage('');
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailOrPhone }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResendMessage('Email de verification renvoye ! Consultez votre boite mail.');
+      } else {
+        setResendMessage(data.error || 'Erreur lors du renvoi.');
+      }
+    } catch {
+      setResendMessage('Erreur lors du renvoi.');
+    } finally {
+      setResendLoading(false);
     }
   }
 
@@ -73,8 +108,23 @@ export function LoginForm() {
       </div>
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm">
-          {error}
+        <div className={`p-3 rounded-lg text-sm ${needsVerification ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800' : 'bg-red-50 text-red-600'}`}>
+          <p>{error}</p>
+          {needsVerification && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                className="text-sm font-medium underline hover:no-underline"
+              >
+                {resendLoading ? 'Envoi en cours...' : 'Renvoyer l\'email de verification'}
+              </button>
+              {resendMessage && (
+                <p className="mt-1 text-xs">{resendMessage}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

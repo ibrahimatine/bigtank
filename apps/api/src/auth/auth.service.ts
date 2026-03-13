@@ -10,6 +10,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
+import Redis from 'ioredis';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import {
@@ -24,11 +25,13 @@ import { LoginRateLimitService } from './login-rate-limit.service';
 import { NotificationService } from '../notification/notification.service';
 
 const BCRYPT_ROUNDS = 12;
+const RESEND_COOLDOWN_SECONDS = 120; // 2 minutes entre chaque renvoi
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject('PRISMA') private prisma: PrismaClient,
+    @Inject('REDIS') private redis: Redis,
     private jwtService: JwtService,
     private configService: ConfigService,
     private loginRateLimit: LoginRateLimitService,
@@ -58,9 +61,12 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
 
-    // Token de verification email
+    // Token de verification email (expire dans 24h)
     const emailVerificationToken = dto.email
       ? crypto.randomBytes(32).toString('hex')
+      : null;
+    const emailVerificationExpiresAt = dto.email
+      ? new Date(Date.now() + 24 * 60 * 60 * 1000)
       : null;
 
     const user = await this.prisma.user.create({
@@ -72,6 +78,7 @@ export class AuthService {
         city: dto.city || null,
         region: dto.region || null,
         emailVerificationToken,
+        emailVerificationExpiresAt,
       },
       select: {
         id: true,
@@ -381,11 +388,24 @@ export class AuthService {
       );
     }
 
+    // Verifier l'expiration du token
+    if (user.emailVerificationExpiresAt && user.emailVerificationExpiresAt < new Date()) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerificationToken: null, emailVerificationExpiresAt: null },
+      });
+      throw new HttpException(
+        'Ce lien a expire. Veuillez demander un nouveau lien de verification.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
         emailVerificationToken: null,
+        emailVerificationExpiresAt: null,
       },
     });
 
@@ -408,25 +428,50 @@ export class AuthService {
     return { message: 'Email verifie avec succes' };
   }
 
-  async resendVerification(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, name: true, emailVerified: true },
-    });
+  async resendVerification(emailOrUserId: string) {
+    // Supporter l'appel par userId (authentifie) ou par email (non authentifie)
+    let user;
+    if (emailOrUserId.includes('@')) {
+      user = await this.prisma.user.findUnique({
+        where: { email: emailOrUserId },
+        select: { id: true, email: true, name: true, emailVerified: true },
+      });
+    } else {
+      user = await this.prisma.user.findUnique({
+        where: { id: emailOrUserId },
+        select: { id: true, email: true, name: true, emailVerified: true },
+      });
+    }
 
     if (!user || !user.email) {
-      throw new HttpException('Aucun email associe a ce compte', HttpStatus.BAD_REQUEST);
+      // Ne pas reveler si l'email existe ou pas
+      return { message: 'Si un compte existe avec cet email, un lien de verification a ete envoye.' };
     }
 
     if (user.emailVerified) {
       return { message: 'Email deja verifie' };
     }
 
+    // Rate limiting : 1 renvoi toutes les 2 minutes
+    const rateLimitKey = `resend_verification:${user.id}`;
+    const lastSent = await this.redis.get(rateLimitKey);
+    if (lastSent) {
+      const remaining = Math.ceil(RESEND_COOLDOWN_SECONDS - (Date.now() - parseInt(lastSent, 10)) / 1000);
+      throw new HttpException(
+        `Veuillez patienter ${remaining} secondes avant de renvoyer un email.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
     const newToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { emailVerificationToken: newToken },
+      data: {
+        emailVerificationToken: newToken,
+        emailVerificationExpiresAt: expiresAt,
+      },
     });
 
     const webUrl = process.env.WEB_URL || 'http://localhost:3000';
@@ -439,6 +484,9 @@ export class AuthService {
       body: `Cliquez sur le lien pour verifier votre email`,
       data: { verifyLink },
     });
+
+    // Enregistrer le timestamp pour le rate limiting
+    await this.redis.set(rateLimitKey, String(Date.now()), 'EX', RESEND_COOLDOWN_SECONDS);
 
     return { message: 'Email de verification renvoye' };
   }

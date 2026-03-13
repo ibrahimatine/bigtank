@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { RefreshCw } from 'lucide-react';
@@ -22,6 +22,20 @@ export function ListingStatusAction({ listingId, currentStatus }: ListingStatusA
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Positionner le menu par rapport au bouton (position fixed pour eviter overflow)
+  useEffect(() => {
+    if (open && btnRef.current && menuRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const menu = menuRef.current;
+      menu.style.top = `${rect.bottom + 4}px`;
+      // Aligner a droite du bouton, mais pas hors ecran
+      const left = Math.max(8, rect.right - menu.offsetWidth);
+      menu.style.left = `${left}px`;
+    }
+  }, [open]);
 
   async function handleChange(newStatus: string) {
     if (newStatus === currentStatus) {
@@ -53,6 +67,7 @@ export function ListingStatusAction({ listingId, currentStatus }: ListingStatusA
   return (
     <div className="relative inline-block">
       <button
+        ref={btnRef}
         onClick={() => setOpen(!open)}
         disabled={loading}
         className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
@@ -64,7 +79,10 @@ export function ListingStatusAction({ listingId, currentStatus }: ListingStatusA
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-1 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden min-w-[140px]">
+          <div
+            ref={menuRef}
+            className="fixed z-50 bg-[var(--color-card)] border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden min-w-[140px]"
+          >
             {STATUS_OPTIONS.filter((o) => o.value !== currentStatus).map((option) => (
               <button
                 key={option.value}

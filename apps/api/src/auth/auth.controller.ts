@@ -136,11 +136,10 @@ export class AuthController {
     return this.authService.verifyEmail(body.token);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
-  async resendVerification(@CurrentUser() user: { id: string }) {
-    return this.authService.resendVerification(user.id);
+  async resendVerification(@Body() body: { email: string }) {
+    return this.authService.resendVerification(body.email);
   }
 
   @UseGuards(JwtAuthGuard)

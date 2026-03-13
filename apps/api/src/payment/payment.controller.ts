@@ -11,6 +11,7 @@ import {
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { EmailVerifiedGuard } from '../common/guards/email-verified.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 
@@ -19,7 +20,7 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('initiate')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async initiate(
     @CurrentUser() user: { id: string },
     @Body() body: { listingId: string; phone: string; paymentMethod: string },
@@ -35,7 +36,7 @@ export class PaymentController {
   }
 
   @Post('refund')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
   @Roles('ADMIN')
   async refund(
     @CurrentUser() user: { id: string },
@@ -45,20 +46,20 @@ export class PaymentController {
   }
 
   @Get('balance')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard, RolesGuard)
   @Roles('ADMIN')
   async balance() {
     return this.paymentService.getBalance();
   }
 
   @Get('status/:refCommand')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async status(@Param('refCommand') refCommand: string) {
     return this.paymentService.checkTransactionStatus(refCommand);
   }
 
   @Get('listing/:listingId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async getByListing(
     @CurrentUser() user: { id: string },
     @Param('listingId') listingId: string,

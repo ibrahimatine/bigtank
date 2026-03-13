@@ -9,12 +9,13 @@ import {
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../common/guards/email-verified.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { StartConversationDto } from './dto/start-conversation.dto';
 import { GetMessagesDto } from './dto/get-messages.dto';
 
 @Controller('chat')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard)
 export class ChatController {
   constructor(private chatService: ChatService) {}
 
