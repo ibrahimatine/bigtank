@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { Search, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/components/providers/auth-provider';
 
 export function Hero() {
+  const { user } = useAuth();
   const scrollToListings = () => {
     document.getElementById('recent-listings')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -28,7 +30,7 @@ export function Hero() {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6 animate-fade-up">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-pulse" />
             <span className="text-xs font-medium text-white/60 tracking-wide">
-              Marketplace de sneakers #1 au Senegal
+              Marketplace de chaussures #1 au Senegal
             </span>
           </div>
 
@@ -38,7 +40,7 @@ export function Hero() {
               TROUVEZ VOS
             </span>
             <span className="font-[family-name:var(--font-display)] text-5xl sm:text-6xl lg:text-8xl leading-[0.9] tracking-wider text-[var(--color-accent)] block">
-              SNEAKERS
+              CHAUSSURES
             </span>
             <span className="font-[family-name:var(--font-display)] text-5xl sm:text-6xl lg:text-8xl leading-[0.9] tracking-wider block">
               PARFAITES
@@ -72,10 +74,10 @@ export function Hero() {
               Explorer les annonces
             </button>
             <Link
-              href="/register"
+              href={user ? '/dashboard/new' : '/register'}
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/20 text-white/80 font-medium text-sm hover:bg-white/5 transition-colors"
             >
-              Vendre mes sneakers
+              Vendre mes chaussures
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

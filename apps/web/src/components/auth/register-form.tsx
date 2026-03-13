@@ -28,6 +28,7 @@ export function RegisterForm() {
     region: '',
   });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -58,6 +59,11 @@ export function RegisterForm() {
 
     if (result.error) {
       setError(result.error);
+    } else if (result.needsVerification) {
+      setSuccessMessage('Un email de verification a ete envoye. Consultez votre boite mail pour activer votre compte.');
+      setTimeout(() => {
+        router.push('/login');
+      }, 3000);
     } else {
       router.push('/');
       router.refresh();
@@ -87,6 +93,11 @@ export function RegisterForm() {
         <div className="relative flex justify-center text-sm"><span className="bg-white dark:bg-gray-900 px-4 text-gray-500">ou</span></div>
       </div>
     <form onSubmit={handleSubmit} className="space-y-4">
+      {successMessage && (
+        <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-sm font-medium border border-green-200 dark:border-green-800">
+          {successMessage}
+        </div>
+      )}
       {error && (
         <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm font-medium border border-red-200 dark:border-red-800">
           {error}

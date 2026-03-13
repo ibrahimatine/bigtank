@@ -70,6 +70,7 @@ export interface ListingSearchResult {
   locationRegion: string;
   viewsCount: number;
   thumbnailUrl: string | null;
+  imageUrls?: string[];
   createdAt: number;
 }
 

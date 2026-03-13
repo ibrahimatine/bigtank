@@ -83,12 +83,17 @@ export class SearchService implements OnModuleInit {
       : null;
 
     if (!this.available) return;
+    const imageUrls = listing.images?.length
+      ? listing.images.sort((a, b) => a.order - b.order).map((img) => img.url)
+      : [];
+
     const { images, ...rest } = listing;
     await this.client.index(this.INDEX).addDocuments(
       [
         {
           ...rest,
           thumbnailUrl,
+          imageUrls,
           createdAt: listing.createdAt.getTime(),
         },
       ],

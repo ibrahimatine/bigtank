@@ -257,7 +257,7 @@ export function FilterableListings() {
         </h2>
 
         {loading ? (
-          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <ListingCardSkeleton key={i} />
             ))}
@@ -267,7 +267,7 @@ export function FilterableListings() {
             <ListingGrid listings={listings} />
 
             {loadingMore && (
-              <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 mt-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 mt-5">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <ListingCardSkeleton key={i} />
                 ))}

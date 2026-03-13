@@ -119,7 +119,10 @@ export function MessageThread({
   const handleNewMessage = useCallback(
     (message: ChatMessage) => {
       if (message.conversationId !== conversation.id) return;
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
+        return [...prev, message];
+      });
       if (message.senderId !== currentUserId) {
         // Marquer comme lu et rafraichir le compteur (l'utilisateur est en train de lire)
         markRead(conversation.id);

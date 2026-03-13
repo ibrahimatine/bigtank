@@ -1,6 +1,6 @@
 # Samadal — Plan de mise en production
 
-> Derniere mise a jour : 2026-03-12
+> Derniere mise a jour : 2026-03-13
 > Ce fichier liste TOUT ce qu'il reste a faire avant de passer en production.
 > On coche au fur et a mesure qu'on avance.
 
@@ -33,7 +33,7 @@
 
 ---
 
-## PHASE 3 — FONCTIONNALITES ✅ QUASI TERMINEE
+## PHASE 3 — FONCTIONNALITES ✅ TERMINEE
 
 ### 3.1 Mot de passe oublie — ✅ FAIT
 - [x] Backend + Frontend + Email template
@@ -80,6 +80,25 @@
 - [x] Marketplace toutes tailles (plus "grandes tailles uniquement")
 - [x] Filtres rapides : EU 38-39, 40-41, 42-43, 44-45, 46+
 - [x] Filtres landing page en mode toggle (comme mobile)
+
+### 3.10 Verification email — ✅ FAIT
+- [x] Token genere a l'inscription
+- [x] Endpoint POST /auth/verify-email + POST /auth/resend-verification
+- [x] Template email de verification (Resend)
+- [x] Page frontend /verify-email?token=xxx
+
+### 3.11 Messages d'erreur — ✅ FAIT
+- [x] Propagation correcte backend → frontend (data.message en priorite)
+- [x] Affichage visible dans les formulaires (register, login)
+
+### 3.12 Paiements en pause — ✅ FAIT
+- [x] Annonces publiees directement en ACTIVE (gratuit pour tous)
+- [x] Pas de redirection vers la page de paiement
+
+### 3.13 Admin ameliorations — ✅ FAIT
+- [x] Changement de statut sync avec Meilisearch (ACTIVE = indexe, autres = retire)
+- [x] Mobile UX : barre de navigation en bas + cartes au lieu de tableaux
+- [x] Compte admin configure (ibrahimatine29@gmail.com)
 
 ---
 
@@ -177,7 +196,7 @@
 - [ ] Emails fonctionnels
 - [ ] Paiements fonctionnels
 - [ ] Chat temps reel OK
-- [ ] Admin moderation OK
+- [x] Admin moderation OK
 - [x] Images upload OK (Cloudflare R2)
 - [x] Recherche Meilisearch OK (Meilisearch Cloud)
 - [ ] Rapide sur mobile (< 3s)
@@ -196,9 +215,9 @@
 |----------|-------|-------------|--------|
 | CRITIQUE | Phase 1 | Securite | ✅ FAIT |
 | HAUTE | Phase 2 | Emails Resend | ✅ FAIT |
-| HAUTE | Phase 3 | Fonctionnalites | ✅ 95% (reste OAuth keys Google/Facebook) |
-| HAUTE | Phase 4 | Paiements Intech | ⏳ A tester en prod |
-| HAUTE | Phase 5 | Deploiement Railway+Vercel | ✅ FAIT (DNS en propagation) |
+| HAUTE | Phase 3 | Fonctionnalites | ✅ FAIT (reste OAuth keys Google/Facebook) |
+| HAUTE | Phase 4 | Paiements Intech | ⏸ EN PAUSE (gratuit pour tous) |
+| HAUTE | Phase 5 | Deploiement Railway+Vercel | ✅ FAIT |
 | MOYENNE | Phase 6 | Monitoring (Sentry) | ⏳ A FAIRE |
 | BASSE | Phase 7 | Polish frontend | Apres lancement |
 | FINALE | Phase 8 | Checklist | Avant lancement |

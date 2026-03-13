@@ -152,6 +152,11 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
+    // Bloquer la connexion si l'email n'est pas verifie
+    if (user.email && !user.emailVerified) {
+      throw new UnauthorizedException('Veuillez verifier votre email avant de vous connecter. Consultez votre boite mail.');
+    }
+
     await this.loginRateLimit.resetAttempts(rateLimitKey);
     await this.logLoginAttempt(user.id, dto.emailOrPhone, ip, true);
 

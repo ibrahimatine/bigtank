@@ -17,15 +17,18 @@ export function Footer() {
           {/* Branding */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <svg className="h-8 w-8 text-[var(--color-accent)]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2.5 17.5c0-1.5 1-2.5 3-3s4-.5 5.5-1.5 2-3 2.5-4.5S14.5 5.5 16 4.5s3.5-1 5-.5 2 2 2.5 3.5.5 3 .5 4.5v5.5c0 1.5-1 2.5-2.5 2.5H5c-1.5 0-2.5-1-2.5-2.5z" />
+              <svg className="h-9 w-9" viewBox="0 0 32 32" fill="none">
+                <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
+                <path d="M10 21.5c0-1.2.8-2.2 2.4-2.8 1.6-.6 3-.4 4.2-1.2s1.6-2.2 2-3.4.8-2.4 1.8-3.2 2.2-.8 3-.4" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                <circle cx="11" cy="22.5" r="1.2" fill="white" opacity="0.6" />
+                <circle cx="14.5" cy="18" r="0.8" fill="white" opacity="0.4" />
               </svg>
-              <h3 className="font-[family-name:var(--font-display)] text-3xl tracking-[0.15em] text-white">
-                SAMA<span className="text-[var(--color-accent)]">DAL</span>
+              <h3 className="font-[family-name:var(--font-display)] text-3xl tracking-[0.08em] text-white font-bold">
+                samadal
               </h3>
             </div>
             <p className="text-sm leading-relaxed">
-              La marketplace de sneakers de reference au Senegal. Toutes tailles du 36 au 50+.
+              La marketplace de chaussures de reference au Senegal. Toutes tailles du 36 au 50+.
             </p>
             <p className="text-xs mt-3 text-white/30">Votre prochaine paire vous attend</p>
           </div>

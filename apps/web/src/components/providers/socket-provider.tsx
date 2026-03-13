@@ -139,7 +139,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         socket.off('new_message', handler);
       };
     },
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isConnected],
   );
 
   const sendMessage = useCallback((conversationId: string, content: string) => {

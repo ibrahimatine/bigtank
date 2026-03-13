@@ -18,7 +18,7 @@ export function SellerCta() {
             PUBLIEZ UNE ANNONCE
           </h2>
           <p className="mt-4 text-white/50 max-w-sm mx-auto text-sm">
-            Vos prochaines sneakers trouvent preneur en quelques minutes.
+            Vos prochaines chaussures trouvent preneur en quelques minutes.
           </p>
           <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
             <Link

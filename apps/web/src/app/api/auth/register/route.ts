@@ -51,12 +51,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Auth service register returns { message, user } — login to get tokens
+    // Si l'utilisateur a un email, il doit le verifier avant de se connecter
+    if (cleanData.email) {
+      return NextResponse.json({
+        message: 'Verifiez votre email pour activer votre compte',
+        needsVerification: true,
+      });
+    }
+
+    // Pas d'email (inscription par telephone) — auto-login
     const loginRes = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        emailOrPhone: cleanData.email || cleanData.phone,
+        emailOrPhone: cleanData.phone,
         password: parsed.data.password,
       }),
     });
@@ -64,7 +72,6 @@ export async function POST(request: Request) {
     const loginData = await loginRes.json();
 
     if (!loginRes.ok) {
-      // Registration succeeded but auto-login failed — still return user
       const user = data.data?.user || data.user;
       return NextResponse.json({ user });
     }
