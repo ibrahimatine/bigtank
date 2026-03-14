@@ -1,6 +1,6 @@
 # Samadal — Plan de mise en production
 
-> Derniere mise a jour : 2026-03-13
+> Derniere mise a jour : 2026-03-14
 > Ce fichier liste TOUT ce qu'il reste a faire avant de passer en production.
 > On coche au fur et a mesure qu'on avance.
 
@@ -55,13 +55,13 @@
 - [x] Historique ventes/achats (cursor pagination)
 - [x] Suivi transactions admin (AuditLog)
 
-### 3.6 OAuth Google/Facebook — ✅ CODE PRET
+### 3.6 OAuth Google/Facebook — ✅ GOOGLE OK, FACEBOOK EN ATTENTE
 - [x] Strategies Passport Google + Facebook
 - [x] Routes backend + callback
 - [x] Boutons frontend (login + register)
-- [ ] Creer l'app Google Cloud Console (Tine)
-- [ ] Creer l'app Facebook Developers (Tine)
-- [ ] Mettre les cles dans `.env`
+- [x] App Google Cloud Console creee + cles configurees
+- [x] Separation login/register (register bloque si compte existant)
+- [ ] Creer l'app Facebook Developers (en attente verification SMS)
 
 ### 3.7 Migration monolithe — ✅ FAIT
 - [x] `apps/api` = backend unique (port 4000)
@@ -99,6 +99,18 @@
 - [x] Changement de statut sync avec Meilisearch (ACTIVE = indexe, autres = retire)
 - [x] Mobile UX : barre de navigation en bas + cartes au lieu de tableaux
 - [x] Compte admin configure (ibrahimatine29@gmail.com)
+- [x] Bottom sheet pour changement de statut (mobile-friendly)
+- [x] Bouton "Reindexer" pour resync Meilisearch
+
+### 3.14 UX plateforme — ✅ FAIT
+- [x] Blocage login tant que email non verifie
+- [x] 2 colonnes d'annonces sur mobile (au lieu d'1)
+- [x] Carousel d'images sur les cartes d'annonces (swipe + fleches)
+- [x] Suppression photo de profil
+- [x] "sneakers" remplace par "chaussures" partout
+- [x] Chat : correction messages suivants qui ne passaient pas (dep array socket)
+- [x] Bouton "Vendre mes chaussures" dans le hero fonctionne
+- [x] Nouveau logo Samadal
 
 ---
 
@@ -154,14 +166,17 @@
 - [x] MEILISEARCH_URL + MEILISEARCH_API_KEY
 - [x] CORS_ORIGIN configure
 - [x] WEB_URL configure
-- [ ] Google/Facebook OAuth keys (apps a creer)
+- [x] Google OAuth keys (configurees sur Railway)
+- [x] SENTRY_DSN (Railway) + NEXT_PUBLIC_SENTRY_DSN (Vercel)
+- [ ] Facebook OAuth keys (en attente verification SMS)
 
 ---
 
 ## PHASE 6 — QUALITE & MONITORING
 
-### 6.1 Monitoring (prioritaire)
-- [ ] Installer Sentry (capture automatique des erreurs)
+### 6.1 Monitoring (prioritaire) ✅
+- [x] Sentry installe (frontend Next.js + backend NestJS)
+- [x] DSN configure sur Vercel + Railway
 - [x] Health checks avec verification DB/Redis
 
 ### 6.2 Logging (optionnel pour le lancement)
@@ -178,33 +193,44 @@
 
 ---
 
-## PHASE 7 — POLISH FRONTEND (apres le lancement)
+## PHASE 7 — POLISH FRONTEND ✅ SEO FAIT
 
 - [ ] Accessibilite (aria-labels, navigation clavier)
 - [ ] Performance (next/image, lazy loading, Core Web Vitals)
 - [ ] UX (scroll chat, retry API, page contact)
-- [ ] SEO (sitemap pagination, OpenGraph, Google Search Console)
+- [x] SEO : sitemap dynamique, robots.txt, JSON-LD, OpenGraph
+- [x] Favicon + Apple icon (logo S rouge)
+- [x] Images OG dynamiques par annonce (titre + prix + photo)
+- [x] PWA manifest (installable sur mobile)
+- [x] noindex sur pages privees (dashboard, chat)
+- [x] theme-color meta tag
+- [x] Google Search Console (propriete verifiee, sitemap soumis)
 
 ---
 
 ## PHASE 8 — CHECKLIST AVANT LANCEMENT
 
 ### 8.1 Checklist
-- [ ] Tous les secrets de production configures
-- [ ] `.env` pas dans le repo git
-- [ ] HTTPS partout
-- [ ] Emails fonctionnels
-- [ ] Paiements fonctionnels
-- [ ] Chat temps reel OK
+- [x] Tous les secrets de production configures (17 vars sur Railway)
+- [x] `.env` pas dans le repo git (gitignore OK)
+- [x] HTTPS samadal.net (SSL Vercel OK)
+- [x] Emails fonctionnels (Resend + domaine verifie)
+- [x] Paiements en pause (gratuit pour tous, code pret)
+- [x] Chat temps reel OK
 - [x] Admin moderation OK
 - [x] Images upload OK (Cloudflare R2)
 - [x] Recherche Meilisearch OK (Meilisearch Cloud)
-- [ ] Rapide sur mobile (< 3s)
+- [x] Rapide sur mobile (240ms TTFB, ~60KB HTML)
+- [x] Google OAuth OK
+- [x] Sentry monitoring OK
+- [x] SEO complet (sitemap, OG, JSON-LD, favicon, PWA)
+- [ ] Facebook OAuth (en attente verification SMS)
 - [ ] Test multi-navigateurs + appareils
+- [x] Google Search Console (propriete verifiee, sitemap soumis)
 
 ### 8.2 Donnees initiales
 - [x] Compte ADMIN cree
-- [ ] Annonces de test (ou les supprimer)
+- [x] Comptes test + annonces test supprimes (base nettoyee)
 - [x] Meilisearch cle de production
 
 ---
@@ -215,12 +241,12 @@
 |----------|-------|-------------|--------|
 | CRITIQUE | Phase 1 | Securite | ✅ FAIT |
 | HAUTE | Phase 2 | Emails Resend | ✅ FAIT |
-| HAUTE | Phase 3 | Fonctionnalites | ✅ FAIT (reste OAuth keys Google/Facebook) |
+| HAUTE | Phase 3 | Fonctionnalites | ✅ FAIT (reste Facebook OAuth) |
 | HAUTE | Phase 4 | Paiements Intech | ⏸ EN PAUSE (gratuit pour tous) |
 | HAUTE | Phase 5 | Deploiement Railway+Vercel | ✅ FAIT |
-| MOYENNE | Phase 6 | Monitoring (Sentry) | ⏳ A FAIRE |
-| BASSE | Phase 7 | Polish frontend | Apres lancement |
-| FINALE | Phase 8 | Checklist | Avant lancement |
+| MOYENNE | Phase 6 | Monitoring (Sentry) | ✅ FAIT |
+| BASSE | Phase 7 | Polish frontend / SEO | ✅ SEO FAIT (reste accessibilite, perf) |
+| FINALE | Phase 8 | Checklist | ✅ QUASI PRET (reste Facebook, tests, Search Console) |
 
 ---
 
