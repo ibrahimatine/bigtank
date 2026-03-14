@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getAdminListings } from '@/lib/api';
 import { ListingDeleteAction } from '@/components/admin/listing-delete-action';
 import { ListingStatusAction } from '@/components/admin/listing-status-action';
+import { ReindexButton } from '@/components/admin/reindex-button';
 import { ShoppingBag } from 'lucide-react';
 
 export const metadata: Metadata = { title: 'Annonces' };
@@ -47,9 +48,12 @@ export default async function AdminListingsPage({ searchParams }: Props) {
     <div className="pb-20 lg:pb-0">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Annonces</h1>
-        <span className="text-sm text-[var(--color-muted-foreground)]">
-          {result.total} au total
-        </span>
+        <div className="flex items-center gap-3">
+          <ReindexButton />
+          <span className="text-sm text-[var(--color-muted-foreground)]">
+            {result.total} au total
+          </span>
+        </div>
       </div>
 
       {/* Filtres */}
@@ -153,7 +157,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden lg:block bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-visible">
+      <div className="hidden lg:block bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
