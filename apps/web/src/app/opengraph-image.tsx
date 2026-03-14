@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Samadal — Chaussures Grandes Tailles au Senegal';
+export const alt = 'Samadal — Marketplace de Chaussures au Senegal';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -53,7 +53,7 @@ export default function Image() {
             textAlign: 'center',
           }}
         >
-          Chaussures Grandes Tailles au Senegal
+          Marketplace de Chaussures au Senegal
         </div>
 
         {/* Description */}
@@ -65,7 +65,7 @@ export default function Image() {
             marginTop: 8,
           }}
         >
-          EU 46 et plus · Nike · Jordan · Adidas · New Balance
+          Toutes tailles · Nike · Jordan · Adidas · New Balance
         </div>
 
         {/* URL badge */}

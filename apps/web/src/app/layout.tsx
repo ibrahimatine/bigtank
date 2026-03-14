@@ -57,6 +57,10 @@ export const metadata: Metadata = {
     description:
       'La marketplace N°1 pour acheter et vendre des chaussures au Senegal. Toutes tailles, toutes marques.',
   },
+  other: {
+    'theme-color': '#e94560',
+  },
+  applicationName: 'Samadal',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -4,6 +4,7 @@ import { LayoutDashboard, PlusCircle, UserCircle, ShoppingBag, Package } from 'l
 
 export const metadata: Metadata = {
   title: 'Dashboard',
+  robots: { index: false, follow: false },
 };
 
 const navItems = [
