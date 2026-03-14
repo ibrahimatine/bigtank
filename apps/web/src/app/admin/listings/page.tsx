@@ -153,7 +153,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
       </div>
 
       {/* Desktop table */}
-      <div className="hidden lg:block bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+      <div className="hidden lg:block bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl overflow-visible">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
