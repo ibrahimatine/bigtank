@@ -524,17 +524,28 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async validateOAuthUser(profile: { email: string | null; name: string; avatarUrl: string | null; provider: string; providerId: string }) {
+  async validateOAuthUser(
+    profile: { email: string | null; name: string; avatarUrl: string | null; provider: string; providerId: string },
+    mode?: string,
+  ) {
     // Check if user already exists with this provider
     let user = await this.prisma.user.findFirst({
       where: { provider: profile.provider, providerId: profile.providerId },
     });
 
+    // Mode register : bloquer si le compte existe deja (via provider ou email)
+    if (user && mode === 'register') {
+      throw new ConflictException('Ce compte existe deja. Connectez-vous plutot.');
+    }
+
     if (!user && profile.email) {
-      // Check if email already exists (link accounts)
+      // Check if email already exists
       user = await this.prisma.user.findUnique({ where: { email: profile.email } });
       if (user) {
-        // Link OAuth to existing account
+        if (mode === 'register') {
+          throw new ConflictException('Ce compte existe deja. Connectez-vous plutot.');
+        }
+        // Mode login : lier le compte OAuth
         user = await this.prisma.user.update({
           where: { id: user.id },
           data: { provider: profile.provider, providerId: profile.providerId, avatarUrl: user.avatarUrl || profile.avatarUrl },
@@ -543,6 +554,11 @@ export class AuthService {
     }
 
     if (!user) {
+      // Mode login sans compte existant : bloquer
+      if (mode === 'login') {
+        throw new NotFoundException("Aucun compte trouve. Inscrivez-vous d'abord.");
+      }
+
       // Create new user
       user = await this.prisma.user.create({
         data: {

@@ -35,27 +35,54 @@ export class AuthController {
   ) {}
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
-  googleLogin() {}
+  googleLogin(@Req() req: any, @Res() res: Response) {
+    // Passer le mode (login/register) via le state OAuth
+    const mode = req.query.mode || 'login';
+    const callbackUrl = this.configService.get('GOOGLE_CALLBACK_URL') || 'http://localhost:4000/api/auth/google/callback';
+    const clientId = this.configService.get('GOOGLE_CLIENT_ID');
+    const redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code&scope=email%20profile&state=${mode}`;
+    res.redirect(redirectUrl);
+  }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: any, @Res() res: Response) {
-    const tokens = await this.authService.validateOAuthUser(req.user);
     const webUrl = this.configService.get('WEB_URL') || 'http://localhost:3000';
-    res.redirect(`${webUrl}/api/auth/oauth-callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    const mode = req.query.state || 'login';
+    try {
+      const tokens = await this.authService.validateOAuthUser(req.user, mode);
+      res.redirect(`${webUrl}/api/auth/oauth-callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    } catch (err: any) {
+      const message = encodeURIComponent(err.message || 'Erreur de connexion');
+      res.redirect(`${webUrl}/${mode === 'register' ? 'register' : 'login'}?error=${message}`);
+    }
   }
 
   @Get('facebook')
-  @UseGuards(AuthGuard('facebook'))
-  facebookLogin() {}
+  facebookLogin(@Req() req: any, @Res() res: Response) {
+    const mode = req.query.mode || 'login';
+    const callbackUrl = this.configService.get('FACEBOOK_CALLBACK_URL') || 'http://localhost:4000/api/auth/facebook/callback';
+    const clientId = this.configService.get('FACEBOOK_CLIENT_ID');
+    if (!clientId) {
+      const webUrl = this.configService.get('WEB_URL') || 'http://localhost:3000';
+      return res.redirect(`${webUrl}/login?error=${encodeURIComponent('Facebook non configure')}`);
+    }
+    const redirectUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=email,public_profile&state=${mode}`;
+    res.redirect(redirectUrl);
+  }
 
   @Get('facebook/callback')
   @UseGuards(AuthGuard('facebook'))
   async facebookCallback(@Req() req: any, @Res() res: Response) {
-    const tokens = await this.authService.validateOAuthUser(req.user);
     const webUrl = this.configService.get('WEB_URL') || 'http://localhost:3000';
-    res.redirect(`${webUrl}/api/auth/oauth-callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    const mode = req.query.state || 'login';
+    try {
+      const tokens = await this.authService.validateOAuthUser(req.user, mode);
+      res.redirect(`${webUrl}/api/auth/oauth-callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
+    } catch (err: any) {
+      const message = encodeURIComponent(err.message || 'Erreur de connexion');
+      res.redirect(`${webUrl}/${mode === 'register' ? 'register' : 'login'}?error=${message}`);
+    }
   }
 
   @Post('register')

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { RegisterForm } from '@/components/auth/register-form';
 
 export const metadata: Metadata = {
@@ -12,7 +13,9 @@ export default function RegisterPage() {
         Creer un compte
       </h1>
       <div className="bg-[var(--color-card)] rounded-lg border border-[var(--color-border)] p-6">
-        <RegisterForm />
+        <Suspense>
+          <RegisterForm />
+        </Suspense>
       </div>
     </div>
   );
