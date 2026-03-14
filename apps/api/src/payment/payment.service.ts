@@ -172,7 +172,7 @@ export class PaymentService {
       externalTransactionId: refCommand,
       callbackUrl: `${this.webUrl}/api/payments/webhook`,
       apiKey: this.apiKey,
-      data: JSON.stringify({ listingId, paymentId: payment.id }),
+      data: { listingId, paymentId: payment.id },
     };
 
     try {
@@ -180,36 +180,38 @@ export class PaymentService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(intechPayload),
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(60000),
       });
 
-      const data = await response.json() as {
-        status: string;
+      const result = await response.json() as {
+        code: number;
+        error: boolean;
         msg?: string;
-        transaction?: { transactionId: string };
+        data?: { transactionId?: string; status?: string };
       };
 
-      if (!response.ok || data.status === 'ERROR') {
+      if (!response.ok || result.error || result.code !== 2000) {
         await this.prisma.listingPayment.update({
           where: { id: payment.id },
           data: { status: 'FAILED' },
         });
-        this.logger.warn(`PAIEMENT ECHOUE (Intech) | ref=${refCommand} | erreur=${data.msg}`);
+        this.logger.warn(`PAIEMENT ECHOUE (Intech) | ref=${refCommand} | code=${result.code} | erreur=${result.msg}`);
         await this.logTransaction('PAYMENT_FAILED', sellerId, listingId, {
           amount: commission,
           refCommand,
           paymentMethod,
-          error: data.msg || 'Erreur Intech',
+          error: result.msg || 'Erreur Intech',
+          intechCode: result.code,
         });
         throw new BadRequestException(
-          data.msg || 'Erreur lors de l\'initiation du paiement Intech',
+          result.msg || 'Erreur lors de l\'initiation du paiement Intech',
         );
       }
 
-      if (data.transaction?.transactionId) {
+      if (result.data?.transactionId) {
         await this.prisma.listingPayment.update({
           where: { id: payment.id },
-          data: { intechTransactionId: data.transaction.transactionId },
+          data: { intechTransactionId: result.data.transactionId },
         });
       }
 
@@ -355,19 +357,20 @@ export class PaymentService {
       externalTransactionId: refCommand,
       callbackUrl: `${this.webUrl}/api/payments/webhook`,
       apiKey: this.apiKey,
-      data: JSON.stringify({ paymentId: payment.id, type: 'refund' }),
+      data: { paymentId: payment.id, type: 'refund' },
     };
 
     const response = await fetch(`${this.baseUrl}/api-services/operation`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(intechPayload),
+      signal: AbortSignal.timeout(60000),
     });
 
-    const data = await response.json() as { status: string; msg?: string };
+    const result = await response.json() as { code: number; error: boolean; msg?: string };
 
-    if (!response.ok || data.status === 'ERROR') {
-      throw new BadRequestException(data.msg || 'Erreur lors du remboursement Intech');
+    if (!response.ok || result.error || result.code !== 2000) {
+      throw new BadRequestException(result.msg || 'Erreur lors du remboursement Intech');
     }
 
     await this.prisma.listingPayment.update({
@@ -398,14 +401,14 @@ export class PaymentService {
         externalTransactionId: `NOTIF_${Date.now()}`,
         callbackUrl: `${this.webUrl}/api/payments/webhook`,
         apiKey: this.apiKey,
-        data: JSON.stringify({ message }),
+        data: { message },
       };
 
       await fetch(`${this.baseUrl}/api-services/operation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(60000),
       });
     } catch (err) {
       console.error('[payment] WhatsApp notification failed:', err);
@@ -434,9 +437,9 @@ export class PaymentService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'X-Api-Key': this.apiKey,
+          'Secretkey': this.apiKey,
         },
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(60000),
       });
 
       if (!response.ok) {
