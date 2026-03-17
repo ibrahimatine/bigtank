@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getAdminStats } from '@/lib/api';
-import { Users, ShoppingBag, TrendingUp, AlertCircle, Receipt } from 'lucide-react';
+import { Users, ShoppingBag, TrendingUp, AlertCircle, Receipt, Flag, MessageSquare, Star, Ban, UserPlus, Trash2 } from 'lucide-react';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 export const dynamic = 'force-dynamic';
@@ -36,13 +36,19 @@ export default async function AdminDashboardPage() {
     <div className="pb-20 lg:pb-0">
       <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard label="Utilisateurs" value={stats.users.total} icon={Users} />
         <StatCard label="Vendeurs" value={stats.users.sellers} icon={TrendingUp} accent="bg-green-50" />
-        <StatCard label="Suspendus" value={stats.users.suspended} icon={AlertCircle} accent="bg-red-50" />
+        <StatCard label="Nouveaux auj." value={stats.users.newToday} icon={UserPlus} accent="bg-blue-50" />
+        <StatCard label="Bannis" value={stats.users.banned} icon={Ban} accent="bg-red-50" />
         <StatCard label="Annonces" value={stats.listings.total} icon={ShoppingBag} />
         <StatCard label="Actives" value={stats.listings.active} icon={TrendingUp} accent="bg-blue-50" />
         <StatCard label="Vendues" value={stats.listings.sold} icon={TrendingUp} accent="bg-purple-50" />
+        <StatCard label="Supprimées" value={stats.listings.deleted} icon={Trash2} accent="bg-gray-100" />
+        <StatCard label="Mises en avant" value={stats.listings.featured} icon={Star} accent="bg-yellow-50" />
+        <StatCard label="Signalements" value={stats.reports.pending} icon={Flag} accent="bg-orange-50" />
+        <StatCard label="Messages auj." value={stats.messages.today} icon={MessageSquare} accent="bg-indigo-50" />
+        <StatCard label="Suspendus" value={stats.users.suspended} icon={AlertCircle} accent="bg-red-50" />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -56,6 +62,15 @@ export default async function AdminDashboardPage() {
             <a href="/admin/listings" className="flex items-center gap-2 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
               <ShoppingBag className="h-4 w-4 text-[var(--color-muted-foreground)]" />
               Modérer les annonces
+            </a>
+            <a href="/admin/reports" className="flex items-center gap-2 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
+              <Flag className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+              Traiter les signalements
+              {stats.reports.pending > 0 && (
+                <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                  {stats.reports.pending}
+                </span>
+              )}
             </a>
             <a href="/admin/transactions" className="flex items-center gap-2 p-3 rounded-lg hover:bg-[var(--color-muted)] transition-colors">
               <Receipt className="h-4 w-4 text-[var(--color-muted-foreground)]" />
@@ -88,6 +103,14 @@ export default async function AdminDashboardPage() {
               <span className="font-medium">
                 {stats.listings.total > 0
                   ? Math.round((stats.listings.sold / stats.listings.total) * 100)
+                  : 0}%
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[var(--color-muted-foreground)]">Taux de ban</span>
+              <span className="font-medium">
+                {stats.users.total > 0
+                  ? Math.round((stats.users.banned / stats.users.total) * 100)
                   : 0}%
               </span>
             </div>

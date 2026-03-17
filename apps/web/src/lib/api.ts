@@ -360,8 +360,10 @@ export async function startConversation(data: {
 // --- Admin types ---
 
 export interface AdminStats {
-  users: { total: number; sellers: number; suspended: number };
-  listings: { total: number; active: number; sold: number };
+  users: { total: number; sellers: number; suspended: number; banned: number; newToday: number };
+  listings: { total: number; active: number; sold: number; deleted: number; featured: number };
+  reports: { pending: number };
+  messages: { today: number };
 }
 
 export interface AdminUser {
@@ -383,10 +385,41 @@ export interface AdminListing {
   brand: string;
   priceXof: number;
   status: string;
+  isFeatured: boolean;
   createdAt: string;
   slug: string;
+  deletedAt: string | null;
   seller: { id: string; name: string; email: string | null };
   images: { url: string }[];
+}
+
+export interface AdminReport {
+  id: string;
+  userId: string;
+  listingId: string;
+  reason: string;
+  description: string | null;
+  status: string;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  user: { id: string; name: string; email: string | null };
+  listing: {
+    id: string;
+    title: string;
+    slug: string;
+    status: string;
+    seller: { id: string; name: string };
+    images: { url: string }[];
+  };
+}
+
+export interface BannedIp {
+  id: string;
+  ip: string;
+  reason: string | null;
+  bannedBy: string;
+  createdAt: string;
 }
 
 export interface AdminPaginated<T> {
@@ -446,4 +479,16 @@ export async function getAdminTransactions(params: {
   limit?: number;
 }): Promise<AdminPaginated<TransactionLog>> {
   return authApiFetch<AdminPaginated<TransactionLog>>('/admin/transactions', { params });
+}
+
+export async function getAdminReports(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}): Promise<{ reports: AdminReport[]; total: number; page: number; limit: number; totalPages: number }> {
+  return authApiFetch('/admin/reports', { params });
+}
+
+export async function getAdminBannedIps(): Promise<BannedIp[]> {
+  return authApiFetch('/admin/tools/banned-ips');
 }

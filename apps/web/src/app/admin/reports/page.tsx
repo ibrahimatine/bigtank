@@ -1,83 +1,64 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getAdminListings } from '@/lib/api';
-import { ListingDeleteAction } from '@/components/admin/listing-delete-action';
-import { ListingStatusAction } from '@/components/admin/listing-status-action';
-import { ListingRestoreAction } from '@/components/admin/listing-restore-action';
-import { ListingFeatureAction } from '@/components/admin/listing-feature-action';
-import { ReindexButton } from '@/components/admin/reindex-button';
+import { getAdminReports } from '@/lib/api';
+import { ReportActions } from '@/components/admin/report-actions';
 import { ShoppingBag } from 'lucide-react';
 
-export const metadata: Metadata = { title: 'Annonces' };
+export const metadata: Metadata = { title: 'Signalements' };
 export const dynamic = 'force-dynamic';
 
+const REASON_LABELS: Record<string, string> = {
+  FRAUD: 'Arnaque',
+  FAKE_PRODUCT: 'Contrefaçon',
+  SPAM: 'Spam',
+  OTHER: 'Autre',
+};
+
 const STATUS_STYLES: Record<string, string> = {
-  DRAFT: 'bg-gray-50 text-gray-700',
-  ACTIVE: 'bg-green-50 text-green-700',
-  SOLD: 'bg-blue-50 text-blue-700',
-  RESERVED: 'bg-yellow-50 text-yellow-700',
-  EXPIRED: 'bg-orange-50 text-orange-700',
-  DELETED: 'bg-red-50 text-red-700',
+  PENDING: 'bg-orange-50 text-orange-700',
+  REVIEWED: 'bg-green-50 text-green-700',
+  DISMISSED: 'bg-gray-100 text-gray-600',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Brouillon',
-  ACTIVE: 'Disponible',
-  SOLD: 'Vendue',
-  RESERVED: 'Réservée',
-  EXPIRED: 'Expirée',
-  DELETED: 'Supprimée',
+  PENDING: 'En attente',
+  REVIEWED: 'Traité',
+  DISMISSED: 'Rejeté',
 };
 
-function formatPrice(xof: number) {
-  return xof.toLocaleString('fr-SN') + ' FCFA';
-}
-
 interface Props {
-  searchParams: Promise<{ page?: string; search?: string; status?: string }>;
+  searchParams: Promise<{ page?: string; status?: string }>;
 }
 
-export default async function AdminListingsPage({ searchParams }: Props) {
+export default async function AdminReportsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const page = parseInt(sp.page || '1', 10);
-  const { search, status } = sp;
+  const { status } = sp;
 
-  const result = await getAdminListings({ page, limit: 20, search, status });
-  const listings = result.listings ?? [];
+  const result = await getAdminReports({ page, limit: 20, status });
+  const reports = result.reports ?? [];
 
   return (
     <div className="pb-20 lg:pb-0">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Annonces</h1>
-        <div className="flex items-center gap-3">
-          <ReindexButton />
-          <span className="text-sm text-[var(--color-muted-foreground)]">
-            {result.total} au total
-          </span>
-        </div>
+        <h1 className="text-2xl font-bold">Signalements</h1>
+        <span className="text-sm text-[var(--color-muted-foreground)]">
+          {result.total} au total
+        </span>
       </div>
 
       {/* Filtres */}
       <form className="flex gap-3 mb-6 flex-wrap">
-        <input
-          name="search"
-          defaultValue={search}
-          placeholder="Titre, marque..."
-          className="flex-1 min-w-0 border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
-        />
         <select
           name="status"
           defaultValue={status || ''}
           className="border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm"
         >
           <option value="">Tous les statuts</option>
-          <option value="DRAFT">Brouillon</option>
-          <option value="ACTIVE">Disponible</option>
-          <option value="SOLD">Vendue</option>
-          <option value="RESERVED">Réservée</option>
-          <option value="EXPIRED">Expirée</option>
-          <option value="DELETED">Supprimée</option>
+          <option value="PENDING">En attente</option>
+          <option value="REVIEWED">Traité</option>
+          <option value="DISMISSED">Rejeté</option>
         </select>
         <button
           type="submit"
@@ -86,7 +67,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
           Filtrer
         </button>
         <a
-          href="/admin/listings"
+          href="/admin/reports"
           className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-sm hover:bg-[var(--color-muted)] transition-colors"
         >
           Réinitialiser
@@ -95,22 +76,22 @@ export default async function AdminListingsPage({ searchParams }: Props) {
 
       {/* Mobile cards */}
       <div className="space-y-3 lg:hidden">
-        {listings.length === 0 ? (
+        {reports.length === 0 ? (
           <p className="text-center py-12 text-[var(--color-muted-foreground)]">
-            Aucune annonce trouvée
+            Aucun signalement trouvé
           </p>
         ) : (
-          listings.map((listing) => (
+          reports.map((report) => (
             <div
-              key={listing.id}
+              key={report.id}
               className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-3"
             >
               <div className="flex gap-3">
                 <div className="w-14 h-14 rounded-lg overflow-hidden bg-[var(--color-muted)] shrink-0 flex items-center justify-center">
-                  {listing.images[0] ? (
+                  {report.listing.images[0] ? (
                     <Image
-                      src={listing.images[0].url}
-                      alt={listing.title}
+                      src={report.listing.images[0].url}
+                      alt={report.listing.title}
                       width={56}
                       height={56}
                       className="object-cover w-full h-full"
@@ -121,37 +102,41 @@ export default async function AdminListingsPage({ searchParams }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <Link
-                    href={`/shoes/${listing.slug}`}
+                    href={`/shoes/${report.listing.slug}`}
                     target="_blank"
                     className="font-medium hover:underline truncate block text-sm"
                   >
-                    {listing.title}
+                    {report.listing.title}
                   </Link>
-                  <p className="text-xs text-[var(--color-muted-foreground)]">{listing.brand}</p>
                   <p className="text-xs text-[var(--color-muted-foreground)]">
-                    {listing.seller.name} &middot; {new Date(listing.createdAt).toLocaleDateString('fr-SN')}
+                    Signalé par {report.user.name} &middot; {REASON_LABELS[report.reason] || report.reason}
                   </p>
+                  {report.description && (
+                    <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5 line-clamp-2">
+                      {report.description}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm font-medium">{formatPrice(listing.priceXof)}</span>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[listing.status] || 'bg-gray-100 text-gray-600'}`}
+                      className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[report.status]}`}
                     >
-                      {STATUS_LABELS[listing.status] || listing.status}
+                      {STATUS_LABELS[report.status]}
+                    </span>
+                    <span className="text-xs text-[var(--color-muted-foreground)]">
+                      {new Date(report.createdAt).toLocaleDateString('fr-SN')}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-3 pt-2 border-t border-[var(--color-border)]">
-                {listing.status === 'DELETED' ? (
-                  <ListingRestoreAction listingId={listing.id} listingTitle={listing.title} />
-                ) : (
-                  <>
-                    <ListingStatusAction listingId={listing.id} currentStatus={listing.status} />
-                    <ListingFeatureAction listingId={listing.id} isFeatured={listing.isFeatured} />
-                    <ListingDeleteAction listingId={listing.id} listingTitle={listing.title} />
-                  </>
-                )}
-              </div>
+              {report.status === 'PENDING' && (
+                <div className="mt-3 pt-2 border-t border-[var(--color-border)]">
+                  <ReportActions
+                    reportId={report.id}
+                    listingTitle={report.listing.title}
+                    sellerName={report.listing.seller.name}
+                  />
+                </div>
+              )}
             </div>
           ))
         )}
@@ -164,30 +149,30 @@ export default async function AdminListingsPage({ searchParams }: Props) {
             <thead>
               <tr className="border-b border-[var(--color-border)] bg-[var(--color-muted)]">
                 <th className="text-left px-4 py-3 font-medium">Annonce</th>
-                <th className="text-left px-4 py-3 font-medium">Vendeur</th>
-                <th className="text-left px-4 py-3 font-medium">Prix</th>
+                <th className="text-left px-4 py-3 font-medium">Signalé par</th>
+                <th className="text-left px-4 py-3 font-medium">Raison</th>
                 <th className="text-left px-4 py-3 font-medium">Statut</th>
                 <th className="text-left px-4 py-3 font-medium">Date</th>
                 <th className="text-right px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
-              {listings.length === 0 ? (
+              {reports.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12 text-[var(--color-muted-foreground)]">
-                    Aucune annonce trouvée
+                    Aucun signalement trouvé
                   </td>
                 </tr>
               ) : (
-                listings.map((listing) => (
-                  <tr key={listing.id} className="hover:bg-[var(--color-muted)]/30">
+                reports.map((report) => (
+                  <tr key={report.id} className="hover:bg-[var(--color-muted)]/30">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-[var(--color-muted)] shrink-0 flex items-center justify-center">
-                          {listing.images[0] ? (
+                          {report.listing.images[0] ? (
                             <Image
-                              src={listing.images[0].url}
-                              alt={listing.title}
+                              src={report.listing.images[0].url}
+                              alt={report.listing.title}
                               width={40}
                               height={40}
                               className="object-cover w-full h-full"
@@ -198,47 +183,49 @@ export default async function AdminListingsPage({ searchParams }: Props) {
                         </div>
                         <div className="min-w-0">
                           <Link
-                            href={`/shoes/${listing.slug}`}
+                            href={`/shoes/${report.listing.slug}`}
                             target="_blank"
                             className="font-medium hover:underline truncate block max-w-[200px]"
                           >
-                            {listing.title}
+                            {report.listing.title}
                           </Link>
                           <p className="text-xs text-[var(--color-muted-foreground)]">
-                            {listing.brand}
+                            Vendeur : {report.listing.seller.name}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-[var(--color-muted-foreground)]">
-                      <p>{listing.seller.name}</p>
-                      <p className="text-xs">{listing.seller.email}</p>
+                      {report.user.name}
                     </td>
-                    <td className="px-4 py-3 font-medium">
-                      {formatPrice(listing.priceXof)}
+                    <td className="px-4 py-3">
+                      <span className="text-xs px-2 py-1 rounded-full bg-orange-50 text-orange-700">
+                        {REASON_LABELS[report.reason] || report.reason}
+                      </span>
+                      {report.description && (
+                        <p className="text-xs text-[var(--color-muted-foreground)] mt-1 max-w-[200px] truncate">
+                          {report.description}
+                        </p>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`text-xs px-2 py-1 rounded-full ${STATUS_STYLES[listing.status] || 'bg-gray-100 text-gray-600'}`}
+                        className={`text-xs px-2 py-1 rounded-full ${STATUS_STYLES[report.status]}`}
                       >
-                        {STATUS_LABELS[listing.status] || listing.status}
+                        {STATUS_LABELS[report.status]}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[var(--color-muted-foreground)]">
-                      {new Date(listing.createdAt).toLocaleDateString('fr-SN')}
+                      {new Date(report.createdAt).toLocaleDateString('fr-SN')}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {listing.status === 'DELETED' ? (
-                          <ListingRestoreAction listingId={listing.id} listingTitle={listing.title} />
-                        ) : (
-                          <>
-                            <ListingFeatureAction listingId={listing.id} isFeatured={listing.isFeatured} />
-                            <ListingStatusAction listingId={listing.id} currentStatus={listing.status} />
-                            <ListingDeleteAction listingId={listing.id} listingTitle={listing.title} />
-                          </>
-                        )}
-                      </div>
+                      {report.status === 'PENDING' && (
+                        <ReportActions
+                          reportId={report.id}
+                          listingTitle={report.listing.title}
+                          sellerName={report.listing.seller.name}
+                        />
+                      )}
                     </td>
                   </tr>
                 ))
@@ -253,7 +240,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
         <div className="flex gap-2 justify-center mt-6">
           {page > 1 && (
             <a
-              href={`/admin/listings?page=${page - 1}${search ? `&search=${search}` : ''}${status ? `&status=${status}` : ''}`}
+              href={`/admin/reports?page=${page - 1}${status ? `&status=${status}` : ''}`}
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-sm hover:bg-[var(--color-muted)] transition-colors"
             >
               ← Précédent
@@ -264,7 +251,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
           </span>
           {page < result.totalPages && (
             <a
-              href={`/admin/listings?page=${page + 1}${search ? `&search=${search}` : ''}${status ? `&status=${status}` : ''}`}
+              href={`/admin/reports?page=${page + 1}${status ? `&status=${status}` : ''}`}
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-sm hover:bg-[var(--color-muted)] transition-colors"
             >
               Suivant →

@@ -7,9 +7,13 @@ import {
   Body,
   Param,
   Query,
+  Inject,
   UseGuards,
   ForbiddenException,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 import { ListingService } from './listing.service';
 import { ImageService } from '../image/image.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -23,12 +27,24 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { ListingFiltersDto } from './dto/listing-filters.dto';
 import { PresignRequestDto } from '../image/dto/presign-request.dto';
 import { ConfirmImageDto } from '../image/dto/confirm-image.dto';
+import { IsString, IsOptional, IsEnum } from 'class-validator';
+
+class ReportListingDto {
+  @IsString()
+  @IsEnum(['FRAUD', 'FAKE_PRODUCT', 'SPAM', 'OTHER'])
+  reason!: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+}
 
 @Controller('listings')
 export class ListingController {
   constructor(
     private listingService: ListingService,
     private imageService: ImageService,
+    @Inject('PRISMA') private readonly prisma: PrismaClient,
   ) {}
 
   @Get('search')
@@ -194,5 +210,37 @@ export class ListingController {
     this.listingService.reindexListing(id).catch(() => {});
 
     return { message: 'Image supprimee' };
+  }
+
+  @Post(':id/report')
+  @UseGuards(JwtAuthGuard)
+  async reportListing(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string },
+    @Body() dto: ReportListingDto,
+  ) {
+    const listing = await this.prisma.listing.findUnique({ where: { id } });
+    if (!listing) throw new NotFoundException('Annonce introuvable');
+    if (listing.sellerId === user.id) {
+      throw new BadRequestException('Vous ne pouvez pas signaler votre propre annonce');
+    }
+
+    const existing = await this.prisma.report.findUnique({
+      where: { userId_listingId: { userId: user.id, listingId: id } },
+    });
+    if (existing) {
+      throw new BadRequestException('Vous avez deja signale cette annonce');
+    }
+
+    const report = await this.prisma.report.create({
+      data: {
+        userId: user.id,
+        listingId: id,
+        reason: dto.reason as any,
+        description: dto.description,
+      },
+    });
+
+    return { message: 'Signalement enregistre', report };
   }
 }

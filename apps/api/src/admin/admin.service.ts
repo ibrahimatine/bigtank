@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaClient, UserStatus, ListingStatus } from '@prisma/client';
 import { SearchService } from '../search/search.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class AdminService {
@@ -9,9 +10,15 @@ export class AdminService {
   constructor(
     @Inject('PRISMA') private readonly prisma: PrismaClient,
     private readonly searchService: SearchService,
+    private readonly notificationService: NotificationService,
   ) {}
 
+  // ============ Stats enrichies ============
+
   async getStats() {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     const [
       totalUsers,
       totalSellers,
@@ -19,6 +26,12 @@ export class AdminService {
       activeListings,
       soldListings,
       suspendedUsers,
+      bannedUsers,
+      newUsersToday,
+      pendingReports,
+      messagesToday,
+      deletedListings,
+      featuredListings,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { role: 'SELLER' } }),
@@ -26,13 +39,23 @@ export class AdminService {
       this.prisma.listing.count({ where: { status: 'ACTIVE' } }),
       this.prisma.listing.count({ where: { status: 'SOLD' } }),
       this.prisma.user.count({ where: { status: 'SUSPENDED' } }),
+      this.prisma.user.count({ where: { status: 'BANNED' } }),
+      this.prisma.user.count({ where: { createdAt: { gte: startOfDay } } }),
+      this.prisma.report.count({ where: { status: 'PENDING' } }),
+      this.prisma.message.count({ where: { createdAt: { gte: startOfDay } } }),
+      this.prisma.listing.count({ where: { status: 'DELETED' } }),
+      this.prisma.listing.count({ where: { isFeatured: true } }),
     ]);
 
     return {
-      users: { total: totalUsers, sellers: totalSellers, suspended: suspendedUsers },
-      listings: { total: totalListings, active: activeListings, sold: soldListings },
+      users: { total: totalUsers, sellers: totalSellers, suspended: suspendedUsers, banned: bannedUsers, newToday: newUsersToday },
+      listings: { total: totalListings, active: activeListings, sold: soldListings, deleted: deletedListings, featured: featuredListings },
+      reports: { pending: pendingReports },
+      messages: { today: messagesToday },
     };
   }
+
+  // ============ Users ============
 
   async getUsers(params: {
     page: number;
@@ -114,6 +137,28 @@ export class AdminService {
     return user;
   }
 
+  async getUserListings(userId: string, params: { page: number; limit: number }) {
+    const { page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    const [listings, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where: { sellerId: userId },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, title: true, brand: true, priceXof: true,
+          status: true, createdAt: true, slug: true, isFeatured: true,
+          images: { take: 1, orderBy: { order: 'asc' }, select: { url: true } },
+        },
+      }),
+      this.prisma.listing.count({ where: { sellerId: userId } }),
+    ]);
+
+    return { listings, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
   async suspendUser(adminId: string, userId: string, reason: string) {
     if (adminId === userId) {
       throw new ForbiddenException('Un admin ne peut pas se suspendre lui-même');
@@ -174,13 +219,155 @@ export class AdminService {
     return updated;
   }
 
+  async banUser(adminId: string, userId: string, reason: string) {
+    if (adminId === userId) {
+      throw new ForbiddenException('Un admin ne peut pas se bannir lui-même');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Impossible de bannir un autre admin');
+    }
+
+    // 1. Ban user
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        status: UserStatus.BANNED,
+        suspendedAt: new Date(),
+        suspendedReason: reason,
+      },
+      select: { id: true, status: true },
+    });
+
+    // 2. Supprimer toutes ses annonces actives
+    const activeListings = await this.prisma.listing.findMany({
+      where: { sellerId: userId, status: 'ACTIVE' },
+      select: { id: true },
+    });
+
+    if (activeListings.length > 0) {
+      await this.prisma.listing.updateMany({
+        where: { sellerId: userId, status: 'ACTIVE' },
+        data: { status: ListingStatus.DELETED, deletedAt: new Date(), deletedBy: adminId },
+      });
+
+      // Retirer de Meilisearch
+      for (const listing of activeListings) {
+        this.searchService.removeListing(listing.id).catch(() => {});
+      }
+    }
+
+    // 3. Supprimer tous les refresh tokens
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+
+    // 4. Audit log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_BAN_USER',
+        targetId: userId,
+        targetType: 'User',
+        details: `${reason} — ${activeListings.length} annonce(s) supprimee(s)`,
+      },
+    });
+
+    return { ...updated, listingsDeleted: activeListings.length };
+  }
+
+  async unbanUser(adminId: string, userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (user.status !== 'BANNED') {
+      throw new BadRequestException('Cet utilisateur n\'est pas banni');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        status: UserStatus.ACTIVE,
+        suspendedAt: null,
+        suspendedReason: null,
+      },
+      select: { id: true, status: true },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_UNBAN_USER',
+        targetId: userId,
+        targetType: 'User',
+      },
+    });
+
+    return updated;
+  }
+
+  async deleteUser(adminId: string, userId: string) {
+    if (adminId === userId) {
+      throw new ForbiddenException('Un admin ne peut pas se supprimer lui-même');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (user.role === 'ADMIN') {
+      throw new ForbiddenException('Impossible de supprimer un autre admin');
+    }
+
+    // Soft-delete : ban + marque comme supprime
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        status: UserStatus.BANNED,
+        suspendedAt: new Date(),
+        suspendedReason: 'Compte supprime par admin',
+      },
+    });
+
+    // Supprimer les annonces actives
+    const activeListings = await this.prisma.listing.findMany({
+      where: { sellerId: userId, status: { in: ['ACTIVE', 'DRAFT', 'RESERVED'] } },
+      select: { id: true },
+    });
+
+    if (activeListings.length > 0) {
+      await this.prisma.listing.updateMany({
+        where: { id: { in: activeListings.map(l => l.id) } },
+        data: { status: ListingStatus.DELETED, deletedAt: new Date(), deletedBy: adminId },
+      });
+
+      for (const listing of activeListings) {
+        this.searchService.removeListing(listing.id).catch(() => {});
+      }
+    }
+
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_DELETE_USER',
+        targetId: userId,
+        targetType: 'User',
+        details: `${user.name} (${user.email || user.phone}) — ${activeListings.length} annonce(s) supprimee(s)`,
+      },
+    });
+
+    return { message: 'Utilisateur supprime', listingsDeleted: activeListings.length };
+  }
+
+  // ============ Listings ============
+
   async getListings(params: {
     page: number;
     limit: number;
     search?: string;
     status?: string;
+    includeDeleted?: boolean;
   }) {
-    const { page, limit, search, status } = params;
+    const { page, limit, search, status, includeDeleted } = params;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
@@ -193,7 +380,7 @@ export class AdminService {
     }
     if (status) {
       where.status = status;
-    } else {
+    } else if (!includeDeleted) {
       where.status = { not: 'DELETED' };
     }
 
@@ -209,8 +396,10 @@ export class AdminService {
           brand: true,
           priceXof: true,
           status: true,
+          isFeatured: true,
           createdAt: true,
           slug: true,
+          deletedAt: true,
           seller: {
             select: { id: true, name: true, email: true },
           },
@@ -246,15 +435,12 @@ export class AdminService {
 
     const updateData: Record<string, unknown> = { status: newStatus as ListingStatus };
 
-    // Quand on remet une annonce en ACTIVE, on lui donne 60 jours d'expiration
     if (newStatus === 'ACTIVE') {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 60);
       updateData.expiresAt = expiresAt;
     }
 
-    // On recupere le listing complet avec images en une seule requete
-    // pour eviter un findUnique supplementaire et garantir la coherence
     const updated = await this.prisma.listing.update({
       where: { id: listingId },
       data: updateData,
@@ -271,21 +457,70 @@ export class AdminService {
       },
     });
 
-    // Synchronisation avec l'index Meilisearch
     try {
       if (newStatus === 'ACTIVE') {
         await this.searchService.indexListing(updated);
-        this.logger.log(`Listing ${listingId} indexe dans Meilisearch (ACTIVE)`);
       } else {
-        // SOLD, EXPIRED, DRAFT, RESERVED → retirer de la recherche
         await this.searchService.removeListing(listingId);
-        this.logger.log(`Listing ${listingId} retire de Meilisearch (${newStatus})`);
       }
     } catch (err) {
       this.logger.error(`Echec sync Meilisearch pour listing ${listingId}: ${err}`);
     }
 
     return { id: updated.id, status: updated.status, title: updated.title };
+  }
+
+  async restoreListing(adminId: string, listingId: string) {
+    const listing = await this.prisma.listing.findUnique({ where: { id: listingId } });
+    if (!listing) throw new NotFoundException('Annonce introuvable');
+    if (listing.status !== 'DELETED') {
+      throw new BadRequestException('Seules les annonces supprimees peuvent etre restaurees');
+    }
+
+    const updated = await this.prisma.listing.update({
+      where: { id: listingId },
+      data: {
+        status: ListingStatus.DRAFT,
+        deletedAt: null,
+        deletedBy: null,
+      },
+      select: { id: true, status: true, title: true },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_RESTORE_LISTING',
+        targetId: listingId,
+        targetType: 'Listing',
+        details: listing.title,
+      },
+    });
+
+    return updated;
+  }
+
+  async toggleFeatureListing(adminId: string, listingId: string) {
+    const listing = await this.prisma.listing.findUnique({ where: { id: listingId } });
+    if (!listing) throw new NotFoundException('Annonce introuvable');
+
+    const updated = await this.prisma.listing.update({
+      where: { id: listingId },
+      data: { isFeatured: !listing.isFeatured },
+      select: { id: true, isFeatured: true, title: true },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: updated.isFeatured ? 'ADMIN_FEATURE_LISTING' : 'ADMIN_UNFEATURE_LISTING',
+        targetId: listingId,
+        targetType: 'Listing',
+        details: listing.title,
+      },
+    });
+
+    return updated;
   }
 
   async deleteListing(adminId: string, listingId: string) {
@@ -314,7 +549,6 @@ export class AdminService {
       },
     });
 
-    // Retirer de l'index Meilisearch
     try {
       await this.searchService.removeListing(listingId);
     } catch (err) {
@@ -323,6 +557,227 @@ export class AdminService {
 
     return updated;
   }
+
+  // ============ Reports ============
+
+  async getReports(params: { page: number; limit: number; status?: string }) {
+    const { page, limit, status } = params;
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+
+    const [reports, total] = await Promise.all([
+      this.prisma.report.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          listing: {
+            select: {
+              id: true, title: true, slug: true, status: true,
+              seller: { select: { id: true, name: true } },
+              images: { take: 1, orderBy: { order: 'asc' }, select: { url: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.report.count({ where }),
+    ]);
+
+    return { reports, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async reviewReport(adminId: string, reportId: string, action: string) {
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      include: { listing: { select: { id: true, sellerId: true, title: true } } },
+    });
+    if (!report) throw new NotFoundException('Signalement introuvable');
+    if (report.status !== 'PENDING') {
+      throw new BadRequestException('Ce signalement a deja ete traite');
+    }
+
+    // Marquer comme reviewed
+    await this.prisma.report.update({
+      where: { id: reportId },
+      data: { status: 'REVIEWED', reviewedBy: adminId, reviewedAt: new Date() },
+    });
+
+    if (action === 'DELETE_LISTING') {
+      await this.deleteListing(adminId, report.listingId);
+    } else if (action === 'BAN_SELLER') {
+      await this.banUser(adminId, report.listing.sellerId, `Banni suite au signalement de l'annonce "${report.listing.title}"`);
+    }
+    // REVIEW_ONLY = juste marquer comme reviewed, rien d'autre
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_REVIEW_REPORT',
+        targetId: reportId,
+        targetType: 'Report',
+        details: `Action: ${action} — Annonce: ${report.listing.title}`,
+      },
+    });
+
+    return { message: 'Signalement traite', action };
+  }
+
+  async dismissReport(adminId: string, reportId: string) {
+    const report = await this.prisma.report.findUnique({ where: { id: reportId } });
+    if (!report) throw new NotFoundException('Signalement introuvable');
+
+    await this.prisma.report.update({
+      where: { id: reportId },
+      data: { status: 'DISMISSED', reviewedBy: adminId, reviewedAt: new Date() },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_DISMISS_REPORT',
+        targetId: reportId,
+        targetType: 'Report',
+      },
+    });
+
+    return { message: 'Signalement rejete' };
+  }
+
+  // ============ Report cote user ============
+
+  async createReport(userId: string, listingId: string, reason: string, description?: string) {
+    const listing = await this.prisma.listing.findUnique({ where: { id: listingId } });
+    if (!listing) throw new NotFoundException('Annonce introuvable');
+    if (listing.sellerId === userId) {
+      throw new BadRequestException('Vous ne pouvez pas signaler votre propre annonce');
+    }
+
+    // Vérifier unicité
+    const existing = await this.prisma.report.findUnique({
+      where: { userId_listingId: { userId, listingId } },
+    });
+    if (existing) {
+      throw new BadRequestException('Vous avez deja signale cette annonce');
+    }
+
+    const report = await this.prisma.report.create({
+      data: {
+        userId,
+        listingId,
+        reason: reason as any,
+        description,
+      },
+    });
+
+    return { message: 'Signalement enregistre', report };
+  }
+
+  // ============ Tools ============
+
+  async sendMassEmail(adminId: string, subject: string, body: string) {
+    const users = await this.prisma.user.findMany({
+      where: { status: 'ACTIVE', email: { not: null } },
+      select: { id: true, email: true, name: true },
+    });
+
+    let sent = 0;
+    for (const user of users) {
+      if (!user.email) continue;
+      try {
+        await this.notificationService.createAndSend({
+          userId: user.id,
+          type: 'WELCOME', // Generic type for mass emails
+          title: subject,
+          body: body,
+        });
+        sent++;
+      } catch {
+        this.logger.warn(`Echec envoi email a ${user.email}`);
+      }
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_MASS_EMAIL',
+        details: `Sujet: ${subject} — ${sent}/${users.length} envoyes`,
+      },
+    });
+
+    return { message: `Email envoye a ${sent} utilisateurs sur ${users.length}`, sent, total: users.length };
+  }
+
+  async getBannedIps() {
+    return this.prisma.bannedIp.findMany({ orderBy: { createdAt: 'desc' } });
+  }
+
+  async banIp(adminId: string, ip: string, reason?: string) {
+    const existing = await this.prisma.bannedIp.findUnique({ where: { ip } });
+    if (existing) throw new BadRequestException('Cette IP est deja bannie');
+
+    const banned = await this.prisma.bannedIp.create({
+      data: { ip, reason, bannedBy: adminId },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_BAN_IP',
+        details: `IP: ${ip} — ${reason || 'Aucune raison'}`,
+      },
+    });
+
+    return banned;
+  }
+
+  async unbanIp(id: string) {
+    const banned = await this.prisma.bannedIp.findUnique({ where: { id } });
+    if (!banned) throw new NotFoundException('IP non trouvee');
+
+    await this.prisma.bannedIp.delete({ where: { id } });
+    return { message: `IP ${banned.ip} debannie` };
+  }
+
+  async cleanupInactive(confirm: boolean) {
+    // Comptes inactifs : crees il y a plus de 90 jours, 0 annonces, 0 messages
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+
+    const inactiveUsers = await this.prisma.user.findMany({
+      where: {
+        createdAt: { lt: cutoff },
+        role: 'USER',
+        status: 'ACTIVE',
+        listings: { none: {} },
+        messagesSent: { none: {} },
+      },
+      select: { id: true, name: true, email: true, createdAt: true },
+    });
+
+    if (!confirm) {
+      return {
+        preview: true,
+        count: inactiveUsers.length,
+        users: inactiveUsers.slice(0, 20), // Preview max 20
+      };
+    }
+
+    // Supprimer les comptes inactifs
+    const ids = inactiveUsers.map(u => u.id);
+    if (ids.length > 0) {
+      await this.prisma.refreshToken.deleteMany({ where: { userId: { in: ids } } });
+      await this.prisma.notification.deleteMany({ where: { userId: { in: ids } } });
+      await this.prisma.user.deleteMany({ where: { id: { in: ids } } });
+    }
+
+    return { preview: false, deleted: ids.length };
+  }
+
+  // ============ Audit & Transactions ============
 
   async getAuditLogs(params: { page: number; limit: number }) {
     const { page, limit } = params;

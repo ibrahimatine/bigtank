@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BarChart3, Users, ShoppingBag, Shield, Receipt } from 'lucide-react';
+import { BarChart3, Users, ShoppingBag, Shield, Receipt, Flag, Wrench } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: {
@@ -14,7 +14,9 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: BarChart3, exact: true },
   { href: '/admin/users', label: 'Utilisateurs', icon: Users, exact: false },
   { href: '/admin/listings', label: 'Annonces', icon: ShoppingBag, exact: false },
+  { href: '/admin/reports', label: 'Signalements', icon: Flag, exact: false },
   { href: '/admin/transactions', label: 'Transactions', icon: Receipt, exact: false },
+  { href: '/admin/tools', label: 'Outils', icon: Wrench, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -50,10 +52,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center gap-0.5 px-3 py-1 min-h-[44px] justify-center text-[var(--color-muted-foreground)] hover:text-[var(--color-accent)] transition-colors"
+            className="flex flex-col items-center gap-0.5 px-2 py-1 min-h-[44px] justify-center text-[var(--color-muted-foreground)] hover:text-[var(--color-accent)] transition-colors"
           >
             <item.icon className="h-5 w-5" />
-            <span className="text-[10px] leading-tight">{item.label}</span>
+            <span className="text-[9px] leading-tight">{item.label}</span>
           </Link>
         ))}
       </nav>

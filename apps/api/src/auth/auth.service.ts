@@ -159,6 +159,11 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides');
     }
 
+    // Bloquer la connexion si l'utilisateur est banni
+    if (user.status === 'BANNED') {
+      throw new UnauthorizedException('Votre compte a ete banni. Contactez le support pour plus d\'informations.');
+    }
+
     // Bloquer la connexion si l'email n'est pas verifie
     if (user.email && !user.emailVerified) {
       throw new UnauthorizedException('Veuillez verifier votre email avant de vous connecter. Consultez votre boite mail.');
@@ -221,6 +226,11 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+
+    if (user.status === 'BANNED') {
+      await this.prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+      throw new UnauthorizedException('Votre compte a ete banni.');
     }
 
     await this.prisma.refreshToken.deleteMany({

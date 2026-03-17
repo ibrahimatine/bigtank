@@ -10,6 +10,7 @@ import { ShareButton } from '@/components/listing/share-button';
 import { Badge } from '@/components/ui/badge';
 import { CONDITION_LABELS } from '@/types';
 import { StartConversationButton } from '@/components/chat/start-conversation-button';
+import { ReportListingButton } from '@/components/report-listing-button';
 import type { ListingCondition } from '@samadal/shared-types';
 
 const STATUS_CONFIG: Record<string, { label: string; style: string; bg: string }> = {
@@ -218,6 +219,9 @@ export default async function ListingPage({ params }: Props) {
                 title={listing.title}
                 url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://samadal.net'}/shoes/${listing.slug}`}
               />
+            </div>
+            <div className="mt-3 flex justify-end">
+              <ReportListingButton listingId={listing.id} />
             </div>
           </div>
         </div>
