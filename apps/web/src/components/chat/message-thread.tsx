@@ -402,13 +402,15 @@ export function MessageThread({
         <div className="h-2" />
       </div>
 
-      {/* Input */}
-      <div className="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-card)]">
-        <MessageInput
-          onSend={handleSend}
-          onTypingChange={(typing) => sendTyping(conversation.id, typing)}
-        />
-      </div>
+      {/* Input — masqué pour les conversations système */}
+      {!isSystemConversation && (
+        <div className="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-card)]">
+          <MessageInput
+            onSend={handleSend}
+            onTypingChange={(typing) => sendTyping(conversation.id, typing)}
+          />
+        </div>
+      )}
     </div>
   );
 }
