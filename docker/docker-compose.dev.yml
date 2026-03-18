@@ -21,45 +21,6 @@ services:
       retries: 5
 
   # ============================================================
-  # Redis 7
-  # ============================================================
-  redis:
-    image: redis:7-alpine
-    container_name: samadal-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ============================================================
-  # Meilisearch (moteur de recherche)
-  # ============================================================
-  meilisearch:
-    image: getmeili/meilisearch:v1.6
-    container_name: samadal-meilisearch
-    restart: unless-stopped
-    ports:
-      - "7700:7700"
-    environment:
-      MEILI_ENV: development
-      MEILI_MASTER_KEY: samadal_meili_dev_key
-      MEILI_NO_ANALYTICS: "true"
-    volumes:
-      - meilisearch_data:/meili_data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ============================================================
   # MinIO (S3-compatible pour les images en dev)
   # ============================================================
   minio:
@@ -99,10 +60,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  meilisearch_data:
     driver: local
   minio_data:
     driver: local

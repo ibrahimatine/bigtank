@@ -20,7 +20,6 @@ function validateProductionEnv() {
   const required = [
     'JWT_SECRET',
     'DATABASE_URL',
-    'REDIS_URL',
     'CORS_ORIGIN',
   ];
 

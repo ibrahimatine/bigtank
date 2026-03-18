@@ -12,7 +12,6 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { SearchService } from '../search/search.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -62,7 +61,6 @@ class BanIpDto {
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
-    private readonly searchService: SearchService,
   ) {}
 
   // ============ Stats ============
@@ -266,12 +264,12 @@ export class AdminController {
 
   @Post('reindex')
   async reindexSearch() {
-    return this.searchService.reindexAll();
+    return { message: 'Reindexation non necessaire — recherche via PostgreSQL' };
   }
 
   @Post('reindex/:listingId')
   async reindexOneListing(@Param('listingId') listingId: string) {
-    return this.searchService.reindexOne(listingId);
+    return { message: `Reindexation non necessaire pour ${listingId} — recherche via PostgreSQL` };
   }
 
   @Get('audit-logs')

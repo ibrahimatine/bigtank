@@ -10,7 +10,6 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
-import Redis from 'ioredis';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import {
@@ -23,6 +22,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { LoginRateLimitService } from './login-rate-limit.service';
 import { NotificationService } from '../notification/notification.service';
+import { MemoryStoreService } from '../common/services/memory-store.service';
 
 const BCRYPT_ROUNDS = 12;
 const RESEND_COOLDOWN_SECONDS = 120; // 2 minutes entre chaque renvoi
@@ -31,11 +31,11 @@ const RESEND_COOLDOWN_SECONDS = 120; // 2 minutes entre chaque renvoi
 export class AuthService {
   constructor(
     @Inject('PRISMA') private prisma: PrismaClient,
-    @Inject('REDIS') private redis: Redis,
     private jwtService: JwtService,
     private configService: ConfigService,
     private loginRateLimit: LoginRateLimitService,
     private notificationService: NotificationService,
+    private store: MemoryStoreService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -464,7 +464,7 @@ export class AuthService {
 
     // Rate limiting : 1 renvoi toutes les 2 minutes
     const rateLimitKey = `resend_verification:${user.id}`;
-    const lastSent = await this.redis.get(rateLimitKey);
+    const lastSent = await this.store.get(rateLimitKey);
     if (lastSent) {
       const remaining = Math.ceil(RESEND_COOLDOWN_SECONDS - (Date.now() - parseInt(lastSent, 10)) / 1000);
       throw new HttpException(
@@ -496,7 +496,7 @@ export class AuthService {
     });
 
     // Enregistrer le timestamp pour le rate limiting
-    await this.redis.set(rateLimitKey, String(Date.now()), 'EX', RESEND_COOLDOWN_SECONDS);
+    await this.store.set(rateLimitKey, String(Date.now()), RESEND_COOLDOWN_SECONDS);
 
     return { message: 'Email de verification renvoye' };
   }
