@@ -264,6 +264,7 @@ enum NotificationType {
   LISTING_EXPIRED
   EMAIL_VERIFICATION
   PASSWORD_RESET
+  ADMIN_BROADCAST
 }
 
 enum NotificationChannel {

@@ -288,6 +288,33 @@ export class EmailService {
     });
   }
 
+  async sendAdminBroadcast(
+    to: string,
+    userName: string,
+    subject: string,
+    body: string,
+  ): Promise<boolean> {
+    return this.send({
+      to,
+      subject,
+      html: this.wrapTemplate(`
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">${this.escape(subject)}</h1>
+        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+          Bonjour ${this.escape(userName)},
+        </p>
+        <div style="color: #333; font-size: 16px; line-height: 1.7; white-space: pre-line;">
+          ${this.escape(body)}
+        </div>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${this.getWebUrl()}"
+             class="email-btn" style="display: inline-block; background: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            Aller sur Samadal
+          </a>
+        </div>
+      `),
+    });
+  }
+
   private getWebUrl(): string {
     return this.configService.get<string>('WEB_URL') || 'http://localhost:3000';
   }

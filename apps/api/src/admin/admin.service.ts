@@ -3,6 +3,7 @@ import { PrismaClient, UserStatus, ListingStatus } from '@prisma/client';
 import { SearchService } from '../search/search.service';
 import { NotificationService } from '../notification/notification.service';
 import { ChatService } from '../chat/chat.service';
+import { ChatGateway } from '../chat/chat.gateway';
 
 @Injectable()
 export class AdminService {
@@ -13,6 +14,7 @@ export class AdminService {
     private readonly searchService: SearchService,
     private readonly notificationService: NotificationService,
     private readonly chatService: ChatService,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   // ============ Stats enrichies ============
@@ -192,7 +194,7 @@ export class AdminService {
       },
     });
 
-    this.chatService.sendSystemMessage(
+    this.sendSystemMessageWithSocket(
       adminId,
       userId,
       `Votre compte a ete suspendu. Raison : ${reason}. Contactez le support si vous pensez qu'il s'agit d'une erreur.`,
@@ -224,7 +226,7 @@ export class AdminService {
       },
     });
 
-    this.chatService.sendSystemMessage(
+    this.sendSystemMessageWithSocket(
       adminId,
       userId,
       `Votre compte a ete reactive. Vous pouvez a nouveau utiliser Samadal normalement.`,
@@ -287,7 +289,7 @@ export class AdminService {
       },
     });
 
-    this.chatService.sendSystemMessage(
+    this.sendSystemMessageWithSocket(
       adminId,
       userId,
       `Votre compte a ete banni. Raison : ${reason}. Vos annonces actives ont ete supprimees.`,
@@ -322,7 +324,7 @@ export class AdminService {
       },
     });
 
-    this.chatService.sendSystemMessage(
+    this.sendSystemMessageWithSocket(
       adminId,
       userId,
       `Votre compte a ete debanni. Vous pouvez a nouveau utiliser Samadal.`,
@@ -577,7 +579,7 @@ export class AdminService {
 
     this.searchService.removeListing(listingId).catch(() => {});
 
-    this.chatService.sendSystemMessage(
+    this.sendSystemMessageWithSocket(
       adminId,
       listing.sellerId,
       `Votre annonce "${listing.title}" a ete supprimee par l'equipe Samadal car elle ne respecte pas nos conditions d'utilisation.`,
@@ -718,7 +720,7 @@ export class AdminService {
       try {
         await this.notificationService.createAndSend({
           userId: user.id,
-          type: 'WELCOME', // Generic type for mass emails
+          type: 'ADMIN_BROADCAST',
           title: subject,
           body: body,
         });
@@ -845,5 +847,21 @@ export class AdminService {
     ]);
 
     return { logs, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  /**
+   * Envoie un message systeme ET emet le WebSocket pour affichage temps reel.
+   */
+  private async sendSystemMessageWithSocket(adminId: string, userId: string, content: string) {
+    const { conversation, message } = await this.chatService.sendSystemMessage(adminId, userId, content);
+    this.logger.log(`[system-msg] Message envoye a ${userId} dans conversation ${conversation.id}`);
+
+    // Emettre via WebSocket pour affichage temps reel
+    const roomName = `conversation:${conversation.id}`;
+    this.chatGateway.server.to(roomName).emit('new_message', {
+      ...message,
+      conversationId: conversation.id,
+    });
+    this.logger.log(`[system-msg] WebSocket emis sur room ${roomName}`);
   }
 }

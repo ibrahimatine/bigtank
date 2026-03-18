@@ -120,6 +120,10 @@ export class NotificationService {
         await this.emailService.sendWelcome(email, userName);
         break;
 
+      case 'ADMIN_BROADCAST':
+        await this.emailService.sendAdminBroadcast(email, userName, dto.title, dto.body);
+        break;
+
       case 'NEW_MESSAGE':
         await this.emailService.sendNewMessage(
           email,
