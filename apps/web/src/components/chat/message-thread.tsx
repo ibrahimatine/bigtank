@@ -144,9 +144,10 @@ export function MessageThread({
   initialMessages,
   currentUserId,
 }: MessageThreadProps) {
-  const { onMessage, sendMessage, sendTyping, markRead, refreshUnreadCount, socket } = useSocket();
+  const { onMessage, sendTyping, markRead, refreshUnreadCount, socket } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>(() => sortAsc(initialMessages));
   const [otherTyping, setOtherTyping] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
@@ -181,12 +182,72 @@ export function MessageThread({
     }
   }, [messages, otherTyping]);
 
-  // Nouveaux messages Socket.io
+  // Envoyer un message via REST (fiable) avec UI optimiste
+  const handleSend = useCallback(
+    async (content: string) => {
+      if (sending) return;
+      setSending(true);
+
+      // Ajouter le message localement immediatement (optimiste)
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMsg: ChatMessage = {
+        id: tempId,
+        conversationId: conversation.id,
+        senderId: currentUserId,
+        content,
+        readAt: null,
+        createdAt: new Date().toISOString(),
+        sender: { id: currentUserId, name: 'Vous', avatarUrl: null },
+      };
+      setMessages((prev) => [...prev, optimisticMsg]);
+
+      try {
+        const res = await fetch(`/api/chat/conversations/${conversation.id}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        });
+
+        if (res.ok) {
+          const realMsg = await res.json();
+          // Remplacer le message optimiste par le vrai
+          setMessages((prev) =>
+            prev.map((m) => (m.id === tempId ? { ...realMsg, conversationId: conversation.id } : m)),
+          );
+        } else {
+          // Erreur — retirer le message optimiste
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        }
+      } catch {
+        // Erreur reseau — retirer le message optimiste
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      } finally {
+        setSending(false);
+      }
+    },
+    [conversation.id, currentUserId, sending],
+  );
+
+  // Nouveaux messages Socket.io (messages des AUTRES utilisateurs)
   const handleNewMessage = useCallback(
     (message: ChatMessage) => {
       if (message.conversationId !== conversation.id) return;
       setMessages((prev) => {
+        // Dedup : ne pas ajouter si on a deja ce message (par ID reel ou meme contenu recent)
         if (prev.some((m) => m.id === message.id)) return prev;
+        // Ne pas ajouter si c'est notre propre message (deja ajoute via optimistic UI)
+        if (message.senderId === currentUserId) {
+          // Verifier si on a un message temp avec le meme contenu recent
+          const hasTemp = prev.some(
+            (m) => m.id.startsWith('temp-') && m.content === message.content,
+          );
+          if (hasTemp) {
+            // Remplacer le temp par le vrai
+            return prev.map((m) =>
+              m.id.startsWith('temp-') && m.content === message.content ? message : m,
+            );
+          }
+        }
         return [...prev, message];
       });
       if (message.senderId !== currentUserId) {
@@ -312,7 +373,7 @@ export function MessageThread({
       {/* Input */}
       <div className="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-card)]">
         <MessageInput
-          onSend={(content) => sendMessage(conversation.id, content)}
+          onSend={handleSend}
           onTypingChange={(typing) => sendTyping(conversation.id, typing)}
         />
       </div>

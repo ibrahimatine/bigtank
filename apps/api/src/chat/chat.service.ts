@@ -74,6 +74,9 @@ export class ChatService {
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1,
+          include: {
+            sender: { select: { id: true, name: true, avatarUrl: true } },
+          },
         },
         listing: {
           select: { id: true, title: true, slug: true },
@@ -315,7 +318,7 @@ export class ChatService {
       },
     });
 
-    return { unreadCount: count };
+    return { count };
   }
 
   async getUserConversationIds(userId: string): Promise<string[]> {

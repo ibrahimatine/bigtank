@@ -30,3 +30,23 @@ export async function GET(request: Request, { params }: Props) {
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+
+export async function POST(request: Request, { params }: Props) {
+  const token = await getValidAccessToken();
+  if (!token) return NextResponse.json({ error: 'Non authentifie' }, { status: 401 });
+
+  const { id } = await params;
+  const body = await request.json();
+
+  const res = await fetch(`${GATEWAY}/chat/conversations/${id}/messages`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  return NextResponse.json(data, { status: res.status });
+}

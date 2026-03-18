@@ -53,6 +53,21 @@ export class ChatController {
     return result;
   }
 
+  @Post('conversations/:id/messages')
+  async sendMessage(
+    @CurrentUser() user: { id: string },
+    @Param('id') conversationId: string,
+    @Body() dto: { content: string },
+  ) {
+    const message = await this.chatService.sendMessage(user.id, conversationId, dto.content);
+
+    // Broadcast via WebSocket aux deux participants
+    const roomName = `conversation:${conversationId}`;
+    this.chatGateway.server.to(roomName).emit('new_message', message);
+
+    return message;
+  }
+
   @Get('conversations')
   async getConversations(
     @CurrentUser() user: { id: string },

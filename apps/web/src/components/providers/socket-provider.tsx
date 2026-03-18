@@ -35,7 +35,7 @@ async function fetchUnreadCount(): Promise<number> {
     const res = await fetch('/api/chat/unread-count', { cache: 'no-store' });
     if (!res.ok) return 0;
     const data = await res.json();
-    return data?.data?.count ?? data?.count ?? 0;
+    return data?.count ?? data?.data?.count ?? data?.unreadCount ?? 0;
   } catch {
     return 0;
   }
@@ -65,12 +65,20 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
 
-    async function initSocket() {
+    async function getToken(): Promise<string | null> {
       try {
         const res = await fetch('/api/auth/socket-token');
-        if (!res.ok || cancelled) return;
-
+        if (!res.ok) return null;
         const { token } = await res.json();
+        return token || null;
+      } catch {
+        return null;
+      }
+    }
+
+    async function initSocket() {
+      try {
+        const token = await getToken();
         if (!token || cancelled) return;
 
         // Fetch le nombre initial de non lus
@@ -84,7 +92,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
           transports: ['websocket', 'polling'],
           reconnection: true,
           reconnectionDelay: 1000,
-          reconnectionAttempts: 5,
+          reconnectionAttempts: 10,
         });
 
         socketRef.current = socket;
@@ -95,6 +103,24 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
         socket.on('disconnect', () => {
           if (!cancelled) setIsConnected(false);
+        });
+
+        // Rafraichir le token avant chaque tentative de reconnexion
+        socket.on('reconnect_attempt', async () => {
+          const freshToken = await getToken();
+          if (freshToken && !cancelled) {
+            socket.auth = { token: freshToken };
+          }
+        });
+
+        socket.on('connect_error', async () => {
+          // Si erreur d'auth, essayer avec un nouveau token
+          if (!cancelled) {
+            const freshToken = await getToken();
+            if (freshToken) {
+              socket.auth = { token: freshToken };
+            }
+          }
         });
 
         // Nouveau message — incrementer SEULEMENT si ce n'est pas le message de l'utilisateur courant
