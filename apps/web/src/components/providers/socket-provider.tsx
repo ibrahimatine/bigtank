@@ -12,8 +12,17 @@ import { io, Socket } from 'socket.io-client';
 import type { ChatMessage } from '@/lib/api';
 import { useAuth } from './auth-provider';
 
-const CHAT_SERVICE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
+// Extraire l'origine (protocol + host) de l'URL API pour le WebSocket
+const CHAT_SERVICE_URL = (() => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) return 'http://localhost:4000';
+  try {
+    return new URL(apiUrl).origin;
+  } catch {
+    // Fallback : retirer /api seulement en fin d'URL
+    return apiUrl.replace(/\/api\/?$/, '') || 'http://localhost:4000';
+  }
+})();
 
 interface SocketContextValue {
   socket: Socket | null;
