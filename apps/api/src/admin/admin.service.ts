@@ -2,6 +2,7 @@ import { Injectable, Inject, NotFoundException, ForbiddenException, BadRequestEx
 import { PrismaClient, UserStatus, ListingStatus } from '@prisma/client';
 import { SearchService } from '../search/search.service';
 import { NotificationService } from '../notification/notification.service';
+import { ChatService } from '../chat/chat.service';
 
 @Injectable()
 export class AdminService {
@@ -11,6 +12,7 @@ export class AdminService {
     @Inject('PRISMA') private readonly prisma: PrismaClient,
     private readonly searchService: SearchService,
     private readonly notificationService: NotificationService,
+    private readonly chatService: ChatService,
   ) {}
 
   // ============ Stats enrichies ============
@@ -190,6 +192,12 @@ export class AdminService {
       },
     });
 
+    this.chatService.sendSystemMessage(
+      adminId,
+      userId,
+      `Votre compte a ete suspendu. Raison : ${reason}. Contactez le support si vous pensez qu'il s'agit d'une erreur.`,
+    ).catch(() => {});
+
     return updated;
   }
 
@@ -215,6 +223,12 @@ export class AdminService {
         targetType: 'User',
       },
     });
+
+    this.chatService.sendSystemMessage(
+      adminId,
+      userId,
+      `Votre compte a ete reactive. Vous pouvez a nouveau utiliser Samadal normalement.`,
+    ).catch(() => {});
 
     return updated;
   }
@@ -273,6 +287,12 @@ export class AdminService {
       },
     });
 
+    this.chatService.sendSystemMessage(
+      adminId,
+      userId,
+      `Votre compte a ete banni. Raison : ${reason}. Vos annonces actives ont ete supprimees.`,
+    ).catch(() => {});
+
     return { ...updated, listingsDeleted: activeListings.length };
   }
 
@@ -301,6 +321,12 @@ export class AdminService {
         targetType: 'User',
       },
     });
+
+    this.chatService.sendSystemMessage(
+      adminId,
+      userId,
+      `Votre compte a ete debanni. Vous pouvez a nouveau utiliser Samadal.`,
+    ).catch(() => {});
 
     return updated;
   }
@@ -549,11 +575,13 @@ export class AdminService {
       },
     });
 
-    try {
-      await this.searchService.removeListing(listingId);
-    } catch (err) {
-      this.logger.warn(`Echec sync Meilisearch pour suppression listing ${listingId}: ${err}`);
-    }
+    this.searchService.removeListing(listingId).catch(() => {});
+
+    this.chatService.sendSystemMessage(
+      adminId,
+      listing.sellerId,
+      `Votre annonce "${listing.title}" a ete supprimee par l'equipe Samadal car elle ne respecte pas nos conditions d'utilisation.`,
+    ).catch(() => {});
 
     return updated;
   }

@@ -37,9 +37,38 @@ interface MessageBubbleProps {
   isOwn: boolean;
   isFirstInGroup: boolean;
   isLastInGroup: boolean;
+  isSystemConversation?: boolean;
 }
 
-function MessageBubble({ message, isOwn, isFirstInGroup, isLastInGroup }: MessageBubbleProps) {
+function MessageBubble({ message, isOwn, isFirstInGroup, isLastInGroup, isSystemConversation }: MessageBubbleProps) {
+  // Messages systeme (de l'admin dans une conversation systeme)
+  if (isSystemConversation && !isOwn) {
+    return (
+      <div className={`flex justify-start ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}>
+        <div className="w-7 mr-2 shrink-0 self-end">
+          {isLastInGroup ? (
+            <div className="w-7 h-7 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-[10px] font-bold text-white">
+              S
+            </div>
+          ) : null}
+        </div>
+        <div className="max-w-[80%] min-w-[4.5rem]">
+          {isFirstInGroup && (
+            <p className="text-[11px] font-semibold text-[var(--color-accent)] mb-1 ml-1">
+              Samadal
+            </p>
+          )}
+          <div className="relative px-3.5 py-2.5 text-[14px] leading-[1.45] bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 text-[var(--color-foreground)] rounded-2xl rounded-bl-md">
+            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+            <div className="flex items-center justify-end gap-1 mt-1 text-[var(--color-muted-foreground)]">
+              <span className="text-[10px]">{formatTime(message.createdAt)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}
@@ -137,12 +166,14 @@ interface MessageThreadProps {
   conversation: Conversation;
   initialMessages: ChatMessage[];
   currentUserId: string;
+  isSystemConversation?: boolean;
 }
 
 export function MessageThread({
   conversation,
   initialMessages,
   currentUserId,
+  isSystemConversation = false,
 }: MessageThreadProps) {
   const { onMessage, sendTyping, markRead, refreshUnreadCount, socket } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>(() => sortAsc(initialMessages));
@@ -358,6 +389,7 @@ export function MessageThread({
                   isOwn={msg.senderId === currentUserId}
                   isFirstInGroup={isFirstInGroup}
                   isLastInGroup={isLastInGroup}
+                  isSystemConversation={isSystemConversation}
                 />
               );
             })}

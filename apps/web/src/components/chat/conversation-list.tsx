@@ -28,9 +28,11 @@ interface ConversationItemProps {
 }
 
 function ConversationItem({ conversation, currentUserId }: ConversationItemProps) {
+  const isSystem = conversation.isSystem === true;
   const isBuyer = conversation.buyerId === currentUserId;
   const otherUser = isBuyer ? conversation.seller : conversation.buyer;
-  const thumbnail = conversation.listing.images?.[0]?.url;
+  const displayName = isSystem ? 'Samadal' : otherUser.name;
+  const thumbnail = conversation.listing?.images?.[0]?.url;
   const unread = (conversation._count?.messages ?? 0) > 0;
   const lastMessage = (conversation as unknown as Record<string, unknown>).lastMessage as { content: string; senderId: string } | null;
 
@@ -41,21 +43,27 @@ function ConversationItem({ conversation, currentUserId }: ConversationItemProps
         unread ? 'bg-[var(--color-accent)]/[0.03]' : ''
       }`}
     >
-      {/* Avatar utilisateur */}
+      {/* Avatar */}
       <div className="relative shrink-0">
-        <div className="w-12 h-12 rounded-full bg-[var(--color-muted)] flex items-center justify-center text-sm font-semibold text-[var(--color-muted-foreground)] overflow-hidden">
-          {otherUser.avatarUrl ? (
-            <Image
-              src={otherUser.avatarUrl}
-              alt={otherUser.name}
-              fill
-              className="object-cover"
-              sizes="48px"
-            />
-          ) : (
-            otherUser.name.charAt(0).toUpperCase()
-          )}
-        </div>
+        {isSystem ? (
+          <div className="w-12 h-12 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-white font-bold text-base">
+            S
+          </div>
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-[var(--color-muted)] flex items-center justify-center text-sm font-semibold text-[var(--color-muted-foreground)] overflow-hidden">
+            {otherUser.avatarUrl ? (
+              <Image
+                src={otherUser.avatarUrl}
+                alt={otherUser.name}
+                fill
+                className="object-cover"
+                sizes="48px"
+              />
+            ) : (
+              otherUser.name.charAt(0).toUpperCase()
+            )}
+          </div>
+        )}
         {unread && (
           <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[var(--color-accent)] border-2 border-[var(--color-card)]" />
         )}
@@ -65,14 +73,14 @@ function ConversationItem({ conversation, currentUserId }: ConversationItemProps
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
           <p className={`text-sm truncate ${unread ? 'font-bold' : 'font-medium'}`}>
-            {otherUser.name}
+            {displayName}
           </p>
           <span className={`text-[11px] shrink-0 ${unread ? 'text-[var(--color-accent)] font-semibold' : 'text-[var(--color-muted-foreground)]'}`}>
             {formatRelativeTime(conversation.lastMessageAt)}
           </span>
         </div>
         <p className="text-xs text-[var(--color-muted-foreground)] truncate mt-0.5">
-          {conversation.listing.title}
+          {isSystem ? 'Messages de Samadal' : (conversation.listing?.title ?? '')}
         </p>
         {lastMessage?.content && (
           <p className={`text-[13px] truncate mt-0.5 ${unread ? 'text-[var(--color-foreground)] font-medium' : 'text-[var(--color-muted-foreground)]'}`}>
@@ -82,8 +90,8 @@ function ConversationItem({ conversation, currentUserId }: ConversationItemProps
         )}
       </div>
 
-      {/* Thumbnail annonce */}
-      {thumbnail && (
+      {/* Thumbnail annonce (pas pour les conversations systeme) */}
+      {!isSystem && thumbnail && conversation.listing && (
         <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-[var(--color-muted)] shrink-0">
           <Image
             src={thumbnail}
@@ -143,7 +151,7 @@ export function ConversationList({
     ? conversations.filter((c) => {
         const other = c.buyerId === user.id ? c.seller : c.buyer;
         const q = search.toLowerCase();
-        return other.name.toLowerCase().includes(q) || c.listing.title.toLowerCase().includes(q);
+        return other.name.toLowerCase().includes(q) || (c.listing?.title ?? '').toLowerCase().includes(q);
       })
     : conversations;
 

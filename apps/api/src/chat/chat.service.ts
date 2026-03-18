@@ -332,6 +332,56 @@ export class ChatService {
     return conversations.map((c) => c.id);
   }
 
+  /**
+   * Envoie un message systeme (de Samadal) a un utilisateur.
+   * Cree une conversation systeme si elle n'existe pas encore.
+   * Le senderId est l'admin qui a effectue l'action.
+   */
+  async sendSystemMessage(adminId: string, userId: string, content: string) {
+    // Trouver ou creer la conversation systeme avec cet utilisateur
+    let conversation = await this.prisma.conversation.findFirst({
+      where: {
+        isSystem: true,
+        OR: [
+          { buyerId: userId, sellerId: adminId },
+          { buyerId: adminId, sellerId: userId },
+        ],
+      },
+    });
+
+    if (!conversation) {
+      conversation = await this.prisma.conversation.create({
+        data: {
+          buyerId: userId,
+          sellerId: adminId,
+          isSystem: true,
+          lastMessageAt: new Date(),
+        },
+      });
+    }
+
+    const [message] = await this.prisma.$transaction([
+      this.prisma.message.create({
+        data: {
+          conversationId: conversation.id,
+          senderId: adminId,
+          content,
+        },
+        include: {
+          sender: {
+            select: { id: true, name: true, avatarUrl: true },
+          },
+        },
+      }),
+      this.prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { lastMessageAt: new Date() },
+      }),
+    ]);
+
+    return { conversation, message };
+  }
+
   private checkParticipant(
     conversation: { buyerId: string; sellerId: string },
     userId: string,

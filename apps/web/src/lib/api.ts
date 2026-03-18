@@ -302,12 +302,13 @@ export interface ChatListing {
 
 export interface Conversation {
   id: string;
-  listingId: string;
+  listingId: string | null;
   buyerId: string;
   sellerId: string;
+  isSystem?: boolean;
   lastMessageAt: string | null;
   createdAt: string;
-  listing: ChatListing;
+  listing: ChatListing | null;
   buyer: ChatUser;
   seller: ChatUser;
   _count?: { messages: number };

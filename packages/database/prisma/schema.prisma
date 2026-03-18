@@ -211,14 +211,15 @@ model ListingPayment {
 
 model Conversation {
   id            String    @id @default(cuid())
-  listingId     String    @map("listing_id")
+  listingId     String?   @map("listing_id")
   buyerId       String    @map("buyer_id")
   sellerId      String    @map("seller_id")
+  isSystem      Boolean   @default(false) @map("is_system")
   lastMessageAt DateTime? @map("last_message_at")
   createdAt     DateTime  @default(now()) @map("created_at")
 
   // Relations
-  listing  Listing   @relation(fields: [listingId], references: [id])
+  listing  Listing?  @relation(fields: [listingId], references: [id])
   buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id])
   seller   User      @relation("SellerConversations", fields: [sellerId], references: [id])
   messages Message[]
@@ -226,6 +227,7 @@ model Conversation {
   @@unique([listingId, buyerId, sellerId])
   @@index([buyerId])
   @@index([sellerId])
+  @@index([isSystem])
   @@map("conversations")
 }
 
