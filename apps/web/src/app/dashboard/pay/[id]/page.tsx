@@ -168,9 +168,9 @@ export default function PayListingPage() {
   // Écran d'attente de confirmation (après envoi du push USSD)
   if (waitingConfirmation) {
     return (
-      <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="min-h-screen bg-[var(--color-muted)] py-10 px-4">
         <div className="max-w-lg mx-auto">
-          <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-[var(--color-card)] text-[var(--color-card-foreground)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
             <div className="bg-[var(--color-primary)] px-6 py-5 text-white">
               <h1 className="text-lg font-bold">En attente de confirmation</h1>
               <p className="text-sm opacity-80 mt-0.5">
@@ -186,17 +186,17 @@ export default function PayListingPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-lg font-semibold text-gray-900">
+                <p className="text-lg font-semibold">
                   Vérifiez votre téléphone
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-[var(--color-muted-foreground)]">
                   Un message de paiement a été envoyé sur le numéro <strong>{phone}</strong>.
                   Entrez votre code PIN pour confirmer le paiement de{' '}
                   <strong>{preview ? formatXof(preview.commission) : '...'}</strong>.
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 justify-center text-sm text-gray-500">
+              <div className="flex items-center gap-2 justify-center text-sm text-[var(--color-muted-foreground)]">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Vérification en cours...
               </div>
@@ -207,7 +207,7 @@ export default function PayListingPage() {
                   setWaitingConfirmation(false);
                   setRefCommand(null);
                 }}
-                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] underline"
               >
                 Annuler et réessayer
               </button>
@@ -219,17 +219,17 @@ export default function PayListingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-[var(--color-muted)] py-10 px-4">
       <div className="max-w-lg mx-auto">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6"
+          className="inline-flex items-center gap-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Retour au tableau de bord
         </Link>
 
-        <div className="bg-[var(--color-card)] rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-[var(--color-card)] text-[var(--color-card-foreground)] rounded-2xl shadow-sm border border-[var(--color-border)] overflow-hidden">
           {/* Header */}
           <div className="bg-[var(--color-primary)] px-6 py-5 text-white">
             <h1 className="text-lg font-bold">Publier votre annonce</h1>
@@ -241,7 +241,7 @@ export default function PayListingPage() {
           <div className="p-6 space-y-5">
             {/* Annonce concernée */}
             {listing && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-[var(--color-muted)] rounded-xl">
                 {listing.images?.[0] && (
                   <img
                     src={listing.images[0].url}
@@ -250,8 +250,8 @@ export default function PayListingPage() {
                   />
                 )}
                 <div className="min-w-0">
-                  <p className="font-medium text-sm text-gray-900 truncate">{listing.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="font-medium text-sm truncate">{listing.title}</p>
+                  <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
                     Prix annoncé : {formatXof(listing.priceXof)}
                   </p>
                 </div>
@@ -260,16 +260,16 @@ export default function PayListingPage() {
 
             {/* Détail commission */}
             {preview && (
-              <div className="border border-gray-100 rounded-xl divide-y divide-gray-100">
+              <div className="border border-[var(--color-border)] rounded-xl divide-y divide-[var(--color-border)]">
                 <div className="flex justify-between items-center px-4 py-3 text-sm">
-                  <span className="text-gray-600">Prix de l&apos;annonce</span>
+                  <span className="text-[var(--color-muted-foreground)]">Prix de l&apos;annonce</span>
                   <span className="font-medium">{formatXof(preview.listingPrice)}</span>
                 </div>
                 <div className="flex justify-between items-center px-4 py-3 text-sm">
-                  <span className="text-gray-600">Taux commission</span>
+                  <span className="text-[var(--color-muted-foreground)]">Taux commission</span>
                   <span className="font-medium">{preview.rate}</span>
                 </div>
-                <div className="flex justify-between items-center px-4 py-3 text-sm font-semibold bg-gray-50">
+                <div className="flex justify-between items-center px-4 py-3 text-sm font-semibold bg-[var(--color-muted)]">
                   <span>Commission Samadal</span>
                   <span className="text-[var(--color-primary)] text-base">
                     {formatXof(preview.commission)}
@@ -280,7 +280,7 @@ export default function PayListingPage() {
 
             {/* Sélecteur de méthode de paiement */}
             <div>
-              <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
+              <p className="text-xs text-[var(--color-muted-foreground)] mb-2 font-medium uppercase tracking-wide">
                 Méthode de paiement
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -292,7 +292,7 @@ export default function PayListingPage() {
                     className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl text-xs font-medium border-2 transition-all ${
                       selectedMethod === method.key
                         ? `${method.bgColor} ${method.color} ring-2 ring-offset-1 ring-current`
-                        : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'
+                        : 'bg-[var(--color-muted)] text-[var(--color-muted-foreground)] border-transparent hover:bg-[var(--color-muted)]/80'
                     }`}
                   >
                     <Smartphone className="h-5 w-5" />
@@ -307,11 +307,11 @@ export default function PayListingPage() {
 
             {/* Champ numéro de téléphone */}
             <div>
-              <label htmlFor="phone" className="text-xs text-gray-500 mb-1.5 block font-medium uppercase tracking-wide">
+              <label htmlFor="phone" className="text-xs text-[var(--color-muted-foreground)] mb-1.5 block font-medium uppercase tracking-wide">
                 Numéro de téléphone
               </label>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-2.5 rounded-lg font-medium">
+                <span className="text-sm text-[var(--color-muted-foreground)] bg-[var(--color-muted)] px-3 py-2.5 rounded-lg font-medium">
                   +221
                 </span>
                 <input
@@ -320,10 +320,10 @@ export default function PayListingPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="77 000 00 00"
-                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                  className="flex-1 px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm bg-[var(--color-card)] text-[var(--color-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
                 Le numéro sur lequel vous recevrez la demande de paiement
               </p>
             </div>
@@ -360,7 +360,7 @@ export default function PayListingPage() {
               )}
             </button>
 
-            <p className="text-center text-xs text-gray-400">
+            <p className="text-center text-xs text-[var(--color-muted-foreground)]">
               Paiement sécurisé via Intech · Durée de publication : 60 jours
             </p>
           </div>

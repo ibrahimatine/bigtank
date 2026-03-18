@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Mobile bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[var(--color-border)] flex justify-around py-2 lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-card)] border-t border-[var(--color-border)] flex justify-around py-2 lg:hidden">
         {navItems.map((item) => (
           <Link
             key={item.href}

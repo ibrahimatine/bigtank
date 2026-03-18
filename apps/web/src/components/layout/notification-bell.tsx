@@ -169,7 +169,7 @@ export function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[var(--color-card)] rounded-2xl shadow-2xl border border-[var(--color-border)] z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[var(--color-card)] text-[var(--color-card-foreground)] rounded-2xl shadow-2xl border border-[var(--color-border)] z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--color-border)]">
             <span className="font-semibold text-sm">Notifications</span>
@@ -211,15 +211,21 @@ export function NotificationBell() {
                     }
                   }}
                 >
-                  {/* Avatar Samadal — toujours "S" pour montrer que c'est un message systeme */}
+                  {/* Avatar — initiale de l'envoyeur pour les messages, "S" pour le reste */}
                   <div className="w-9 h-9 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-white text-sm font-bold shrink-0 mt-0.5">
-                    S
+                    {notif.type === 'NEW_MESSAGE' && notif.data?.senderName
+                      ? notif.data.senderName.charAt(0).toUpperCase()
+                      : 'S'}
                   </div>
 
                   {/* Contenu — style message */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">Samadal</span>
+                      <span className="text-sm font-semibold">
+                        {notif.type === 'NEW_MESSAGE' && notif.data?.senderName
+                          ? notif.data.senderName
+                          : 'Samadal'}
+                      </span>
                       <span className="text-[10px] text-[var(--color-muted-foreground)]">
                         {timeAgo(notif.createdAt)}
                       </span>
