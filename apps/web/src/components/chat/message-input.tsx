@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Send } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 
 const MAX_LENGTH = 1000;
 
@@ -14,6 +14,7 @@ export function MessageInput({ onSend, onTypingChange }: MessageInputProps) {
   const [content, setContent] = useState('');
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleTypingSignal = useCallback(
     (typing: boolean) => {
@@ -30,7 +31,13 @@ export function MessageInput({ onSend, onTypingChange }: MessageInputProps) {
     if (val.length > MAX_LENGTH) return;
     setContent(val);
 
-    // Signaler frappe en cours
+    // Auto-resize textarea
+    const ta = textareaRef.current;
+    if (ta) {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 128) + 'px';
+    }
+
     handleTypingSignal(true);
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
     typingTimerRef.current = setTimeout(() => handleTypingSignal(false), 2000);
@@ -44,6 +51,11 @@ export function MessageInput({ onSend, onTypingChange }: MessageInputProps) {
     setContent('');
     handleTypingSignal(false);
     if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -54,23 +66,25 @@ export function MessageInput({ onSend, onTypingChange }: MessageInputProps) {
   };
 
   const remaining = MAX_LENGTH - content.length;
-  const isNearLimit = remaining <= 100;
+  const showCounter = remaining <= 100;
+  const hasContent = content.trim().length > 0;
 
   return (
     <div className="flex items-end gap-2">
       <div className="flex-1 relative">
         <textarea
+          ref={textareaRef}
           value={content}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="Ecrire un message... (Entree pour envoyer)"
+          placeholder="Votre message..."
           rows={1}
-          className="w-full resize-none rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3 pr-16 text-sm outline-none focus:border-[var(--color-accent)] transition-colors max-h-32 overflow-y-auto"
-          style={{ minHeight: '48px' }}
+          className="w-full resize-none rounded-2xl border border-[var(--color-border)] bg-[var(--color-muted)]/50 px-4 py-3 text-[14px] outline-none focus:border-[var(--color-accent)] focus:bg-[var(--color-card)] transition-all max-h-32 overflow-y-auto placeholder:text-[var(--color-muted-foreground)]"
+          style={{ minHeight: '44px' }}
         />
-        {isNearLimit && (
+        {showCounter && (
           <span
-            className={`absolute right-12 bottom-3 text-xs ${
+            className={`absolute right-3 bottom-2.5 text-[10px] font-medium transition-colors ${
               remaining <= 20 ? 'text-red-500' : 'text-[var(--color-muted-foreground)]'
             }`}
           >
@@ -80,11 +94,15 @@ export function MessageInput({ onSend, onTypingChange }: MessageInputProps) {
       </div>
       <button
         onClick={handleSubmit}
-        disabled={!content.trim()}
-        className="w-10 h-10 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center hover:bg-[var(--color-accent)]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+        disabled={!hasContent}
+        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${
+          hasContent
+            ? 'bg-[var(--color-accent)] text-white shadow-sm hover:opacity-90 scale-100'
+            : 'bg-[var(--color-muted)] text-[var(--color-muted-foreground)] scale-95'
+        }`}
         aria-label="Envoyer"
       >
-        <Send className="h-4 w-4" />
+        <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
       </button>
     </div>
   );

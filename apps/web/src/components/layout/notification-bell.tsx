@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Check, CheckCheck } from 'lucide-react';
+import { Bell, CheckCheck } from 'lucide-react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useSocket } from '@/components/providers/socket-provider';
 
@@ -35,6 +35,19 @@ function getNotifUrl(notif: AppNotification): string | null {
     return `/admin/listings`;
   }
   return null;
+}
+
+/** Icone selon le type de notification */
+function getNotifEmoji(type: string): string {
+  switch (type) {
+    case 'NEW_MESSAGE': return '💬';
+    case 'WELCOME': return '👋';
+    case 'NEW_LISTING_PUBLISHED': return '📦';
+    case 'LISTING_SOLD': return '🎉';
+    case 'PAYMENT_RECEIVED': return '💰';
+    case 'LISTING_EXPIRING': return '⏰';
+    default: return '🔔';
+  }
 }
 
 export function NotificationBell() {
@@ -78,7 +91,6 @@ export function NotificationBell() {
     }
   }, [user]);
 
-  // Charger le compteur au mount + polling 30s
   useEffect(() => {
     if (!user) {
       setUnreadCount(0);
@@ -90,7 +102,6 @@ export function NotificationBell() {
     return () => clearInterval(interval);
   }, [user, fetchUnreadCount]);
 
-  // Incrémenter en temps réel quand un message arrive (pas envoyé par soi-même)
   useEffect(() => {
     if (!user) return;
     const unsub = onMessage((message) => {
@@ -101,7 +112,6 @@ export function NotificationBell() {
     return unsub;
   }, [user, onMessage]);
 
-  // Fermer au clic hors du dropdown
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -113,9 +123,7 @@ export function NotificationBell() {
   }, []);
 
   const handleToggle = () => {
-    if (!open) {
-      fetchNotifications();
-    }
+    if (!open) fetchNotifications();
     setOpen((prev) => !prev);
   };
 
@@ -161,35 +169,38 @@ export function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-[var(--color-card)] text-gray-900 rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[var(--color-card)] rounded-2xl shadow-2xl border border-[var(--color-border)] z-50 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--color-border)]">
             <span className="font-semibold text-sm">Notifications</span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                className="flex items-center gap-1 text-xs text-[var(--color-accent)] hover:opacity-80 transition-opacity"
               >
                 <CheckCheck className="h-3.5 w-3.5" />
-                Tout lu
+                Tout marquer lu
               </button>
             )}
           </div>
 
-          {/* Liste */}
-          <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
+          {/* Liste de notifications — style messages */}
+          <div className="max-h-[28rem] overflow-y-auto">
             {loading ? (
-              <div className="px-4 py-8 text-center text-sm text-gray-400">Chargement…</div>
+              <div className="px-5 py-10 text-center text-sm text-[var(--color-muted-foreground)]">Chargement…</div>
             ) : notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-gray-400">
-                Aucune notification
+              <div className="px-5 py-10 text-center">
+                <div className="text-3xl mb-2">🔔</div>
+                <p className="text-sm text-[var(--color-muted-foreground)]">
+                  Aucune notification pour le moment
+                </p>
               </div>
             ) : (
               notifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                    !notif.readAt ? 'bg-blue-50' : ''
+                  className={`flex gap-3 px-5 py-3.5 cursor-pointer transition-colors hover:bg-[var(--color-muted)] ${
+                    !notif.readAt ? 'bg-[var(--color-accent)]/5' : ''
                   }`}
                   onClick={() => {
                     if (!notif.readAt) markAsRead(notif.id);
@@ -200,24 +211,32 @@ export function NotificationBell() {
                     }
                   }}
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${!notif.readAt ? 'font-semibold' : 'font-normal'} text-gray-900`}>
-                      {notif.title}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5 leading-snug truncate">
-                      {notif.body}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {timeAgo(notif.createdAt)}
-                    </p>
+                  {/* Avatar Samadal — toujours "S" pour montrer que c'est un message systeme */}
+                  <div className="w-9 h-9 rounded-full bg-[var(--color-accent)] flex items-center justify-center text-white text-sm font-bold shrink-0 mt-0.5">
+                    S
                   </div>
-                  {!notif.readAt && (
-                    <div className="mt-1.5 shrink-0">
-                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+
+                  {/* Contenu — style message */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold">Samadal</span>
+                      <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                        {timeAgo(notif.createdAt)}
+                      </span>
                     </div>
-                  )}
-                  {notif.readAt && (
-                    <Check className="h-3.5 w-3.5 text-gray-300 mt-1 shrink-0" />
+
+                    {/* Le "message" = body de la notification avec emoji du type */}
+                    <div className={`mt-1 text-[13px] leading-snug ${!notif.readAt ? 'text-[var(--color-foreground)]' : 'text-[var(--color-muted-foreground)]'}`}>
+                      <span className="mr-1.5">{getNotifEmoji(notif.type)}</span>
+                      {notif.body}
+                    </div>
+                  </div>
+
+                  {/* Point non-lu */}
+                  {!notif.readAt && (
+                    <div className="mt-2 shrink-0">
+                      <div className="w-2 h-2 rounded-full bg-[var(--color-accent)]" />
+                    </div>
                   )}
                 </div>
               ))

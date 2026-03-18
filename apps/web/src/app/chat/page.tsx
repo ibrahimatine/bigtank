@@ -16,14 +16,23 @@ export default async function ChatPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <MessageCircle className="h-6 w-6 text-[var(--color-accent)]" />
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
-          Mes messages
-        </h1>
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center">
+          <MessageCircle className="h-5 w-5 text-[var(--color-accent)]" />
+        </div>
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-xl font-bold">
+            Messages
+          </h1>
+          {conversations.length > 0 && (
+            <p className="text-xs text-[var(--color-muted-foreground)]">
+              {conversations.length} conversation{conversations.length > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+      <div className="bg-[var(--color-card)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-sm">
         <ConversationList initialConversations={conversations} />
       </div>
     </div>

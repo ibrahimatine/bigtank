@@ -26,40 +26,107 @@ function formatDay(dateStr: string): string {
   if (date.toDateString() === today.toDateString()) return "Aujourd'hui";
   if (date.toDateString() === yesterday.toDateString()) return 'Hier';
   return date.toLocaleDateString('fr-SN', {
+    weekday: 'long',
     day: 'numeric',
     month: 'long',
-    year: 'numeric',
   });
 }
 
 interface MessageBubbleProps {
   message: ChatMessage;
   isOwn: boolean;
+  isFirstInGroup: boolean;
+  isLastInGroup: boolean;
 }
 
-function MessageBubble({ message, isOwn }: MessageBubbleProps) {
+function MessageBubble({ message, isOwn, isFirstInGroup, isLastInGroup }: MessageBubbleProps) {
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm ${
-          isOwn
-            ? 'bg-[var(--color-accent)] text-white rounded-br-sm'
-            : 'bg-[#f0f0f0] text-[var(--color-foreground)] rounded-bl-sm'
-        }`}
-      >
-        <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
-        <p className={`text-[11px] mt-1 ${isOwn ? 'text-white/60' : 'text-gray-400'}`}>
-          {formatTime(message.createdAt)}
-          {isOwn && message.readAt && (
-            <span className="ml-1">· Lu</span>
-          )}
-        </p>
+    <div
+      className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}
+    >
+      {/* Avatar pour les messages recus — seulement sur le dernier du groupe */}
+      {!isOwn && (
+        <div className="w-7 mr-2 shrink-0 self-end">
+          {isLastInGroup && message.sender?.name ? (
+            <div className="w-7 h-7 rounded-full bg-[var(--color-muted)] flex items-center justify-center text-[11px] font-semibold text-[var(--color-muted-foreground)]">
+              {message.sender.name.charAt(0).toUpperCase()}
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      <div className={`max-w-[72%] min-w-[4.5rem]`}>
+        {/* Nom expediteur — seulement premier du groupe et messages recus */}
+        {!isOwn && isFirstInGroup && message.sender?.name && (
+          <p className="text-[11px] font-medium text-[var(--color-muted-foreground)] mb-1 ml-1">
+            {message.sender.name}
+          </p>
+        )}
+
+        <div
+          className={`
+            relative px-3.5 py-2.5 text-[14px] leading-[1.45]
+            ${isOwn
+              ? `bg-[var(--color-accent)] text-white
+                 ${isFirstInGroup && isLastInGroup ? 'rounded-2xl rounded-br-md' : ''}
+                 ${isFirstInGroup && !isLastInGroup ? 'rounded-2xl rounded-br-md' : ''}
+                 ${!isFirstInGroup && isLastInGroup ? 'rounded-2xl rounded-tr-md rounded-br-md' : ''}
+                 ${!isFirstInGroup && !isLastInGroup ? 'rounded-xl rounded-r-md' : ''}
+                 ${isFirstInGroup && isLastInGroup ? 'rounded-2xl rounded-br-md' : ''}
+                `
+              : `bg-[var(--color-muted)] text-[var(--color-foreground)]
+                 ${isFirstInGroup && isLastInGroup ? 'rounded-2xl rounded-bl-md' : ''}
+                 ${isFirstInGroup && !isLastInGroup ? 'rounded-2xl rounded-bl-md' : ''}
+                 ${!isFirstInGroup && isLastInGroup ? 'rounded-2xl rounded-tl-md rounded-bl-md' : ''}
+                 ${!isFirstInGroup && !isLastInGroup ? 'rounded-xl rounded-l-md' : ''}
+                 ${isFirstInGroup && isLastInGroup ? 'rounded-2xl rounded-bl-md' : ''}
+                `
+            }
+          `}
+        >
+          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+
+          {/* Heure + Lu */}
+          <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-white/50' : 'text-[var(--color-muted-foreground)]'}`}>
+            <span className="text-[10px]">{formatTime(message.createdAt)}</span>
+            {isOwn && message.readAt && (
+              <span className="text-[10px] font-medium">· Lu</span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-// L'API renvoie les messages en DESC (plus recent en premier) — on trie ASC pour affichage
+function DaySeparator({ day }: { day: string }) {
+  return (
+    <div className="flex items-center gap-4 my-6 px-2">
+      <div className="flex-1 h-px bg-[var(--color-border)] opacity-50" />
+      <span className="text-[11px] font-medium text-[var(--color-muted-foreground)] uppercase tracking-wider select-none">
+        {day}
+      </span>
+      <div className="flex-1 h-px bg-[var(--color-border)] opacity-50" />
+    </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <div className="flex justify-start mt-3">
+      <div className="w-7 mr-2 shrink-0" />
+      <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-[var(--color-muted)]">
+        <div className="flex gap-1 items-center h-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-muted-foreground)] opacity-60 animate-bounce [animation-delay:0ms] [animation-duration:0.8s]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-muted-foreground)] opacity-60 animate-bounce [animation-delay:150ms] [animation-duration:0.8s]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-muted-foreground)] opacity-60 animate-bounce [animation-delay:300ms] [animation-duration:0.8s]" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Trier ASC pour affichage chronologique
 function sortAsc(msgs: ChatMessage[]): ChatMessage[] {
   return [...msgs].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
@@ -81,7 +148,6 @@ export function MessageThread({
   const [messages, setMessages] = useState<ChatMessage[]>(() => sortAsc(initialMessages));
   const [otherTyping, setOtherTyping] = useState(false);
 
-  // Ref sur le conteneur scrollable — evite scrollIntoView qui scrolle la page entiere
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -93,13 +159,13 @@ export function MessageThread({
     }
   }, [socket, conversation.id]);
 
-  // Marquer comme lu a l'ouverture + rafraichir le compteur de non lus
+  // Marquer comme lu a l'ouverture
   useEffect(() => {
     markRead(conversation.id);
     refreshUnreadCount();
   }, [markRead, refreshUnreadCount, conversation.id]);
 
-  // Scroll : instant au montage, uniquement si pres du bas pour les nouveaux messages
+  // Scroll
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -110,7 +176,7 @@ export function MessageThread({
     } else {
       const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
       if (nearBottom) {
-        el.scrollTop = el.scrollHeight;
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
       }
     }
   }, [messages, otherTyping]);
@@ -124,7 +190,6 @@ export function MessageThread({
         return [...prev, message];
       });
       if (message.senderId !== currentUserId) {
-        // Marquer comme lu et rafraichir le compteur (l'utilisateur est en train de lire)
         markRead(conversation.id);
         refreshUnreadCount();
       }
@@ -188,7 +253,7 @@ export function MessageThread({
     };
   }, [socket, conversation.id, currentUserId]);
 
-  // Grouper par jour (messages deja tries ASC)
+  // Grouper par jour
   const grouped: { day: string; messages: ChatMessage[] }[] = [];
   for (const msg of messages) {
     const day = formatDay(msg.createdAt);
@@ -202,48 +267,50 @@ export function MessageThread({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Zone scrollable avec ref directe */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-1">
-          {grouped.map(({ day, messages: dayMessages }) => (
-            <div key={day}>
-              <div className="flex items-center gap-3 my-4">
-                <div className="flex-1 h-px bg-[var(--color-border)]" />
-                <span className="text-[11px] text-[var(--color-muted-foreground)] px-2 select-none">
-                  {day}
-                </span>
-                <div className="flex-1 h-px bg-[var(--color-border)]" />
-              </div>
-
-              <div className="space-y-1.5">
-                {dayMessages.map((msg) => (
-                  <MessageBubble
-                    key={msg.id}
-                    message={msg}
-                    isOwn={msg.senderId === currentUserId}
-                  />
-                ))}
-              </div>
+      {/* Zone scrollable */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-2">
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-center py-12">
+            <div className="w-16 h-16 rounded-full bg-[var(--color-muted)] flex items-center justify-center mb-4">
+              <span className="text-2xl">💬</span>
             </div>
-          ))}
+            <p className="text-sm text-[var(--color-muted-foreground)]">
+              Debut de la conversation
+            </p>
+          </div>
+        )}
 
-          {/* Indicateur de frappe */}
-          {otherTyping && (
-            <div className="flex justify-start pt-1">
-              <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm bg-[#f0f0f0]">
-                <div className="flex gap-1 items-center h-4">
-                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:0ms]" />
-                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:150ms]" />
-                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:300ms]" />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        {grouped.map(({ day, messages: dayMessages }) => (
+          <div key={day}>
+            <DaySeparator day={day} />
+
+            {dayMessages.map((msg, i) => {
+              const prevMsg = i > 0 ? dayMessages[i - 1] : null;
+              const nextMsg = i < dayMessages.length - 1 ? dayMessages[i + 1] : null;
+              const isFirstInGroup = !prevMsg || prevMsg.senderId !== msg.senderId;
+              const isLastInGroup = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+              return (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isOwn={msg.senderId === currentUserId}
+                  isFirstInGroup={isFirstInGroup}
+                  isLastInGroup={isLastInGroup}
+                />
+              );
+            })}
+          </div>
+        ))}
+
+        {otherTyping && <TypingIndicator />}
+
+        {/* Espace en bas pour le scroll */}
+        <div className="h-2" />
       </div>
 
       {/* Input */}
-      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-card)]">
+      <div className="border-t border-[var(--color-border)] p-3 sm:p-4 bg-[var(--color-card)]">
         <MessageInput
           onSend={(content) => sendMessage(conversation.id, content)}
           onTypingChange={(typing) => sendTyping(conversation.id, typing)}
