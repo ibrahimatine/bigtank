@@ -17,7 +17,8 @@
     "db:studio": "pnpm --filter @samadal/database studio",
     "docker:up": "docker compose -f docker/docker-compose.dev.yml up -d",
     "docker:down": "docker compose -f docker/docker-compose.dev.yml down",
-    "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f"
+    "docker:logs": "docker compose -f docker/docker-compose.dev.yml logs -f",
+    "reindex": "bash scripts/reindex.sh"
   },
   "engines": {
     "node": ">=20.0.0",

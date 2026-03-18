@@ -4,6 +4,10 @@ import { MeiliSearch } from 'meilisearch';
 import { PrismaClient } from '@prisma/client';
 import { ListingFiltersDto } from '../listing/dto/listing-filters.dto';
 
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 1000;
+const RECONNECT_INTERVAL_MS = 30_000; // Re-tester la connexion toutes les 30s
+
 @Injectable()
 export class SearchService implements OnModuleInit {
   private readonly logger = new Logger(SearchService.name);
@@ -11,44 +15,51 @@ export class SearchService implements OnModuleInit {
   private readonly INDEX = 'listings';
   private available = false;
   private indexConfigured = false;
+  private reconnectTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private configService: ConfigService,
     @Inject('PRISMA') private prisma: PrismaClient,
   ) {
+    const host =
+      this.configService.get<string>('MEILISEARCH_URL') ||
+      'http://localhost:7700';
+    const apiKey = this.configService.get<string>('MEILISEARCH_API_KEY');
+
     this.client = new MeiliSearch({
-      host:
-        this.configService.get<string>('MEILISEARCH_URL') ||
-        'http://localhost:7700',
-      apiKey: this.configService.get<string>('MEILISEARCH_API_KEY'),
+      host,
+      apiKey,
+      requestConfig: { signal: AbortSignal.timeout(10_000) },
     });
+
+    this.logger.log(`Meilisearch host: ${host}`);
   }
 
   async onModuleInit() {
     await this.ensureMeiliAvailable();
+
+    // Si Meilisearch n'est pas dispo au demarrage, tenter de se reconnecter periodiquement
+    if (!this.available) {
+      this.startReconnectLoop();
+    }
   }
 
   // ─── Disponibilite ────────────────────────────────────────────────
 
-  /**
-   * Contacte Meilisearch via health() pour verifier la connexion.
-   * Si c'est la premiere connexion reussie, configure l'index.
-   */
   async ensureMeiliAvailable(): Promise<boolean> {
     if (this.available) return true;
 
     try {
-      this.logger.log('Meilisearch unavailable, retrying...');
       await this.client.health();
 
-      // Premiere connexion reussie → configurer l'index
       if (!this.indexConfigured) {
         await this.setupIndex();
         this.indexConfigured = true;
       }
 
       this.available = true;
-      this.logger.log('Meilisearch connection restored');
+      this.stopReconnectLoop();
+      this.logger.log('Meilisearch connecte et disponible');
       return true;
     } catch {
       this.available = false;
@@ -56,26 +67,47 @@ export class SearchService implements OnModuleInit {
     }
   }
 
-  /**
-   * Health check public — retourne le statut de Meilisearch.
-   * Force un ping reel a chaque appel (pas de cache du flag available).
-   */
-  async healthCheck(): Promise<{ status: 'ok' | 'unavailable' }> {
+  async healthCheck(): Promise<{ status: 'ok' | 'unavailable'; message?: string }> {
     try {
       await this.client.health();
       if (!this.available) {
-        // Meilisearch est revenu — mettre a jour le flag
         if (!this.indexConfigured) {
           await this.setupIndex();
           this.indexConfigured = true;
         }
         this.available = true;
+        this.stopReconnectLoop();
         this.logger.log('Meilisearch connection restored');
       }
       return { status: 'ok' };
-    } catch {
+    } catch (err) {
       this.available = false;
-      return { status: 'unavailable' };
+      return {
+        status: 'unavailable',
+        message: err instanceof Error ? err.message : 'Connexion impossible',
+      };
+    }
+  }
+
+  /** Retourne true si Meilisearch est disponible (sans ping) */
+  isAvailable(): boolean {
+    return this.available;
+  }
+
+  private startReconnectLoop() {
+    if (this.reconnectTimer) return;
+    this.logger.warn(
+      `Meilisearch indisponible — tentative de reconnexion toutes les ${RECONNECT_INTERVAL_MS / 1000}s`,
+    );
+    this.reconnectTimer = setInterval(() => {
+      this.ensureMeiliAvailable().catch(() => {});
+    }, RECONNECT_INTERVAL_MS);
+  }
+
+  private stopReconnectLoop() {
+    if (this.reconnectTimer) {
+      clearInterval(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
   }
 
@@ -109,6 +141,30 @@ export class SearchService implements OnModuleInit {
     ]);
   }
 
+  // ─── Retry helper ───────────────────────────────────────────────
+
+  private async withRetry<T>(
+    operation: () => Promise<T>,
+    label: string,
+  ): Promise<T> {
+    for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+      try {
+        return await operation();
+      } catch (err) {
+        if (attempt === RETRY_ATTEMPTS) {
+          this.logger.error(`${label} — echec apres ${RETRY_ATTEMPTS} tentatives: ${err}`);
+          this.available = false;
+          this.startReconnectLoop();
+          throw err;
+        }
+        const delay = RETRY_DELAY_MS * attempt;
+        this.logger.warn(`${label} — tentative ${attempt}/${RETRY_ATTEMPTS} echouee, retry dans ${delay}ms`);
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+    throw new Error('Unreachable');
+  }
+
   // ─── Indexation ───────────────────────────────────────────────────
 
   async indexListing(listing: {
@@ -137,10 +193,12 @@ export class SearchService implements OnModuleInit {
 
     try {
       const doc = this.buildDocument(listing);
-      await this.client.index(this.INDEX).addDocuments([doc], { primaryKey: 'id' });
-    } catch (err) {
-      this.logger.error(`Echec indexation listing ${listing.id}: ${err}`);
-      this.available = false;
+      await this.withRetry(
+        () => this.client.index(this.INDEX).addDocuments([doc], { primaryKey: 'id' }),
+        `Indexation listing ${listing.id}`,
+      );
+    } catch {
+      // Erreur deja loguee par withRetry — ne pas bloquer l'operation appelante
     }
   }
 
@@ -151,18 +209,21 @@ export class SearchService implements OnModuleInit {
     }
 
     try {
-      await this.client.index(this.INDEX).deleteDocument(id);
-    } catch (err) {
-      this.logger.error(`Echec suppression listing ${id}: ${err}`);
-      this.available = false;
+      await this.withRetry(
+        () => this.client.index(this.INDEX).deleteDocument(id),
+        `Suppression listing ${id}`,
+      );
+    } catch {
+      // Erreur deja loguee par withRetry
     }
   }
 
   // ─── Recherche ────────────────────────────────────────────────────
 
   async search(filters: ListingFiltersDto) {
+    // Si Meilisearch est down, fallback sur une recherche PostgreSQL basique
     if (!(await this.ensureMeiliAvailable())) {
-      return { data: [], total: 0, cursor: null, hasMore: false };
+      return this.searchFallback(filters);
     }
 
     try {
@@ -204,9 +265,13 @@ export class SearchService implements OnModuleInit {
       const limit = Math.min(filters.limit || 20, 100);
       const offset = filters.cursor ? parseInt(filters.cursor, 10) : 0;
 
-      const result = await this.client.index(this.INDEX).search(
-        filters.query || '',
-        { filter: filterArray.join(' AND '), sort, limit, offset },
+      const result = await this.withRetry(
+        () =>
+          this.client.index(this.INDEX).search(
+            filters.query || '',
+            { filter: filterArray.join(' AND '), sort, limit, offset },
+          ),
+        'Recherche Meilisearch',
       );
 
       const nextOffset = offset + result.hits.length;
@@ -218,16 +283,97 @@ export class SearchService implements OnModuleInit {
         cursor: hasMore ? String(nextOffset) : null,
         hasMore,
       };
+    } catch {
+      // Si Meilisearch crash pendant la recherche, fallback PostgreSQL
+      this.logger.warn('Meilisearch search failed — fallback PostgreSQL');
+      return this.searchFallback(filters);
+    }
+  }
+
+  /**
+   * Recherche de secours via PostgreSQL quand Meilisearch est indisponible.
+   * Moins performante mais garantit que la recherche fonctionne toujours.
+   */
+  private async searchFallback(filters: ListingFiltersDto) {
+    try {
+      const limit = Math.min(filters.limit || 20, 100);
+      const offset = filters.cursor ? parseInt(filters.cursor, 10) : 0;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const where: any = { status: 'ACTIVE' };
+
+      if (filters.brand) where.brand = filters.brand;
+      if (filters.condition) where.condition = filters.condition;
+      if (filters.color) where.color = filters.color;
+      if (filters.region) where.locationRegion = filters.region;
+      if (filters.city) where.locationCity = filters.city;
+      if (filters.sellerId) where.sellerId = filters.sellerId;
+
+      if (filters.sizeEuMin !== undefined || filters.sizeEuMax !== undefined) {
+        where.sizeEu = {};
+        if (filters.sizeEuMin !== undefined) where.sizeEu.gte = filters.sizeEuMin;
+        if (filters.sizeEuMax !== undefined) where.sizeEu.lte = filters.sizeEuMax;
+      }
+
+      if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
+        where.priceXof = {};
+        if (filters.priceMin !== undefined) where.priceXof.gte = filters.priceMin;
+        if (filters.priceMax !== undefined) where.priceXof.lte = filters.priceMax;
+      }
+
+      // Recherche textuelle basique
+      if (filters.query) {
+        where.OR = [
+          { title: { contains: filters.query, mode: 'insensitive' } },
+          { brand: { contains: filters.query, mode: 'insensitive' } },
+          { model: { contains: filters.query, mode: 'insensitive' } },
+          { description: { contains: filters.query, mode: 'insensitive' } },
+        ];
+      }
+
+      // Tri
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let orderBy: any = { createdAt: 'desc' };
+      switch (filters.sortBy) {
+        case 'price_asc':
+          orderBy = { priceXof: 'asc' };
+          break;
+        case 'price_desc':
+          orderBy = { priceXof: 'desc' };
+          break;
+        case 'popularity':
+          orderBy = { viewsCount: 'desc' };
+          break;
+      }
+
+      const [listings, total] = await Promise.all([
+        this.prisma.listing.findMany({
+          where,
+          orderBy,
+          take: limit,
+          skip: offset,
+          include: { images: { orderBy: { order: 'asc' } } },
+        }),
+        this.prisma.listing.count({ where }),
+      ]);
+
+      const data = listings.map((listing) => this.buildDocument(listing));
+      const nextOffset = offset + data.length;
+
+      return {
+        data,
+        total,
+        cursor: nextOffset < total ? String(nextOffset) : null,
+        hasMore: nextOffset < total,
+      };
     } catch (err) {
-      this.logger.error(`Echec recherche Meilisearch: ${err}`);
-      this.available = false;
+      this.logger.error(`Fallback PostgreSQL echoue: ${err}`);
       return { data: [], total: 0, cursor: null, hasMore: false };
     }
   }
 
   // ─── Reindexation ─────────────────────────────────────────────────
 
-  /** Re-indexe toutes les annonces ACTIVE depuis la base de donnees */
   async reindexAll(): Promise<{ reindexed: number }> {
     if (!(await this.ensureMeiliAvailable())) {
       throw new Error('Meilisearch unavailable — impossible de reindexer');
@@ -254,13 +400,13 @@ export class SearchService implements OnModuleInit {
       const batch = listings.slice(i, i + batchSize);
       const docs = batch.map((listing) => this.buildDocument(listing));
       await this.client.index(this.INDEX).addDocuments(docs, { primaryKey: 'id' });
+      this.logger.log(`Reindex batch ${Math.floor(i / batchSize) + 1}: ${docs.length} annonces`);
     }
 
-    this.logger.log(`Reindex completed: ${listings.length} listings`);
+    this.logger.log(`Reindex termine: ${listings.length} annonces`);
     return { reindexed: listings.length };
   }
 
-  /** Re-indexe une seule annonce par son ID */
   async reindexOne(listingId: string): Promise<{ reindexed: number }> {
     if (!(await this.ensureMeiliAvailable())) {
       throw new Error('Meilisearch unavailable — impossible de reindexer');
@@ -275,11 +421,10 @@ export class SearchService implements OnModuleInit {
       throw new Error('Annonce introuvable');
     }
 
-    // Si l'annonce est ACTIVE, l'indexer ; sinon la retirer
     if (listing.status === 'ACTIVE') {
       const doc = this.buildDocument(listing);
       await this.client.index(this.INDEX).addDocuments([doc], { primaryKey: 'id' });
-      this.logger.log(`Reindex completed: 1 listing (${listingId})`);
+      this.logger.log(`Reindex: 1 annonce (${listingId})`);
     } else {
       try {
         await this.client.index(this.INDEX).deleteDocument(listingId);
