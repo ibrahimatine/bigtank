@@ -57,13 +57,13 @@
 - [x] Historique ventes/achats (cursor pagination)
 - [x] Suivi transactions admin (AuditLog)
 
-### 3.6 OAuth Google/Facebook — ✅ GOOGLE OK, FACEBOOK EN ATTENTE
-- [x] Strategies Passport Google + Facebook
+### 3.6 OAuth Google — ✅ FAIT
+- [x] Strategie Passport Google
 - [x] Routes backend + callback
 - [x] Boutons frontend (login + register)
 - [x] App Google Cloud Console creee + cles configurees
 - [x] Separation login/register (register bloque si compte existant)
-- [ ] Creer l'app Facebook Developers (en attente verification SMS)
+- [x] Facebook OAuth supprime (2026-03-19) — pas utilise, simplifie le code
 
 ### 3.7 Migration monolithe — ✅ FAIT
 - [x] `apps/api` = backend unique (port 4000)
@@ -185,7 +185,7 @@
 - [x] WEB_URL configure
 - [x] Google OAuth keys (configurees sur Railway)
 - [x] SENTRY_DSN (Railway) + NEXT_PUBLIC_SENTRY_DSN (Vercel)
-- [ ] Facebook OAuth keys (en attente verification SMS)
+- [x] ~~Facebook OAuth~~ (supprime 2026-03-19, pas utilise)
 
 ---
 
@@ -204,9 +204,9 @@
 - [ ] Tests endpoints critiques : auth, listing, payment
 - [ ] Tests E2E Playwright (optionnel)
 
-### 6.4 CI/CD (optionnel pour le lancement)
-- [ ] `.github/workflows/ci.yml` : lint + build
-- [ ] Deploy automatique via Railway (git push)
+### 6.4 CI/CD ✅ FAIT
+- [x] `.github/workflows/ci.yml` : lint + build (PostgreSQL service, Prisma generate+push)
+- [ ] Deploy automatique via Railway (git push) — optionnel, deploy manuel via `railway up`
 
 ---
 
@@ -241,7 +241,8 @@
 - [x] Google OAuth OK
 - [x] Sentry monitoring OK
 - [x] SEO complet (sitemap, OG, JSON-LD, favicon, PWA)
-- [ ] Facebook OAuth (en attente verification SMS)
+- [x] ~~Facebook OAuth~~ (supprime, pas utilise)
+- [x] CI/CD GitHub Actions (lint + build)
 - [ ] Test multi-navigateurs + appareils
 - [x] Google Search Console (propriete verifiee, sitemap soumis)
 
@@ -286,12 +287,12 @@
 |----------|-------|-------------|--------|
 | CRITIQUE | Phase 1 | Securite | ✅ FAIT |
 | HAUTE | Phase 2 | Emails Resend | ✅ FAIT |
-| HAUTE | Phase 3 | Fonctionnalites | ✅ FAIT (reste Facebook OAuth) |
+| HAUTE | Phase 3 | Fonctionnalites | ✅ FAIT |
 | HAUTE | Phase 4 | Paiements Intech | ⏸ EN PAUSE (gratuit pour tous) |
 | HAUTE | Phase 5 | Deploiement Railway+Vercel | ✅ FAIT |
-| MOYENNE | Phase 6 | Monitoring (Sentry) | ✅ FAIT |
+| MOYENNE | Phase 6 | Monitoring + CI/CD | ✅ FAIT |
 | BASSE | Phase 7 | Polish frontend / SEO | ✅ SEO FAIT (reste accessibilite, perf) |
-| FINALE | Phase 8 | Checklist | ✅ QUASI PRET (reste Facebook, tests) |
+| FINALE | Phase 8 | Checklist | ✅ PRET (reste tests multi-navigateurs) |
 | ACTIVE | Phase 9 | Acquisition & Croissance | 🚀 EN COURS |
 
 ---

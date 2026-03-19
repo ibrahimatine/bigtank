@@ -58,33 +58,6 @@ export class AuthController {
     }
   }
 
-  @Get('facebook')
-  facebookLogin(@Req() req: any, @Res() res: Response) {
-    const mode = req.query.mode || 'login';
-    const callbackUrl = this.configService.get('FACEBOOK_CALLBACK_URL') || 'http://localhost:4000/api/auth/facebook/callback';
-    const clientId = this.configService.get('FACEBOOK_CLIENT_ID');
-    if (!clientId) {
-      const webUrl = this.configService.get('WEB_URL') || 'http://localhost:3000';
-      return res.redirect(`${webUrl}/login?error=${encodeURIComponent('Facebook non configure')}`);
-    }
-    const redirectUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=email,public_profile&state=${mode}`;
-    res.redirect(redirectUrl);
-  }
-
-  @Get('facebook/callback')
-  @UseGuards(AuthGuard('facebook'))
-  async facebookCallback(@Req() req: any, @Res() res: Response) {
-    const webUrl = this.configService.get('WEB_URL') || 'http://localhost:3000';
-    const mode = req.query.state || 'login';
-    try {
-      const tokens = await this.authService.validateOAuthUser(req.user, mode);
-      res.redirect(`${webUrl}/api/auth/oauth-callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
-    } catch (err: any) {
-      const message = encodeURIComponent(err.message || 'Erreur de connexion');
-      res.redirect(`${webUrl}/${mode === 'register' ? 'register' : 'login'}?error=${message}`);
-    }
-  }
-
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
