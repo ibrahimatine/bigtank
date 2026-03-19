@@ -42,6 +42,14 @@ export const metadata: Metadata = {
     'achat vente chaussures',
     'toutes tailles',
   ],
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
     type: 'website',
     url: SITE_URL,
@@ -50,12 +58,21 @@ export const metadata: Metadata = {
     title: 'Samadal — La Marketplace de Chaussures au Senegal',
     description:
       'La marketplace N°1 pour acheter et vendre des chaussures au Senegal. Toutes tailles, toutes marques.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Samadal — La Marketplace de Chaussures au Senegal',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Samadal — La Marketplace de Chaussures au Senegal',
     description:
       'La marketplace N°1 pour acheter et vendre des chaussures au Senegal. Toutes tailles, toutes marques.',
+    images: ['/og-image.png'],
   },
   other: {
     'theme-color': '#e94560',

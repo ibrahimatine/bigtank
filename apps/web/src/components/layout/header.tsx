@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { NavSearchBar } from './nav-search-bar';
 import { UserNav } from './user-nav';
 import { NotificationBell } from './notification-bell';
@@ -10,16 +11,18 @@ export function Header() {
       <div className="max-w-[1280px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="flex items-center gap-2 shrink-0"
+          className="flex items-center gap-1.5 shrink-0"
         >
-          <svg className="h-8 w-8" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="var(--color-accent)" />
-            <path d="M10 21.5c0-1.2.8-2.2 2.4-2.8 1.6-.6 3-.4 4.2-1.2s1.6-2.2 2-3.4.8-2.4 1.8-3.2 2.2-.8 3-.4" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-            <circle cx="11" cy="22.5" r="1.2" fill="white" opacity="0.6" />
-            <circle cx="14.5" cy="18" r="0.8" fill="white" opacity="0.4" />
-          </svg>
-          <span className="font-[family-name:var(--font-display)] text-xl sm:text-2xl tracking-[0.08em] font-bold">
-            samadal
+          <Image
+            src="/icon-white.png"
+            alt="Samadal"
+            width={36}
+            height={36}
+            className="h-9 w-9"
+            priority
+          />
+          <span className="font-[family-name:var(--font-display)] text-xl sm:text-2xl tracking-[0.08em] font-bold uppercase">
+            Samadal
           </span>
         </Link>
 
