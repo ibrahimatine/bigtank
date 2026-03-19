@@ -1,4 +1,10 @@
+import withSerwist from '@serwist/next';
 import { withSentryConfig } from '@sentry/nextjs';
+
+const withSerwistConfig = withSerwist({
+  swSrc: 'src/app/sw.ts',
+  swDest: 'public/sw.js',
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -32,7 +38,7 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withSerwistConfig(nextConfig), {
   silent: true,
   disableLogger: true,
 });
