@@ -15,12 +15,12 @@ import { useAuth } from './auth-provider';
 // Extraire l'origine (protocol + host) de l'URL API pour le WebSocket
 const CHAT_SERVICE_URL = (() => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) return 'http://localhost:4000';
+  if (!apiUrl) return '';
   try {
     return new URL(apiUrl).origin;
   } catch {
     // Fallback : retirer /api seulement en fin d'URL
-    return apiUrl.replace(/\/api\/?$/, '') || 'http://localhost:4000';
+    return apiUrl.replace(/\/api\/?$/, '') || '';
   }
 })();
 
@@ -87,6 +87,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     async function initSocket() {
       try {
+        if (!CHAT_SERVICE_URL) return;
         const token = await getToken();
         if (!token || cancelled) return;
 

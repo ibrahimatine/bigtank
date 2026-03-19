@@ -89,6 +89,11 @@ export function Footer() {
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link href="/download" className="hover:text-white transition-colors">
+                  Telecharger l&apos;app
+                </Link>
+              </li>
             </ul>
           </div>
 

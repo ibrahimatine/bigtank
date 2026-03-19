@@ -288,6 +288,33 @@ export class EmailService {
     });
   }
 
+  async sendContactMessage(
+    name: string,
+    email: string,
+    subject: string,
+    message: string,
+  ): Promise<boolean> {
+    const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'hello@samadal.net';
+    return this.send({
+      to: adminEmail,
+      subject: `[Contact] ${subject}`,
+      html: this.wrapTemplate(`
+        <h1 class="email-heading" style="color: #1a1a1a; margin: 0 0 16px;">Nouveau message de contact</h1>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0;">
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Nom :</strong> ${this.escape(name)}</p>
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Email :</strong> ${this.escape(email)}</p>
+          <p style="margin: 4px 0; font-size: 14px;"><strong>Sujet :</strong> ${this.escape(subject)}</p>
+        </div>
+        <div style="color: #333; font-size: 16px; line-height: 1.7; white-space: pre-line; margin-top: 16px;">
+          ${this.escape(message)}
+        </div>
+        <p style="color: #888; font-size: 13px; margin-top: 24px;">
+          Repondre directement a : <a href="mailto:${this.escape(email)}" style="color: #2563eb;">${this.escape(email)}</a>
+        </p>
+      `),
+    });
+  }
+
   async sendAdminBroadcast(
     to: string,
     userName: string,

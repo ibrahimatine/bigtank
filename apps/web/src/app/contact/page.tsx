@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Mail, MessageCircle, Clock } from 'lucide-react';
+import { ContactForm } from './contact-form';
 
 export const metadata: Metadata = {
   title: 'Contact',
@@ -60,66 +61,7 @@ export default function ContactPage() {
         ))}
       </div>
 
-      <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-8">
-        <h2 className="font-[family-name:var(--font-display)] text-xl font-bold mb-6">
-          Envoyer un message
-        </h2>
-        <form
-          action="mailto:hello@samadal.net"
-          method="get"
-          encType="text/plain"
-          className="space-y-4"
-        >
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="name">Nom</label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Votre nom"
-                className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="email">Email</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="vous@exemple.com"
-                className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium" htmlFor="subject">Sujet</label>
-            <input
-              id="subject"
-              name="subject"
-              type="text"
-              placeholder="Comment pouvons-nous vous aider ?"
-              className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium" htmlFor="message">Message</label>
-            <textarea
-              id="message"
-              name="body"
-              rows={5}
-              placeholder="Decrivez votre demande..."
-              className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30 resize-none"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-3 rounded-lg bg-[var(--color-accent)] text-white font-medium hover:bg-[var(--color-accent)]/90 transition-colors"
-          >
-            Envoyer
-          </button>
-        </form>
-      </div>
+      <ContactForm />
     </div>
   );
 }
