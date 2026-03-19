@@ -257,6 +257,53 @@ export class ListingService {
     });
   }
 
+  async getMyStats(userId: string) {
+    const [
+      activeListings,
+      soldListings,
+      totalListings,
+      viewsData,
+      totalMessages,
+      revenueData,
+    ] = await Promise.all([
+      this.prisma.listing.count({
+        where: { sellerId: userId, status: 'ACTIVE' },
+      }),
+      this.prisma.listing.count({
+        where: { sellerId: userId, status: 'SOLD' },
+      }),
+      this.prisma.listing.count({
+        where: { sellerId: userId, status: { not: 'DELETED' } },
+      }),
+      this.prisma.listing.aggregate({
+        where: { sellerId: userId, status: { not: 'DELETED' } },
+        _sum: { viewsCount: true },
+      }),
+      this.prisma.message.count({
+        where: {
+          conversation: {
+            OR: [{ buyerId: userId }, { sellerId: userId }],
+            isSystem: false,
+          },
+          senderId: { not: userId },
+        },
+      }),
+      this.prisma.listing.aggregate({
+        where: { sellerId: userId, status: 'SOLD' },
+        _sum: { priceXof: true },
+      }),
+    ]);
+
+    return {
+      activeListings,
+      soldListings,
+      totalListings,
+      totalViews: viewsData._sum.viewsCount || 0,
+      totalMessages,
+      totalRevenue: revenueData._sum.priceXof || 0,
+    };
+  }
+
   async findMyListings(userId: string, filters: ListingFiltersDto) {
     const limit = Math.min(filters.limit || DEFAULT_PAGE_SIZE, 100);
 

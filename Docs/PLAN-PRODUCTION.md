@@ -1,6 +1,6 @@
 # Samadal — Plan de mise en production
 
-> Derniere mise a jour : 2026-03-14
+> Derniere mise a jour : 2026-03-19
 > Ce fichier liste TOUT ce qu'il reste a faire avant de passer en production.
 > On coche au fur et a mesure qu'on avance.
 
@@ -30,6 +30,7 @@
 - [x] Emails fonctionnels et testes (bienvenue, reset mdp, notifications)
 - [x] Templates responsive (media queries mobile)
 - [x] Templates : bienvenue, nouveau message, annonce publiee, annonce vendue, paiement, expiration, reset mdp
+- [x] Template email admin broadcast (corrige 2026-03-19 — envoyait le template welcome)
 
 ---
 
@@ -48,6 +49,7 @@
 
 ### 3.4 Search — ✅ FAIT
 - [x] Meilisearch integre directement dans le monolithe
+- [x] Migration vers PostgreSQL ILIKE (Meilisearch supprime pour reduire les couts — 2026-03-18)
 
 ### 3.5 Profil utilisateur — ✅ FAIT
 - [x] Changement mot de passe
@@ -112,9 +114,24 @@
 - [x] Bouton "Vendre mes chaussures" dans le hero fonctionne
 - [x] Nouveau logo Samadal
 
+### 3.15 Chat systeme admin — ✅ FAIT (2026-03-18/19)
+- [x] Conversations systeme (isSystem flag, listingId nullable)
+- [x] Messages admin (suspend, ban, unban, activate, delete listing) apparaissent dans le chat
+- [x] Design bulle Samadal (avatar S accent, nom "Samadal", style distinct)
+- [x] Input masque pour les conversations systeme (lecture seule)
+- [x] Emission WebSocket pour affichage temps reel (corrige 2026-03-19)
+
+### 3.16 Infra simplifiee — ✅ FAIT (2026-03-18)
+- [x] Meilisearch supprime — recherche 100% PostgreSQL (ILIKE)
+- [x] Redis supprime — rate limiting en memoire (MemoryStoreService)
+- [x] Economie couts Railway
+
 ---
 
-## PHASE 4 — PAIEMENTS (Intech)
+## PHASE 4 — PAIEMENTS (Intech) ⏸ EN PAUSE
+
+> En pause — annonces publiees gratuitement pour attirer les premiers vendeurs.
+> A reactiver quand le volume le justifie.
 
 ### 4.1 Configuration
 - [ ] S'assurer que `INTECH_API_KEY` est configure avec la cle de production
@@ -128,28 +145,28 @@
 
 ---
 
-## PHASE 5 — DEPLOIEMENT ✅ QUASI TERMINEE
+## PHASE 5 — DEPLOIEMENT ✅ TERMINEE
 
-> API sur Railway, Frontend sur Vercel, Images sur Cloudflare R2, Search sur Meilisearch Cloud.
-> DNS en cours de propagation (samadal.net → Vercel, api.samadal.net → Railway).
+> API sur Railway, Frontend sur Vercel, Images sur Cloudflare R2.
+> PostgreSQL seul (Redis et Meilisearch supprimes pour reduire les couts).
 
 ### 5.1 Railway ✅
 - [x] Creer le projet Railway
 - [x] Deployer l'API monolithe (apps/api) — Dockerfile single-stage
 - [x] Deployer le frontend sur Vercel (apps/web)
 - [x] Configurer PostgreSQL (Railway addon)
-- [x] Configurer Redis (Railway addon)
+- [x] ~~Redis~~ (supprime 2026-03-18, remplace par memoire)
 
 ### 5.2 Services externes ✅
-- [x] Configurer Meilisearch (Meilisearch Cloud)
+- [x] ~~Meilisearch~~ (supprime 2026-03-18, remplace par PostgreSQL ILIKE)
 - [x] Configurer S3 (Cloudflare R2) pour les images
 - [x] R2 public URL + CORS configure
 
-### 5.3 DNS & Domaine ⏳
+### 5.3 DNS & Domaine ✅
 - [x] Domaine samadal.net achete (LWS)
-- [x] api.samadal.net CNAME → Railway (propage)
-- [x] samadal.net A record → 76.76.21.21 (Vercel) — propagation en cours
-- [ ] SSL automatique (en attente propagation DNS)
+- [x] api.samadal.net CNAME → Railway
+- [x] samadal.net → Vercel
+- [x] SSL automatique (Vercel + Railway)
 
 ### 5.4 Base de donnees
 - [x] Passer de `db:push` a de vraies migrations (`pnpm db:migrate`)
@@ -159,11 +176,11 @@
 ### 5.5 Variables d'environnement production ✅
 - [x] JWT_SECRET (genere)
 - [x] DATABASE_URL (Railway PostgreSQL)
-- [x] REDIS_URL (Railway Redis)
+- [x] ~~REDIS_URL~~ (supprime)
 - [x] RESEND_API_KEY
 - [x] INTECH_API_KEY
 - [x] S3 credentials (Cloudflare R2 : S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_PUBLIC_URL)
-- [x] MEILISEARCH_URL + MEILISEARCH_API_KEY
+- [x] ~~MEILISEARCH_URL + MEILISEARCH_API_KEY~~ (supprime)
 - [x] CORS_ORIGIN configure
 - [x] WEB_URL configure
 - [x] Google OAuth keys (configurees sur Railway)
@@ -174,10 +191,10 @@
 
 ## PHASE 6 — QUALITE & MONITORING
 
-### 6.1 Monitoring (prioritaire) ✅
+### 6.1 Monitoring ✅
 - [x] Sentry installe (frontend Next.js + backend NestJS)
 - [x] DSN configure sur Vercel + Railway
-- [x] Health checks avec verification DB/Redis
+- [x] Health checks avec verification DB
 
 ### 6.2 Logging (optionnel pour le lancement)
 - [ ] Logger structure (Winston/Pino)
@@ -211,15 +228,15 @@
 ## PHASE 8 — CHECKLIST AVANT LANCEMENT
 
 ### 8.1 Checklist
-- [x] Tous les secrets de production configures (17 vars sur Railway)
+- [x] Tous les secrets de production configures
 - [x] `.env` pas dans le repo git (gitignore OK)
 - [x] HTTPS samadal.net (SSL Vercel OK)
 - [x] Emails fonctionnels (Resend + domaine verifie)
 - [x] Paiements en pause (gratuit pour tous, code pret)
-- [x] Chat temps reel OK
-- [x] Admin moderation OK
+- [x] Chat temps reel OK (+ messages systeme admin)
+- [x] Admin moderation OK (+ email broadcast corrige)
 - [x] Images upload OK (Cloudflare R2)
-- [x] Recherche Meilisearch OK (Meilisearch Cloud)
+- [x] Recherche PostgreSQL OK (Meilisearch supprime)
 - [x] Rapide sur mobile (240ms TTFB, ~60KB HTML)
 - [x] Google OAuth OK
 - [x] Sentry monitoring OK
@@ -231,7 +248,35 @@
 ### 8.2 Donnees initiales
 - [x] Compte ADMIN cree
 - [x] Comptes test + annonces test supprimes (base nettoyee)
-- [x] Meilisearch cle de production
+
+---
+
+## PHASE 9 — ACQUISITION & CROISSANCE (NOUVEAU)
+
+> Voir `Docs/STRATEGIE-100-VENDEURS.md` pour le plan detaille.
+
+### 9.1 Features produit pour acquisition
+- [ ] Badge "Vendeur Pionnier" (100 premiers vendeurs)
+- [ ] Bouton partage WhatsApp sur chaque annonce
+- [ ] Compteur de vues par annonce (visible par le vendeur)
+- [ ] Tableau de bord vendeur simple (vues totales, messages, ventes)
+- [ ] Lien partageable avec preview Open Graph (deja en place)
+
+### 9.2 Features produit pour retention
+- [ ] Notification "ton annonce a ete vue X fois"
+- [ ] Gamification : badges (Actif, Top Vendeur)
+- [ ] Classement mensuel Top 10 vendeurs
+
+### 9.3 Monetisation (plus tard)
+- [ ] Boost d'annonces payant (500-1000 FCFA)
+- [ ] Abonnement "Samadal Pro" (2000 FCFA/mois)
+- [ ] Commission sur vente securisee (3-5%)
+
+### 9.4 Marketing terrain
+- [ ] Compte Instagram @samadal.sn cree
+- [ ] Premiers DM envoyes (objectif 150+)
+- [ ] Premiers vendeurs inscrits (objectif 20-30 en 7 jours)
+- [ ] Contenu publie (posts, stories, reels)
 
 ---
 
@@ -246,13 +291,15 @@
 | HAUTE | Phase 5 | Deploiement Railway+Vercel | ✅ FAIT |
 | MOYENNE | Phase 6 | Monitoring (Sentry) | ✅ FAIT |
 | BASSE | Phase 7 | Polish frontend / SEO | ✅ SEO FAIT (reste accessibilite, perf) |
-| FINALE | Phase 8 | Checklist | ✅ QUASI PRET (reste Facebook, tests, Search Console) |
+| FINALE | Phase 8 | Checklist | ✅ QUASI PRET (reste Facebook, tests) |
+| ACTIVE | Phase 9 | Acquisition & Croissance | 🚀 EN COURS |
 
 ---
 
 ## NOTES
 
 - Architecture : monolithe NestJS (`apps/api`) + Next.js (`apps/web`)
-- Deploiement prevu sur Railway (simplifie vs VPS)
+- Deploiement : Railway (API + PostgreSQL) + Vercel (frontend)
 - Anciens microservices archives dans `_archive/`
+- Redis et Meilisearch supprimes (2026-03-18) — PostgreSQL + memoire suffisants
 - On met a jour ce fichier a chaque session

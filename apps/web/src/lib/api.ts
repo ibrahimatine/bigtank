@@ -179,6 +179,20 @@ async function authApiFetch<T>(
   });
 }
 
+// Seller stats
+export interface SellerStats {
+  activeListings: number;
+  soldListings: number;
+  totalListings: number;
+  totalViews: number;
+  totalMessages: number;
+  totalRevenue: number;
+}
+
+export async function getMyStats(): Promise<SellerStats> {
+  return authApiFetch<SellerStats>('/listings/my/stats');
+}
+
 // My listings
 export async function getMyListings(
   cursor?: string,

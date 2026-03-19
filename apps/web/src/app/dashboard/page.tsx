@@ -1,14 +1,51 @@
 import Link from 'next/link';
-import { PlusCircle, ArrowUpCircle } from 'lucide-react';
-import { getMyListings, getMyProfile } from '@/lib/api';
+import { PlusCircle, ArrowUpCircle, Eye, MessageCircle, ShoppingBag, TrendingUp, Package, Banknote } from 'lucide-react';
+import { getMyListings, getMyProfile, getMyStats } from '@/lib/api';
+import type { SellerStats } from '@/lib/api';
 import { MyListingCard } from '@/components/dashboard/my-listing-card';
 import { Button } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
+function formatNumber(n: number): string {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
+  return n.toString();
+}
+
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('fr-SN').format(price) + ' FCFA';
+}
+
+function StatCard({ icon: Icon, label, value, accent }: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="bg-[var(--color-card)] rounded-xl border border-[var(--color-border)] p-4">
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+          accent
+            ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+            : 'bg-[var(--color-muted)] text-[var(--color-muted-foreground)]'
+        }`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="font-[family-name:var(--font-display)] text-xl font-bold truncate">{value}</p>
+          <p className="text-xs text-[var(--color-muted-foreground)] truncate">{label}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function DashboardPage() {
   let role = 'USER';
   let listings: Awaited<ReturnType<typeof getMyListings>>['data'] = [];
+  let stats: SellerStats | null = null;
 
   try {
     const profile = await getMyProfile();
@@ -38,14 +75,31 @@ export default async function DashboardPage() {
   }
 
   try {
-    const result = await getMyListings();
-    listings = result.data;
+    const [listingsResult, statsResult] = await Promise.all([
+      getMyListings(),
+      getMyStats(),
+    ]);
+    listings = listingsResult.data;
+    stats = statsResult;
   } catch {
     // API indisponible
   }
 
   return (
     <div>
+      {/* Stats vendeur */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <StatCard icon={Package} label="Actives" value={stats.activeListings.toString()} accent />
+          <StatCard icon={ShoppingBag} label="Vendues" value={stats.soldListings.toString()} />
+          <StatCard icon={Eye} label="Vues totales" value={formatNumber(stats.totalViews)} accent />
+          <StatCard icon={MessageCircle} label="Messages recus" value={formatNumber(stats.totalMessages)} />
+          <StatCard icon={TrendingUp} label="Annonces" value={stats.totalListings.toString()} />
+          <StatCard icon={Banknote} label="Chiffre d'affaires" value={formatPrice(stats.totalRevenue)} accent />
+        </div>
+      )}
+
+      {/* Header + bouton */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold">
           Mes annonces
@@ -58,6 +112,7 @@ export default async function DashboardPage() {
         </Button>
       </div>
 
+      {/* Liste des annonces */}
       {listings.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {listings.map((listing) => (

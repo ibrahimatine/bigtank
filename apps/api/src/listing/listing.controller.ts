@@ -80,6 +80,12 @@ export class ListingController {
     );
   }
 
+  @Get('my/stats')
+  @UseGuards(JwtAuthGuard)
+  async myStats(@CurrentUser() user: { id: string }) {
+    return this.listingService.getMyStats(user.id);
+  }
+
   @Get('my')
   @UseGuards(JwtAuthGuard)
   async myListings(
