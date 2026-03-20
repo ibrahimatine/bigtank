@@ -74,10 +74,16 @@ export function ProfileForm({ profile }: Props) {
 
     setLoading(true);
     try {
+      // Supprimer les chaines vides pour eviter les erreurs de validation backend
+      const cleanData: Record<string, string> = {};
+      for (const [key, value] of Object.entries(parsed.data)) {
+        if (value !== '') cleanData[key] = value;
+      }
+
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parsed.data),
+        body: JSON.stringify(cleanData),
       });
 
       const data = await res.json();
