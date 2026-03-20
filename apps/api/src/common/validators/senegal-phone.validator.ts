@@ -9,11 +9,13 @@ import {
 export class IsSenegalPhoneConstraint implements ValidatorConstraintInterface {
   validate(phone: unknown) {
     if (typeof phone !== 'string') return false;
-    return /^\+221[0-9]{9}$/.test(phone);
+    if (!phone) return true; // vide = optionnel
+    const cleaned = phone.replace(/[\s\-\.]/g, '');
+    return /^(\+?221|00221)?[0-9]{9}$/.test(cleaned);
   }
 
   defaultMessage() {
-    return 'Le numéro de téléphone doit être au format sénégalais (+221XXXXXXXXX)';
+    return 'Numero invalide (ex: 77 000 00 00 ou +221 77 000 00 00)';
   }
 }
 
