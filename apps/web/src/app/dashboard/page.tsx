@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PlusCircle, ArrowUpCircle, Eye, MessageCircle, ShoppingBag, TrendingUp, Package, Banknote } from 'lucide-react';
+import { PlusCircle, ArrowUpCircle, Eye, ShoppingBag, TrendingUp, Package } from 'lucide-react';
 import { getMyListings, getMyProfile, getMyStats } from '@/lib/api';
 import type { SellerStats } from '@/lib/api';
 import { MyListingCard } from '@/components/dashboard/my-listing-card';
@@ -11,10 +11,6 @@ function formatNumber(n: number): string {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
   if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
   return n.toString();
-}
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('fr-SN').format(price) + ' FCFA';
 }
 
 function StatCard({ icon: Icon, label, value, accent }: {
@@ -89,13 +85,11 @@ export default async function DashboardPage() {
     <div>
       {/* Stats vendeur */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <StatCard icon={Package} label="Actives" value={stats.activeListings.toString()} accent />
           <StatCard icon={ShoppingBag} label="Vendues" value={stats.soldListings.toString()} />
           <StatCard icon={Eye} label="Vues totales" value={formatNumber(stats.totalViews)} accent />
-          <StatCard icon={MessageCircle} label="Messages recus" value={formatNumber(stats.totalMessages)} />
           <StatCard icon={TrendingUp} label="Annonces" value={stats.totalListings.toString()} />
-          <StatCard icon={Banknote} label="Chiffre d'affaires" value={formatPrice(stats.totalRevenue)} accent />
         </div>
       )}
 
@@ -114,7 +108,7 @@ export default async function DashboardPage() {
 
       {/* Liste des annonces */}
       {listings.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {listings.map((listing) => (
             <MyListingCard key={listing.id} listing={listing} />
           ))}
