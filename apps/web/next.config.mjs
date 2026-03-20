@@ -1,9 +1,12 @@
 import withSerwist from '@serwist/next';
 import { withSentryConfig } from '@sentry/nextjs';
 
+const isVercelPreview = process.env.VERCEL_ENV === 'preview';
+
 const withSerwistConfig = withSerwist({
   swSrc: 'src/app/sw.ts',
   swDest: 'public/sw.js',
+  disable: isVercelPreview,
 });
 
 /** @type {import('next').NextConfig} */
