@@ -45,6 +45,9 @@ export function Hero() {
             <span className="font-[family-name:var(--font-display)] text-5xl sm:text-6xl lg:text-8xl leading-[0.9] tracking-wider block">
               PARFAITES
             </span>
+            <span className="font-[family-name:var(--font-display)] text-5xl sm:text-6xl lg:text-8xl leading-[0.9] tracking-wider block">
+              NEUVES OU D'OCCASION
+            </span>
           </h1>
 
           <p className="mt-5 text-white/50 max-w-md text-sm sm:text-base leading-relaxed animate-fade-up" style={{ animationDelay: '200ms' }}>

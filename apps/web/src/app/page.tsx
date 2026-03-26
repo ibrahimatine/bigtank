@@ -7,7 +7,7 @@ import { generateWebsiteJsonLd } from '@/lib/seo';
 const WHY_ITEMS = [
   {
     icon: Ruler,
-    title: 'DU 36 AU 50+',
+    title: 'DU 10 AU 50+',
     desc: 'Petites ou grandes pointures, trouvez enfin la paire a votre taille. Fini les ruptures de stock.',
   },
   {
