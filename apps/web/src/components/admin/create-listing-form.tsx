@@ -62,21 +62,31 @@ export function CreateListingForSellerForm() {
       setUploadProgress(`Upload photo ${i + 1}/${selectedFiles.length}...`);
       const { blob, width, height } = await compressImage(selectedFiles[i]);
 
-      const formData = new FormData();
-      formData.append('file', blob, `photo-${i}.jpg`);
-      formData.append('order', String(i));
-      formData.append('width', String(width));
-      formData.append('height', String(height));
-
-      const res = await fetch(`/api/listings/${listingId}/images/upload`, {
+      // 1. Get presigned URL
+      const presignRes = await fetch(`/api/listings/${listingId}/images/presign`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: `photo-${i}.jpg`, contentType: 'image/jpeg' }),
       });
+      if (!presignRes.ok) throw new Error(`Erreur presign photo ${i + 1}`);
+      const presignData = await presignRes.json();
+      const { uploadUrl, key } = presignData.data || presignData;
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.message || `Erreur upload photo ${i + 1}`);
-      }
+      // 2. Upload directly to storage
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: blob,
+      });
+      if (!uploadRes.ok) throw new Error(`Erreur envoi photo ${i + 1}`);
+
+      // 3. Confirm upload
+      const confirmRes = await fetch(`/api/listings/${listingId}/images/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, order: i, width, height }),
+      });
+      if (!confirmRes.ok) throw new Error(`Erreur confirmation photo ${i + 1}`);
     }
   }
 

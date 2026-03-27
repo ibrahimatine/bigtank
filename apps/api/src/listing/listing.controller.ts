@@ -159,11 +159,11 @@ export class ListingController {
   @UseGuards(JwtAuthGuard)
   async getPresignedUrl(
     @Param('id') id: string,
-    @CurrentUser() user: { id: string },
+    @CurrentUser() user: { id: string; role: string },
     @Body() dto: PresignRequestDto,
   ) {
     const listing = await this.listingService.findById(id);
-    if (listing.sellerId !== user.id) {
+    if (listing.sellerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'Vous ne pouvez ajouter des images que sur vos propres annonces',
       );
@@ -223,11 +223,11 @@ export class ListingController {
   @UseGuards(JwtAuthGuard)
   async confirmImage(
     @Param('id') id: string,
-    @CurrentUser() user: { id: string },
+    @CurrentUser() user: { id: string; role: string },
     @Body() dto: ConfirmImageDto,
   ) {
     const listing = await this.listingService.findById(id);
-    if (listing.sellerId !== user.id) {
+    if (listing.sellerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'Vous ne pouvez ajouter des images que sur vos propres annonces',
       );
