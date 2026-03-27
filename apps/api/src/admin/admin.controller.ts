@@ -164,6 +164,14 @@ export class AdminController {
     });
   }
 
+  @Post('listings/create-for-seller')
+  createListingForSeller(
+    @CurrentUser() user: { id: string },
+    @Body() body: { sellerId: string; title: string; description: string; brand: string; model?: string; sizeEu: number; sizeUs?: number; condition: string; color: string; priceXof: number; locationCity?: string; locationRegion: string },
+  ) {
+    return this.adminService.createListingForSeller(user.id, body);
+  }
+
   @Patch('listings/:id/status')
   updateListingStatus(
     @CurrentUser() user: { id: string },

@@ -4,6 +4,8 @@ import { SearchService } from '../search/search.service';
 import { NotificationService } from '../notification/notification.service';
 import { ChatService } from '../chat/chat.service';
 import { ChatGateway } from '../chat/chat.gateway';
+import { generateListingSlug } from '../common/utils/slug.util';
+import { sanitizeDescription } from '../common/utils/sanitize.util';
 
 @Injectable()
 export class AdminService {
@@ -390,6 +392,69 @@ export class AdminService {
   }
 
   // ============ Listings ============
+
+  async createListingForSeller(
+    adminId: string,
+    dto: {
+      sellerId: string;
+      title: string;
+      description: string;
+      brand: string;
+      model?: string;
+      sizeEu: number;
+      sizeUs?: number;
+      condition: string;
+      color: string;
+      priceXof: number;
+      locationCity?: string;
+      locationRegion: string;
+    },
+  ) {
+    const seller = await this.prisma.user.findUnique({ where: { id: dto.sellerId } });
+    if (!seller) throw new NotFoundException('Vendeur introuvable');
+    if (seller.role !== 'SELLER' && seller.role !== 'ADMIN') {
+      throw new BadRequestException('Cet utilisateur n\'est pas vendeur');
+    }
+
+    const description = sanitizeDescription(dto.description);
+    const locationCity = dto.locationCity || '';
+    const slug = generateListingSlug(dto.brand, dto.model, dto.sizeEu, locationCity);
+
+    const listing = await this.prisma.listing.create({
+      data: {
+        sellerId: dto.sellerId,
+        slug,
+        title: dto.title,
+        description,
+        brand: dto.brand,
+        model: dto.model || '',
+        sizeEu: dto.sizeEu,
+        sizeUs: dto.sizeUs || null,
+        condition: dto.condition as 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR',
+        color: dto.color,
+        priceXof: dto.priceXof,
+        locationCity,
+        locationRegion: dto.locationRegion,
+        status: 'ACTIVE',
+        expiresAt: new Date(Date.now() + 60 * 86400000),
+      },
+      include: { images: true },
+    });
+
+    this.searchService.indexListing(listing).catch(() => {});
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: 'ADMIN_CREATE_LISTING_FOR_SELLER',
+        targetId: listing.id,
+        targetType: 'Listing',
+        details: `${listing.title} — pour ${seller.name} (${seller.email || seller.phone})`,
+      },
+    });
+
+    return { message: 'Annonce creee', listing };
+  }
 
   async getListings(params: {
     page: number;

@@ -71,6 +71,7 @@ export interface ListingSearchResult {
   viewsCount: number;
   thumbnailUrl: string | null;
   imageUrls?: string[];
+  sellerName?: string | null;
   createdAt: number;
 }
 

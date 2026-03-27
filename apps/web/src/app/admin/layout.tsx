@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BarChart3, Users, ShoppingBag, Shield, Receipt, Flag, Wrench } from 'lucide-react';
+import { BarChart3, Users, ShoppingBag, Shield, Receipt, Flag, Wrench, PlusCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: {
@@ -16,6 +16,7 @@ const navItems = [
   { href: '/admin/listings', label: 'Annonces', icon: ShoppingBag, exact: false },
   { href: '/admin/reports', label: 'Signalements', icon: Flag, exact: false },
   { href: '/admin/transactions', label: 'Transactions', icon: Receipt, exact: false },
+  { href: '/admin/create-listing', label: 'Publier', icon: PlusCircle, exact: false },
   { href: '/admin/tools', label: 'Outils', icon: Wrench, exact: false },
 ];
 

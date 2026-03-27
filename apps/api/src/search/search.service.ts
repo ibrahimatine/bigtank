@@ -109,7 +109,10 @@ export class SearchService {
           orderBy,
           take: limit,
           skip: offset,
-          include: { images: { orderBy: { order: 'asc' } } },
+          include: {
+            images: { orderBy: { order: 'asc' } },
+            seller: { select: { name: true } },
+          },
         }),
         this.prisma.listing.count({ where }),
       ]);
@@ -149,6 +152,7 @@ export class SearchService {
     viewsCount: number;
     createdAt: Date;
     images?: { url: string; order: number }[];
+    seller?: { name: string } | null;
   }) {
     const sorted = listing.images?.length
       ? [...listing.images].sort((a, b) => a.order - b.order)
@@ -157,6 +161,7 @@ export class SearchService {
     return {
       id: listing.id,
       sellerId: listing.sellerId,
+      sellerName: listing.seller?.name || null,
       slug: listing.slug,
       title: listing.title,
       description: listing.description,

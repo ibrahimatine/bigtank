@@ -269,6 +269,12 @@ export function ListingCard({ listing }: { listing: ListingSearchResult }) {
             {listing.title}
           </h3>
 
+          {listing.sellerName && (
+            <p className="text-[10px] sm:text-xs text-[var(--color-muted-foreground)] mt-1 truncate">
+              par <span className="font-medium text-[var(--color-foreground)]">{listing.sellerName}</span>
+            </p>
+          )}
+
           <div className="flex items-end justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-[var(--color-border)]/60">
             <span className="font-[family-name:var(--font-display)] text-base sm:text-2xl text-[var(--color-accent)] leading-none tracking-wide">
               {formatPrice(listing.priceXof)}
