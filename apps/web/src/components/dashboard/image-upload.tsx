@@ -75,26 +75,50 @@ export function ImageUpload({ listingId, existingImages, onImagesChange }: Image
       }
 
       try {
-        // 1. Compress & resize image
+        // 0. Compress & resize image
         const { blob, width, height } = await compressImage(file);
 
-        // 2. Upload via API (le backend envoie au stockage)
-        const formData = new FormData();
-        formData.append('file', blob, `photo-${i}.jpg`);
-        formData.append('order', String(existingImages.length + i));
-        formData.append('width', String(width));
-        formData.append('height', String(height));
-
-        const res = await fetch(`/api/listings/${listingId}/images/upload`, {
+        // 1. Get presigned URL via route handler
+        const presignRes = await fetch(`/api/listings/${listingId}/images/presign`, {
           method: 'POST',
-          body: formData,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: 'image/jpeg',
+          }),
         });
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          setError(data.error || data.message || `Erreur upload photo ${i + 1}`);
+        if (!presignRes.ok) {
+          const data = await presignRes.json();
+          setError(data.error || data.message || 'Erreur upload');
           continue;
         }
+
+        const presignData = await presignRes.json();
+        const { uploadUrl, key } = presignData.data || presignData;
+
+        // 2. Upload compressed image to S3
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'image/jpeg' },
+          body: blob,
+        });
+        if (!uploadRes.ok) {
+          setError(`Erreur envoi photo ${i + 1}`);
+          continue;
+        }
+
+        // 3. Confirm upload with real dimensions
+        await fetch(`/api/listings/${listingId}/images/confirm`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            key,
+            order: existingImages.length + i,
+            width,
+            height,
+          }),
+        });
       } catch {
         setError('Erreur lors de l\'upload');
       }
