@@ -9,10 +9,13 @@ import {
   Query,
   Inject,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   ForbiddenException,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { PrismaClient } from '@prisma/client';
 import { ListingService } from './listing.service';
 import { ImageService } from '../image/image.service';
@@ -170,6 +173,50 @@ export class ListingController {
       dto.fileName,
       dto.contentType,
     );
+  }
+
+  @Post(':id/images/upload')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  async uploadImage(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string },
+    @UploadedFile() file: Express.Multer.File,
+    @Body('order') orderStr?: string,
+    @Body('width') widthStr?: string,
+    @Body('height') heightStr?: string,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Aucun fichier envoye');
+    }
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new BadRequestException('Format accepte : JPEG, PNG, WebP');
+    }
+
+    const listing = await this.listingService.findById(id);
+    if (listing.sellerId !== user.id) {
+      throw new ForbiddenException(
+        'Vous ne pouvez ajouter des images que sur vos propres annonces',
+      );
+    }
+
+    const order = orderStr ? parseInt(orderStr, 10) : 0;
+    const width = widthStr ? parseInt(widthStr, 10) : 800;
+    const height = heightStr ? parseInt(heightStr, 10) : 800;
+
+    const result = await this.imageService.uploadImage(
+      id,
+      file.buffer,
+      file.mimetype,
+      order,
+      width,
+      height,
+    );
+
+    this.listingService.reindexListing(id).catch(() => {});
+
+    return result;
   }
 
   @Post(':id/images/confirm')

@@ -124,6 +124,51 @@ export class ImageService {
     });
   }
 
+  /**
+   * Upload image via API (avoids CORS issues with direct S3 upload).
+   * Receives the file buffer, uploads to S3, creates DB record.
+   */
+  async uploadImage(
+    listingId: string,
+    fileBuffer: Buffer,
+    contentType: string,
+    order: number,
+    width: number,
+    height: number,
+  ) {
+    if (fileBuffer.length > MAX_FILE_SIZE) {
+      throw new BadRequestException('Taille max : 5 Mo par image');
+    }
+
+    const existingCount = await this.prisma.listingImage.count({
+      where: { listingId },
+    });
+    if (existingCount >= MAX_IMAGES) {
+      throw new BadRequestException('Maximum 5 images par annonce');
+    }
+
+    const ext =
+      contentType.split('/')[1] === 'jpeg'
+        ? 'jpg'
+        : contentType.split('/')[1] || 'jpg';
+    const key = `listings/${listingId}/${nanoid(12)}.${ext}`;
+
+    await this.s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: contentType,
+      }),
+    );
+
+    const url = `${this.publicUrl}/${key}`;
+
+    return this.prisma.listingImage.create({
+      data: { listingId, url, key, order, width, height },
+    });
+  }
+
   async deleteListingImages(listingId: string): Promise<void> {
     const images = await this.prisma.listingImage.findMany({
       where: { listingId },

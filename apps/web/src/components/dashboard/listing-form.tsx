@@ -145,33 +145,25 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       const file = selectedFiles[i];
       setUploadProgress(`Upload photo ${i + 1}/${selectedFiles.length}...`);
 
-      // 0. Compress & resize
+      // 1. Compress & resize
       const { blob, width, height } = await compressImage(file);
 
-      // 1. Get presigned URL
-      const presignRes = await fetch(`/api/listings/${listingId}/images/presign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: file.name, contentType: 'image/jpeg' }),
-      });
-      if (!presignRes.ok) throw new Error(`Erreur presign photo ${i + 1}`);
-      const presignData = await presignRes.json();
-      const { uploadUrl, key } = presignData.data || presignData;
+      // 2. Upload via API (le backend envoie au stockage)
+      const formData = new FormData();
+      formData.append('file', blob, `photo-${i}.jpg`);
+      formData.append('order', String(i));
+      formData.append('width', String(width));
+      formData.append('height', String(height));
 
-      // 2. Upload compressed image to S3
-      await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'image/jpeg' },
-        body: blob,
+      const res = await fetch(`/api/listings/${listingId}/images/upload`, {
+        method: 'POST',
+        body: formData,
       });
 
-      // 3. Confirm upload with real dimensions
-      const confirmRes = await fetch(`/api/listings/${listingId}/images/confirm`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, order: i, width, height }),
-      });
-      if (!confirmRes.ok) throw new Error(`Erreur confirmation photo ${i + 1}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || data.message || `Erreur upload photo ${i + 1}`);
+      }
     }
   }
 
@@ -222,9 +214,8 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
         if (selectedFiles.length > 0) {
           try {
             await uploadPhotos(listing.id);
-          } catch (uploadErr) {
-            // Listing was created, continue to payment even if upload failed
-            toast.error('Certaines photos n\'ont pas pu etre uploadees');
+          } catch (uploadErr: any) {
+            toast.error(uploadErr?.message || 'Certaines photos n\'ont pas pu etre uploadees');
           }
         }
         setUploadProgress('');
