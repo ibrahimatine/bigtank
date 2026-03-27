@@ -211,15 +211,17 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
 
       if (mode === 'create') {
         // Upload photos if any
+        let uploadFailed = false;
         if (selectedFiles.length > 0) {
           try {
             await uploadPhotos(listing.id);
           } catch (uploadErr: any) {
-            toast.error(uploadErr?.message || 'Certaines photos n\'ont pas pu etre uploadees');
+            uploadFailed = true;
+            toast.error(uploadErr?.message || 'Erreur lors de l\'upload des photos');
           }
         }
         setUploadProgress('');
-        toast.success('Annonce publiee !');
+        toast.success(uploadFailed ? 'Annonce creee mais les photos n\'ont pas pu etre ajoutees' : 'Annonce publiee !');
         router.push('/dashboard');
       } else {
         toast.success('Annonce mise a jour');

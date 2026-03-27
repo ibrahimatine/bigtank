@@ -18,16 +18,17 @@ async function proxyRequest(request: NextRequest, params: Promise<{ path: string
       Authorization: `Bearer ${token}`,
     };
 
-    let body: string | ArrayBuffer | undefined;
+    let body: BodyInit | undefined;
+    const contentType = request.headers.get('content-type');
+    const isMultipart = contentType?.includes('multipart/form-data');
+
     if (request.method !== 'GET' && request.method !== 'DELETE') {
-      const contentType = request.headers.get('content-type');
-      if (contentType?.includes('application/json')) {
+      if (isMultipart) {
+        // File uploads: reconstruct FormData — fetch auto-sets Content-Type with boundary
+        body = await request.formData();
+      } else if (contentType?.includes('application/json')) {
         headers['Content-Type'] = 'application/json';
         body = await request.text();
-      } else if (contentType?.includes('multipart/form-data')) {
-        // Forward multipart as-is (file uploads)
-        headers['Content-Type'] = contentType;
-        body = await request.arrayBuffer();
       }
     }
 
