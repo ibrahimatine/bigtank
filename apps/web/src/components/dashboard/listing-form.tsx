@@ -230,8 +230,15 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
           }
         }
         setUploadProgress('');
-        toast.success(uploadFailed ? 'Annonce creee mais les photos n\'ont pas pu etre ajoutees' : 'Annonce publiee !');
-        router.push('/dashboard');
+        if (uploadFailed) {
+          toast.success('Annonce creee mais les photos n\'ont pas pu etre ajoutees');
+          router.push('/dashboard');
+        } else {
+          const params = new URLSearchParams();
+          if (listing.slug) params.set('slug', listing.slug);
+          if (listing.title || form.title) params.set('title', listing.title || form.title);
+          router.push(`/dashboard/published?${params.toString()}`);
+        }
       } else {
         toast.success('Annonce mise a jour');
         router.push('/dashboard');
