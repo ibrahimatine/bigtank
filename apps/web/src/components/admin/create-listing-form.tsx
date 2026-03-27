@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Search, Loader2, CheckCircle } from 'lucide-react';
+import { ImagePicker } from '@/components/dashboard/image-picker';
 
 const REGIONS = [
   'Dakar', 'Diourbel', 'Fatick', 'Kaffrine', 'Kaolack', 'Kédougou', 'Kolda',
@@ -32,6 +33,8 @@ export function CreateListingForSellerForm() {
   const [searching, setSearching] = useState(false);
   const [sellers, setSellers] = useState<SellerResult[]>([]);
   const [selectedSeller, setSelectedSeller] = useState<SellerResult | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   async function searchSellers() {
     if (searchQuery.trim().length < 2) {
@@ -51,6 +54,29 @@ export function CreateListingForSellerForm() {
       toast.error('Erreur de recherche');
     } finally {
       setSearching(false);
+    }
+  }
+
+  async function uploadPhotos(listingId: string) {
+    for (let i = 0; i < selectedFiles.length; i++) {
+      setUploadProgress(`Upload photo ${i + 1}/${selectedFiles.length}...`);
+      const { blob, width, height } = await compressImage(selectedFiles[i]);
+
+      const formData = new FormData();
+      formData.append('file', blob, `photo-${i}.jpg`);
+      formData.append('order', String(i));
+      formData.append('width', String(width));
+      formData.append('height', String(height));
+
+      const res = await fetch(`/api/listings/${listingId}/images/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || data.message || `Erreur upload photo ${i + 1}`);
+      }
     }
   }
 
@@ -86,11 +112,24 @@ export function CreateListingForSellerForm() {
         body: JSON.stringify(body),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Erreur');
+        throw new Error(data.error || data.message || 'Erreur');
       }
 
+      const listingId = data.listing?.id;
+
+      // Upload photos if any
+      if (selectedFiles.length > 0 && listingId) {
+        try {
+          await uploadPhotos(listingId);
+        } catch (uploadErr: any) {
+          toast.error(uploadErr?.message || 'Certaines photos n\'ont pas pu etre uploadees');
+        }
+      }
+
+      setUploadProgress('');
       toast.success(`Annonce creee pour ${selectedSeller.name}`);
       router.push('/admin/listings');
     } catch (err: any) {
@@ -241,6 +280,17 @@ export function CreateListingForSellerForm() {
           </div>
         </div>
 
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Photos</label>
+          <ImagePicker files={selectedFiles} onChange={setSelectedFiles} />
+        </div>
+
+        {uploadProgress && (
+          <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm">
+            {uploadProgress}
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={loading || !selectedSeller}
@@ -249,7 +299,7 @@ export function CreateListingForSellerForm() {
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Publication en cours...
+              {uploadProgress || 'Publication en cours...'}
             </>
           ) : (
             'Publier l\'annonce'
@@ -258,4 +308,46 @@ export function CreateListingForSellerForm() {
       </form>
     </div>
   );
+}
+
+const MAX_DIMENSION = 1200;
+
+function compressImage(file: File): Promise<{ blob: Blob; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { naturalWidth: width, naturalHeight: height } = img;
+      URL.revokeObjectURL(img.src);
+
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round((height * MAX_DIMENSION) / width);
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round((width * MAX_DIMENSION) / height);
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error('Compression echouee'));
+          resolve({ blob, width, height });
+        },
+        'image/jpeg',
+        0.85,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Image invalide'));
+    };
+    img.src = URL.createObjectURL(file);
+  });
 }

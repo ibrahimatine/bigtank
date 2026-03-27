@@ -180,7 +180,7 @@ export class ListingController {
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
   async uploadImage(
     @Param('id') id: string,
-    @CurrentUser() user: { id: string },
+    @CurrentUser() user: { id: string; role: string },
     @UploadedFile() file: Express.Multer.File,
     @Body('order') orderStr?: string,
     @Body('width') widthStr?: string,
@@ -195,7 +195,7 @@ export class ListingController {
     }
 
     const listing = await this.listingService.findById(id);
-    if (listing.sellerId !== user.id) {
+    if (listing.sellerId !== user.id && user.role !== 'ADMIN') {
       throw new ForbiddenException(
         'Vous ne pouvez ajouter des images que sur vos propres annonces',
       );
