@@ -253,6 +253,13 @@ export class AdminController {
     return this.adminService.unbanIp(id);
   }
 
+  @Post('tools/cleanup-unverified')
+  cleanupUnverified(
+    @Body() body: { confirm?: boolean },
+  ) {
+    return this.adminService.cleanupUnverified(body.confirm || false);
+  }
+
   @Post('tools/cleanup-inactive')
   cleanupInactive(
     @Body() body: { confirm?: boolean },

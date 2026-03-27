@@ -344,46 +344,49 @@ export class AdminService {
       throw new ForbiddenException('Impossible de supprimer un autre admin');
     }
 
-    // Soft-delete : ban + marque comme supprime
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        status: UserStatus.BANNED,
-        suspendedAt: new Date(),
-        suspendedReason: 'Compte supprime par admin',
-      },
-    });
-
-    // Supprimer les annonces actives
-    const activeListings = await this.prisma.listing.findMany({
-      where: { sellerId: userId, status: { in: ['ACTIVE', 'DRAFT', 'RESERVED'] } },
+    // Supprimer les annonces de la recherche
+    const userListings = await this.prisma.listing.findMany({
+      where: { sellerId: userId },
       select: { id: true },
     });
-
-    if (activeListings.length > 0) {
-      await this.prisma.listing.updateMany({
-        where: { id: { in: activeListings.map(l => l.id) } },
-        data: { status: ListingStatus.DELETED, deletedAt: new Date(), deletedBy: adminId },
-      });
-
-      for (const listing of activeListings) {
-        this.searchService.removeListing(listing.id).catch(() => {});
-      }
+    for (const listing of userListings) {
+      this.searchService.removeListing(listing.id).catch(() => {});
     }
 
-    await this.prisma.refreshToken.deleteMany({ where: { userId } });
+    // Suppression definitive (hard delete)
+    // 1. Trouver les conversations ou l'user est implique
+    const conversations = await this.prisma.conversation.findMany({
+      where: { OR: [{ buyerId: userId }, { sellerId: userId }] },
+      select: { id: true },
+    });
+    const convIds = conversations.map(c => c.id);
 
+    // 2. Supprimer messages de ces conversations, puis les conversations
+    if (convIds.length > 0) {
+      await this.prisma.message.deleteMany({ where: { conversationId: { in: convIds } } });
+      await this.prisma.conversation.deleteMany({ where: { id: { in: convIds } } });
+    }
+
+    // 3. Supprimer les autres relations sans cascade
+    await this.prisma.report.deleteMany({ where: { userId } });
+    await this.prisma.auditLog.deleteMany({ where: { userId } });
+    await this.prisma.listing.deleteMany({ where: { sellerId: userId } });
+
+    // 4. Supprimer l'utilisateur (cascade: refreshToken, notification, sellerStats)
+    await this.prisma.user.delete({ where: { id: userId } });
+
+    // Log d'audit avec l'admin (le log de l'user supprime est deja cascade)
     await this.prisma.auditLog.create({
       data: {
         userId: adminId,
-        action: 'ADMIN_DELETE_USER',
+        action: 'ADMIN_HARD_DELETE_USER',
         targetId: userId,
         targetType: 'User',
-        details: `${user.name} (${user.email || user.phone}) — ${activeListings.length} annonce(s) supprimee(s)`,
+        details: `${user.name} (${user.email || user.phone}) — ${userListings.length} annonce(s) — suppression definitive`,
       },
     });
 
-    return { message: 'Utilisateur supprime', listingsDeleted: activeListings.length };
+    return { message: 'Utilisateur supprime definitivement', listingsDeleted: userListings.length };
   }
 
   // ============ Listings ============
@@ -770,6 +773,56 @@ export class AdminService {
 
     await this.prisma.bannedIp.delete({ where: { id } });
     return { message: `IP ${banned.ip} debannie` };
+  }
+
+  async cleanupUnverified(confirm: boolean) {
+    // Comptes non verifies : email non verifie, crees il y a plus de 3 jours
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 3);
+
+    const unverifiedUsers = await this.prisma.user.findMany({
+      where: {
+        emailVerified: false,
+        createdAt: { lt: cutoff },
+        role: 'USER',
+      },
+      select: { id: true, name: true, email: true, phone: true, createdAt: true },
+    });
+
+    if (!confirm) {
+      return {
+        preview: true,
+        count: unverifiedUsers.length,
+        users: unverifiedUsers.slice(0, 20),
+      };
+    }
+
+    // Suppression definitive de chaque user
+    let deleted = 0;
+    for (const user of unverifiedUsers) {
+      try {
+        // Conversations
+        const convs = await this.prisma.conversation.findMany({
+          where: { OR: [{ buyerId: user.id }, { sellerId: user.id }] },
+          select: { id: true },
+        });
+        const convIds = convs.map(c => c.id);
+        if (convIds.length > 0) {
+          await this.prisma.message.deleteMany({ where: { conversationId: { in: convIds } } });
+          await this.prisma.conversation.deleteMany({ where: { id: { in: convIds } } });
+        }
+
+        await this.prisma.report.deleteMany({ where: { userId: user.id } });
+        await this.prisma.auditLog.deleteMany({ where: { userId: user.id } });
+        await this.prisma.listing.deleteMany({ where: { sellerId: user.id } });
+        await this.prisma.user.delete({ where: { id: user.id } });
+        deleted++;
+      } catch (err) {
+        this.logger.warn(`Echec suppression user ${user.id}: ${err}`);
+      }
+    }
+
+    return { preview: false, deleted, total: unverifiedUsers.length };
   }
 
   async cleanupInactive(confirm: boolean) {

@@ -4,6 +4,7 @@ import { ReindexButton } from '@/components/admin/reindex-button';
 import { MassEmailForm } from '@/components/admin/mass-email-form';
 import { BanIpForm } from '@/components/admin/ban-ip-form';
 import { CleanupInactiveButton } from '@/components/admin/cleanup-inactive-button';
+import { CleanupUnverifiedButton } from '@/components/admin/cleanup-unverified-button';
 
 export const metadata: Metadata = { title: 'Outils' };
 export const dynamic = 'force-dynamic';
@@ -43,7 +44,17 @@ export default async function AdminToolsPage() {
           <BanIpForm initialIps={bannedIps} />
         </div>
 
-        {/* Cleanup */}
+        {/* Cleanup non verifies */}
+        <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5">
+          <h2 className="font-semibold mb-2">Nettoyage comptes non verifies</h2>
+          <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
+            Supprimer definitivement les comptes dont l&apos;email n&apos;est pas verifie depuis plus de 3 jours.
+            Ce sont souvent des faux comptes ou des erreurs de saisie.
+          </p>
+          <CleanupUnverifiedButton />
+        </div>
+
+        {/* Cleanup inactifs */}
         <div className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-xl p-5">
           <h2 className="font-semibold mb-2">Nettoyage comptes inactifs</h2>
           <p className="text-sm text-[var(--color-muted-foreground)] mb-4">

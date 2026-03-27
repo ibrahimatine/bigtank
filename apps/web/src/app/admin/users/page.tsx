@@ -64,6 +64,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
           <option value="">Tous les statuts</option>
           <option value="ACTIVE">Actif</option>
           <option value="SUSPENDED">Suspendu</option>
+          <option value="BANNED">Banni</option>
         </select>
         <button
           type="submit"

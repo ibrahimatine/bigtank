@@ -92,15 +92,51 @@ export function UserActions({ userId, userStatus, userName }: UserActionsProps) 
   // Banned user
   if (userStatus === 'BANNED') {
     return (
-      <div className="flex items-center gap-1.5">
-        <button
-          onClick={handleUnban}
-          disabled={loading}
-          className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
-        >
-          {loading ? '...' : 'Débannir'}
-        </button>
-      </div>
+      <>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleUnban}
+            disabled={loading}
+            className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
+          >
+            {loading ? '...' : 'Débannir'}
+          </button>
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={loading}
+            className="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        {/* Modal Supprimer */}
+        {showDeleteDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-[var(--color-card)] rounded-xl p-6 w-full max-w-md shadow-xl">
+              <h3 className="font-semibold mb-1 text-red-600">Supprimer definitivement {userName}</h3>
+              <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
+                Le compte, ses annonces, ses messages et toutes ses donnees seront supprimes de la base de donnees. Cette action est irreversible.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteDialog(false)}
+                  className="text-sm px-4 py-2 rounded-lg hover:bg-[var(--color-muted)] transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Suppression...' : 'Supprimer definitivement'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
@@ -223,9 +259,9 @@ export function UserActions({ userId, userStatus, userName }: UserActionsProps) 
       {showDeleteDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-[var(--color-card)] rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="font-semibold mb-1 text-red-600">Supprimer {userName}</h3>
+            <h3 className="font-semibold mb-1 text-red-600">Supprimer definitivement {userName}</h3>
             <p className="text-sm text-[var(--color-muted-foreground)] mb-4">
-              Le compte sera banni et toutes ses annonces supprimées. Cette action est irréversible.
+              Le compte, ses annonces, ses messages et toutes ses donnees seront supprimes de la base de donnees. Cette action est irreversible.
             </p>
             <div className="flex gap-3 justify-end">
               <button
