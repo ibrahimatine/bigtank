@@ -181,6 +181,12 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
     setError('');
     setFieldErrors({});
 
+    // Verifier les photos en mode creation
+    if (mode === 'create' && selectedFiles.length === 0) {
+      setError('Ajoute au moins une photo pour publier');
+      return;
+    }
+
     const parsed = listingSchema.safeParse(form);
     if (!parsed.success) {
       const errors: Record<string, string> = {};
@@ -219,26 +225,39 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
       const listing = data.data || data;
 
       if (mode === 'create') {
-        // Upload photos if any
+        // 1. Upload les photos
         let uploadFailed = false;
-        if (selectedFiles.length > 0) {
-          try {
-            await uploadPhotos(listing.id);
-          } catch (uploadErr: any) {
-            uploadFailed = true;
-            toast.error(uploadErr?.message || 'Erreur lors de l\'upload des photos');
-          }
+        try {
+          await uploadPhotos(listing.id);
+        } catch (uploadErr: any) {
+          uploadFailed = true;
+          toast.error(uploadErr?.message || 'Erreur lors de l\'upload des photos');
         }
         setUploadProgress('');
+
         if (uploadFailed) {
-          toast.success('Annonce creee mais les photos n\'ont pas pu etre ajoutees');
-          router.push('/dashboard');
-        } else {
-          const params = new URLSearchParams();
-          if (listing.slug) params.set('slug', listing.slug);
-          if (listing.title || form.title) params.set('title', listing.title || form.title);
-          router.push(`/dashboard/published?${params.toString()}`);
+          toast.error('Les photos n\'ont pas pu etre ajoutees. Vous pouvez les ajouter depuis la page d\'edition.');
+          router.push(`/dashboard/${listing.id}/edit`);
+          return;
         }
+
+        // 2. Publier l'annonce (DRAFT -> ACTIVE)
+        setUploadProgress('Publication en cours...');
+        const publishRes = await fetch(`/api/listings/${listing.id}/publish`, {
+          method: 'POST',
+        });
+
+        if (!publishRes.ok) {
+          const publishData = await publishRes.json();
+          toast.error(publishData.error || publishData.message || 'Erreur lors de la publication');
+          router.push(`/dashboard/${listing.id}/edit`);
+          return;
+        }
+
+        const params = new URLSearchParams();
+        if (listing.slug) params.set('slug', listing.slug);
+        if (listing.title || form.title) params.set('title', listing.title || form.title);
+        router.push(`/dashboard/published?${params.toString()}`);
       } else {
         toast.success('Annonce mise a jour');
         router.push('/dashboard');
@@ -436,15 +455,21 @@ export function ListingForm({ mode, initialData }: ListingFormProps) {
         </div>
       )}
 
+      {mode === 'create' && selectedFiles.length === 0 && (
+        <p className="text-sm text-red-500 text-center">
+          Ajoute au moins une photo pour publier
+        </p>
+      )}
+
       <Button
         type="submit"
         className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent)]/90"
-        disabled={loading}
+        disabled={loading || (mode === 'create' && selectedFiles.length === 0)}
       >
         {loading
           ? uploadProgress || 'Sauvegarde...'
           : mode === 'create'
-            ? 'Creer l\'annonce'
+            ? 'Publier l\'annonce'
             : 'Enregistrer les modifications'}
       </Button>
     </form>

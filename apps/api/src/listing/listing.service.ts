@@ -61,7 +61,7 @@ export class ListingService {
         priceXof: dto.priceXof,
         locationCity,
         locationRegion: dto.locationRegion,
-        status: 'ACTIVE',
+        status: 'DRAFT',
         expiresAt: new Date(Date.now() + 60 * 86400000),
       },
       include: { images: true },
@@ -158,6 +158,18 @@ export class ListingService {
       );
     }
 
+    // Verifier qu'il y a au moins 1 image pour publier
+    if (newStatus === 'ACTIVE') {
+      const imageCount = await this.prisma.listingImage.count({
+        where: { listingId: id },
+      });
+      if (imageCount === 0) {
+        throw new BadRequestException(
+          'Au moins une image est requise pour publier une annonce',
+        );
+      }
+    }
+
     const updated = await this.prisma.listing.update({
       where: { id },
       data: { status: newStatus as 'ACTIVE' | 'SOLD' | 'RESERVED' },
@@ -209,6 +221,15 @@ export class ListingService {
   }
 
   async activateAfterPayment(id: string, expiresAt: Date) {
+    const imageCount = await this.prisma.listingImage.count({
+      where: { listingId: id },
+    });
+    if (imageCount === 0) {
+      throw new BadRequestException(
+        'Au moins une image est requise pour publier une annonce',
+      );
+    }
+
     const listing = await this.prisma.listing.update({
       where: { id },
       data: { status: 'ACTIVE', expiresAt },

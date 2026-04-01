@@ -136,6 +136,15 @@ export class ListingController {
     return this.listingService.update(id, user.id, dto);
   }
 
+  @Post(':id/publish')
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  async publish(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string },
+  ) {
+    return this.listingService.updateStatus(id, user.id, 'ACTIVE');
+  }
+
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
   async updateStatus(
