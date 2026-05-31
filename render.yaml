@@ -15,7 +15,7 @@ services:
     repo: https://github.com/ibrahimatine/bigtank
     autoDeploy: true
     healthCheckPath: /api/health
-    buildCommand: corepack enable && corepack prepare pnpm@10.29.3 --activate && pnpm install --frozen-lockfile && pnpm db:generate && pnpm --filter @samadal/shared-types build && pnpm --filter @samadal/shared-utils build && pnpm --filter @samadal/database build && pnpm --filter api build
+    buildCommand: npm install -g pnpm@10.29.3 && pnpm install --frozen-lockfile && pnpm db:generate && pnpm --filter @samadal/shared-types build && pnpm --filter @samadal/shared-utils build && pnpm --filter @samadal/database build && pnpm --filter api build
     startCommand: cd packages/database && npx prisma migrate deploy && cd /opt/render/project/src && node apps/api/dist/main.js
     envVars:
       - key: DATABASE_URL
